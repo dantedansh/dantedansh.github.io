@@ -262,7 +262,6 @@ GEM
     unf_ext (0.0.7.7)
     unf_ext (0.0.7.7-x64-mingw32)
     unicode-display_width (1.7.0)
-    wdm (0.1.1)
 
 PLATFORMS
   ruby
@@ -272,9 +271,8 @@ DEPENDENCIES
   github-pages
   jekyll-feed (~> 0.6)
   jekyll-include-cache
-  minima (~> 2.0)
+  minima (~> 2.5.1)
   tzinfo-data
-  wdm (~> 0.1.0)
 
 BUNDLED WITH
-   2.0.2
+   2.3.19
