@@ -23,7 +23,7 @@ description              : "Publicaciones sobre ciberseguridad y CTFs."
 url                      : "https://dantedansh.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "dantedansh.github.io" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
-logo                     : "/assets/images/masthead.png"
+logo                     : "/assets/images/dansh.png"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 breadcrumbs              : true # true, false (default)
 words_per_minute         : 200
@@ -102,7 +102,7 @@ analytics:
 # Site Author
 author:
   name             : "Dansh"
-  avatar           : "/assets/images/21.jpg"
+  avatar           : "/assets/images/black.jpg"
   bio              : "Pentester, CTF player<br>HackTheBox DHG"
   location         : "México"
   email            : "dante.dansh@gmail.com"
@@ -117,7 +117,7 @@ author:
   github           : "dantedansh"
   gitlab           :
   google_plus      :
-  keybase          : ""
+# keybase         : ""
   instagram        :
   lastfm           :
   linkedin         : # "john-doe-12345678" (the last part of your profile url, e.g. https://www.linkedin.com/in/john-doe-12345678)
@@ -130,8 +130,7 @@ author:
   vine             :
   weibo            :
   xing             :
-  youtube          : # "https://youtube.com/c/MichaelRoseDesign"
-
+  youtube          :
 
 # Reading Files
 include:
