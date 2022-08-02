@@ -3,7 +3,7 @@ main:
     url: /
   - title: "Publicaciones"
     url: /year-archive/
-  - title: "Categorias"
+  - title: "Categorías"
     url: /categories/
   - title: "Etiquetas"
     url: /tags/
