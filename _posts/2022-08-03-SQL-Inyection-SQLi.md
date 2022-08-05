@@ -28,3 +28,6 @@ Debemos recordar que una tabla en **MySQL** se conforma por partes:
 ![Tabla](/assets/images/SQLi/tabla.png "Imagen de TryHackMe")
 
 Vemos que está conformada por filas y columnas, debemos saber esto, ya que lo necesitaremos más adelante.
+
+# Comandos basicos de MySQL
+

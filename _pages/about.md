@@ -8,4 +8,4 @@ date: 2022-08-01
 
 <br>
 
-<center><img src="/assets/images/goku.gif" height="251" width="500"></center>
+<center><img src="/assets/images/fusion.gif" height="251" width="500"></center>
