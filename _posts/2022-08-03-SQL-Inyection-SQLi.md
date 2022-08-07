@@ -22,10 +22,17 @@ tags:
 
 <br>
 
+
+
 # ¿Cómo está conformada una base de datos?
 
-![Tabla](/assets/images/SQLi/DBMS.png "Imagen de TryHackMe")
+![Tabla](/assets/images/SQLi/DBMS.png)
 
+En el primer bloque vemos que está el servidor de la base de datos, que este es el que contiene las bases de datos dentro de ella.
+
+Después vemos que en la base de datos "Escuela" tiene 2 tablas, una de Alumnos y otra de Aulas, y cada tabla tiene sus respectivos valores que se asignaron en el DBMS.
+
+Al lado derecho vemos otra base de datos que es prácticamente lo mismo pero con diferente información, pero vemos que es posible tener más de 1 base de datos dentro del servidor de bases de datos.
 
 
 
@@ -55,9 +62,22 @@ Una columna que contenga de valor un número puede generar un *"key field"*, que
 
 **Filas:**
 
-Las filas son las que contienen los campos de datos separados, cuando se agregan datos a una tabla se crea una fila la cual contedra estos datos.
+Las filas son las que contienen los campos de datos separados, cuando se agregan datos a una tabla se crea una fila la cual contendrá estos datos.
 
-como se ve a continuacion:
+como se ve a continuación:
 
 ![Tabla](/assets/images/SQLi/tabla2.png)
 
+
+
+# Bases de datos relacionales y no relacionales
+
+**Relacional:**
+
+Una **base de datos relacional** es la que guarda datos en tablas y es común que se compartan información entre ellas, y estas tablas usan columnas para saber de qué son los datos que estás mostrando en esa tabla, y las filas son los datos para esas columnas que especificamos, por ejemplo la columna "Nombre" puede tener una fila con un dato conforme al valor de lo que definimos anteriormente, por ejemplo un nombre seria "Dansh".
+
+Estas tablas comúnmente contienen una **ID** que esta **ID** se puede usar para hacer referencia a ellas en otras tablas y como comparten información se le llama **"Base de datos Relacional"**.
+
+**No Relacional:**
+
+Y la **base de datos no relacional** que se les llama NoSQL, a las relacionales se les dice MySQL, entonces como esta es **no relacional** no usa ni tablas, ni columnas ni filas, esto lo almacena como si fuese un documento con una estructura básica como **XML** o **JSON**, y cada registro se le asigna una clave única para poder ubicar esos datos.
