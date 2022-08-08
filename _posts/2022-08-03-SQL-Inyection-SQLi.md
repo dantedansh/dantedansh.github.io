@@ -16,6 +16,7 @@ tags:
 ---
 
 
+
 # ¿Que es SQLi?
 
 **SQLi** es un ataque hacia un servidor de bases de datos web que consiste en ejecutar peticiones maliciosas usando la entrada de usuario, esto sucede cuando no está bien sanitizada la base de datos y podríamos aprovecharnos de esto para desplegar las bases de datos que están disponibles en el servidor web.
@@ -34,7 +35,7 @@ Después vemos que en la base de datos "Escuela" tiene 2 tablas, una de Alumnos 
 
 Al lado derecho vemos otra base de datos que es prácticamente lo mismo pero con diferente información, pero vemos que es posible tener más de 1 base de datos dentro del servidor de bases de datos.
 
-
+<br>
 
 # ¿Cómo está conformada una tabla de datos?
 
@@ -68,7 +69,7 @@ como se ve a continuación:
 
 ![Tabla](/assets/images/SQLi/tabla2.png)
 
-
+<br>
 
 # Bases de datos relacionales y no relacionales
 
@@ -81,3 +82,89 @@ Estas tablas comúnmente contienen una **ID** que esta **ID** se puede usar para
 **No Relacional:**
 
 Y la **base de datos no relacional** que se les llama NoSQL, a las relacionales se les dice MySQL, entonces como esta es **no relacional** no usa ni tablas, ni columnas ni filas, esto lo almacena como si fuese un documento con una estructura básica como **XML** o **JSON**, y cada registro se le asigna una clave única para poder ubicar esos datos.
+
+
+<br>
+
+# Creando una base de datos para la prueba
+
+Primero debemos iniciar el servicio mysql desde la terminal:
+
+`service mysql start`
+
+Ahora como root nos conectaremos al servidor de la base de datos:
+
+`mysql -u root`
+
+En este momento se nos desplegará una consola interactiva de mariaDB, que es un DBMS, ahora le diremos que nos muestre las bases de datos disponibles:
+
+`MariaDB [(none)]> show databases;`
+
+Y nos mostrará:
+
+![Show](/assets/images/SQLi/show.png)
+
+Vemos que por defecto hay 3 bases de datos, nosotros agregaremos una para la prueba con **create database**:
+
+`MariaDB [(none)]> create database Escuela;`
+
+Esto nos habrá creado la base de datos **Escuela**, y podemos comprobarlo al volver a ejecutar show databases:
+
+![Escuela](/assets/images/SQLi/Escuela.png)
+
+Como vemos se agregó la base de datos **Escuela** al servidor de bases de datos.
+
+Ahora debemos usar esa base de datos por lo que hacemos con **use**:
+
+`MariaDB [(none)]> use Escuela;`
+
+Una vez estemos conectados a la base de datos **Escuela**, como esta base de datos no tiene tablas crearemos una:
+
+`MariaDB [Escuela]> create table Alumnos(id int(2), usuario varchar(30), contraseña varchar(30));`
+
+Primero, estamos creando la tabla con el nombre **Alumnos**, esta tabla estará dentro de la base de datos **Escuela**.
+
+Después le pasaremos las columnas que creara con su respectivo tipo de dato que almacenara en forma de filas, por ejemplo la columna id contendrá información de tipo entero con 2 espacios de caracteres, después en la columna usuario contendrá 30 espacios de tipo carácter o sea letras, y así crear una fila con ese tipo de dato almacenada, después en contraseña es similar.
+
+Ahora veremos esta tabla recién creada usando **show table**:
+
+![Tabla1](/assets/images/SQLi/tabla1_escuela.png)
+
+En la imagen vemos que efectivamente, se creó la tabla con sus respectivos tipos de datos.
+
+Ahora para ver como esta conformada esta tabla podremos usar **describe**:
+
+`MariaDB [Escuela]> describe Alumnos;`
+
+Y esto nos va a mostrar la información de esta tabla más detallada:
+
+![describe](/assets/images/SQLi/describe.png)
+
+
+Ahora para agregar datos a esta tabla lo que hacemos es usar el **insert**:
+
+`MariaDB [Escuela]> insert into Alumnos(id, usuario, contraseña) values(1, "admin", "Admin3!!$");`
+
+Esta línea lo que hizo fue agregar datos a esta tabla, obviamente debemos pasar los datos correspondientes a sus columnas, primero se usa el **insert** para insertar datos y después el **into** para decirle donde insertara esos datos, después le decimos que los insertara en la tabla **Alumnos**, y posteriormente pasamos los nombres que pusimos a las columnas seguido de los valores con **value** y lo hacemos respetando su orden y tipo de dato.
+
+
+![insert](/assets/images/SQLi/insert.png)
+
+Vemos que hemos ingresado el **insert** anterior y 2 **insert** más.
+
+> Recuerda que cuando se usa **describe** no se está mostrando los datos de la tabla sino su forma de como está hecha, para ver los datos de la tabla se usa otro comando que veremos ahora llamado **select**.
+
+Para ver los datos de una tabla se usa **select** como veremos a continuación:
+
+`MariaDB [Escuela]> select * from Alumnos;`
+
+Aquí le estamos indicando que seleccione * Todo lo de la tabla **Alumnos**.
+
+Y al hacer esto nos mostrará como le dijimos, todos los datos de la tabla **Alumnos**:
+
+![select](/assets/images/SQLi/select.png)
+
+<br>
+
+
+# Formas de filtrar los datos de una tabla
