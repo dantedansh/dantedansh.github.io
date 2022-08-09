@@ -148,7 +148,7 @@ Ahora para agregar datos a esta tabla lo que hacemos es usar el **insert**:
 Esta línea lo que hizo fue agregar datos a esta tabla, obviamente debemos pasar los datos correspondientes a sus columnas, primero se usa el **insert** para insertar datos y después el **into** para decirle donde insertara esos datos, después le decimos que los insertara en la tabla **Alumnos**, y posteriormente pasamos los nombres que pusimos a las columnas seguido de los valores con **value** y lo hacemos respetando su orden y tipo de dato.
 
 
-![insert](/assets/images/SQLi/insert.png)
+![insert](/assets/images/SQLi/insert1.png)
 
 Vemos que hemos ingresado el **insert** anterior y 2 **insert** más.
 
@@ -162,7 +162,7 @@ Aquí le estamos indicando que seleccione * Todo lo de la tabla **Alumnos**.
 
 Y al hacer esto nos mostrará como le dijimos, todos los datos de la tabla **Alumnos**:
 
-![select](/assets/images/SQLi/select.png)
+![select](/assets/images/SQLi/select1.png)
 
 <br>
 
