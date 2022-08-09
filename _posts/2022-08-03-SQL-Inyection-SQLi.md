@@ -143,7 +143,7 @@ Y esto nos va a mostrar la información de esta tabla más detallada:
 
 Ahora para agregar datos a esta tabla lo que hacemos es usar el **insert**:
 
-`MariaDB [Escuela]> insert into Alumnos(id, usuario, contraseña) values(1, "admin", "Admin3!!$");`
+`MariaDB [Escuela]> insert into Alumnos(id, usuario, contraseña) values(1, "ryzen", "Admin3!!$");`
 
 Esta línea lo que hizo fue agregar datos a esta tabla, obviamente debemos pasar los datos correspondientes a sus columnas, primero se usa el **insert** para insertar datos y después el **into** para decirle donde insertara esos datos, después le decimos que los insertara en la tabla **Alumnos**, y posteriormente pasamos los nombres que pusimos a las columnas seguido de los valores con **value** y lo hacemos respetando su orden y tipo de dato.
 
