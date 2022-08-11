@@ -189,6 +189,8 @@ Esto nos va a seleccionar las columnas que especificamos, en este caso son **id*
 
 ![select](/assets/images/SQLi/select_especifico.png)
 
+<br>
+
 Ahora el comando que sigue es **LIMIT**, esto nos va a permitir saltar y mostrar solo una fila o a partir de una fila hacia abajo, por ejemplo:
 
 `MariaDB [Escuela]> select * from Alumnos LIMIT 1;`
@@ -199,6 +201,8 @@ Aquí le estamos indicando que nos seleccione todo de la tabla **Alumnos** para 
 
 > Cuando pasamos solo un valor y no 2 entonces se tomara ese valor como las primeras filas que quieres ver empezando desde la primera.
 
+<br>
+
 Ahora si queremos omitir la primera fila, pero mostrar las siguientes 2 entonces hacemos:
 
 `MariaDB [Escuela]> select * from Alumnos LIMIT 1,2;`
@@ -207,4 +211,35 @@ Y veremos que nos saltó la primera fila, y a partir de la que sigue de la que s
 
 ![select](/assets/images/SQLi/limit1-2.png)
 
-> LIMIT x,y en el valor x va las filas que saltara, y el valor y las filas que mostrara a partir de la que sigue de la que saltamos.
+> LIMIT X,Y en el valor X va las filas que saltara, y el valor Y las filas que mostrara a partir de la que sigue de las que saltamos.
+
+<br>
+
+# cláusula "where" para filtrar datos
+
+Lo primero que veremos es como hacer para que nos filtre datos con precisión de lo que queremos, por ejemplo en esta cadena:
+
+`MariaDB [Escuela]> select * from Alumnos where usuario="dansh";`
+
+Vemos que primero selecciona todo de la tabla **Alumnos**, para después decirle que de la columna **usuario** nos mostrara las filas que tengan el valor de "dansh" en la columna **usuario** y luego nos las muestre, por lo que se verá así:
+
+![select](/assets/images/SQLi/where_1.png)
+
+Como solo hay una fila que en la columna **usuario** tenga el valor de "dansh" solo veremos 1 pero en caso de haber más nos los mostraría.
+
+<br>
+
+Ahora veremos la condición **!=** con **where**:
+
+Ahora veremos lo mismo, pero inverso, ahora queremos ver las filas que NO sean igual a un valor dentro de una columna, por ejemplo, si no queremos que nos muestre las filas que en su columna **usuario** tengan de valor "dansh", haremos esto:
+
+`MariaDB [Escuela]> select * from Alumnos where usuario != "dansh";`
+
+Seleccionamos todo lo de la tabla **Alumnos**, después decimos que las filas de la columna usuario que NO tengan de valor "dansh" se mostraran, así que veremos todas las filas que no tengan de valor "dansh" en la columna **usuario**:
+
+![select](/assets/images/SQLi/where_not.png)
+
+<br>
+
+Ahora veremos la condición **or** con **where**:
+
