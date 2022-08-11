@@ -164,7 +164,47 @@ Y al hacer esto nos mostrará como le dijimos, todos los datos de la tabla **Alu
 
 ![select](/assets/images/SQLi/select1.png)
 
+> SQL no diferencia entre mayúsculas y minúsculas.
+
 <br>
 
 
 # Formas de filtrar los datos de una tabla
+
+El primer comando que usaremos es **select**, ya lo usamos anteriormente, pero no solo nos sirve para mostrar lo que le digamos, tiene más funciones.
+
+> **select** nos sirve para actualizar, eliminar o insertar datos de una tabla.
+
+Como recordamos al hacer:
+
+`MariaDB [Escuela]> select * from Alumnos;`
+
+Esto nos seleccionaba todo lo de la tabla alumnos y posteriormente nos lo mostraba todo, pero también hay maneras de filtrar por si queremos algo en específico.
+
+Si queremos filtrar por algunas columnas en específico y no mostrarnos todo como lo hicimos hace un momento con el signo de * ahora en lugar de ese signo le diremos las columnas que queremos que nos muestre:
+
+`MariaDB [Escuela]> select id,contraseña from Alumnos;`
+
+Esto nos va a seleccionar las columnas que especificamos, en este caso son **id** y **contraseña** de la tabla **Alumnos** y luego las mostrara:
+
+![select](/assets/images/SQLi/select_especifico.png)
+
+Ahora el comando que sigue es **LIMIT**, esto nos va a permitir saltar y mostrar solo una fila o a partir de una fila hacia abajo, por ejemplo:
+
+`MariaDB [Escuela]> select * from Alumnos LIMIT 1;`
+
+Aquí le estamos indicando que nos seleccione todo de la tabla **Alumnos** para después con **LIMIT** mostrarnos limitando el número de filas que saltara y mostrara a partir de una fila en base a los valores que le pasaremos, en este caso solo pusimos 1, que esto significa que solo nos mostrara la primera fila y el resto no, se verá así:
+
+![select](/assets/images/SQLi/limit1.png)
+
+> Cuando pasamos solo un valor y no 2 entonces se tomara ese valor como las primeras filas que quieres ver empezando desde la primera.
+
+Ahora si queremos omitir la primera fila, pero mostrar las siguientes 2 entonces hacemos:
+
+`MariaDB [Escuela]> select * from Alumnos LIMIT 1,2;`
+
+Y veremos que nos saltó la primera fila, y a partir de la que sigue de la que saltamos nos mostró las 2 que seguían hacia abajo viéndose así:
+
+![select](/assets/images/SQLi/limit1-2.png)
+
+> LIMIT x,y en el valor x va las filas que saltara, y el valor y las filas que mostrara a partir de la que sigue de la que saltamos.
