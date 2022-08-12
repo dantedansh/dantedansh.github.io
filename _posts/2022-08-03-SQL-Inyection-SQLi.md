@@ -215,11 +215,11 @@ Y veremos que nos saltó la primera fila, y a partir de la que sigue de la que s
 
 <br>
 
-# cláusula "where" para filtrar datos
+# cláusula "where" para filtrar datos específicamente
 
 Lo primero que veremos es como hacer para que nos filtre datos con precisión de lo que queremos, por ejemplo en esta cadena:
 
-`MariaDB [Escuela]> select * from Alumnos where usuario="dansh";`
+`MariaDB [Escuela]> select * from Alumnos where usuario = "dansh";`
 
 Vemos que primero selecciona todo de la tabla **Alumnos**, para después decirle que de la columna **usuario** nos mostrara las filas que tengan el valor de "dansh" en la columna **usuario** y luego nos las muestre, por lo que se verá así:
 
@@ -243,3 +243,68 @@ Seleccionamos todo lo de la tabla **Alumnos**, después decimos que las filas de
 
 Ahora veremos la condición **or** con **where**:
 
+`MariaDB [Escuela]> select * from Alumnos where usuario = "uriel" or id = 2;`
+
+Esta condición nos da la opción de elegir entre una opción u otra o también ambas, por ejemplo, si queremos ver las filas que en su columna usuario contiene el valor "uriel", o si queremos ver las filas que en su columna id contenga el valor 2, entonces nos mostrará esos valores si la condición se cumple, como vemos aquí:
+
+![select](/assets/images/SQLi/or.png)
+
+Vemos que nos mostró las filas que contenían el valor que pusimos en la condición de acuerdo a su columna, así que vemos que nos muestra la fila que contiene "uriel" en la columna **usuario** y la fila que contiene 2 en la columna **id**.
+
+<br>
+
+Ahora veremos la condición **and** con **where**:
+
+Esto a diferencia de **or**, es que los valores que le pasemos usando **and** todos tienen que ser ciertos, o sea tiene que existir lo que pedimos, ya que de lo contrario aunque falte 1 valor no nos va a mostrar nada, ya que el and depende de que todos existan para poder en este caso mostrarnos sus valores, como recordamos con el **or** aunque 1 valor existiera nos mostraba ese resultado o los que existían sin importar si algunos valores existían o no, y el and con que uno no exista ya no nos mostrara nada, ya que la condición no se cumplió.
+
+por ejemplo:
+
+`MariaDB [Escuela]> select * from Alumnos where usuario = "uriel" and contraseña = "URGD1414_343!!";`
+
+Esto selecciona todo lo de la tabla **Alumnos**, para después decirle que en la columna **usuario** si su valor es "uriel", y también que la columna **contraseña** su valor es URGD1414_343!!, entonces nos va a mostrar los valores:
+
+![select](/assets/images/SQLi/and.png)
+
+> Recuerda que ambas condiciones deben ser ciertas para poder mostrar los valores, lógicamente deben seguir el orden de fila, por ejemplo si decimos que si en la columna de **nombre** existe una fila con valor "uriel", entonces nos la mostrara, cosa que existe por lo que pasa al siguiente valor que es and y lo que decimos es que también en la columna de **contraseña** debe haber una fila con el valor URGD1414_343!!, pero este valor deberá coincidir con la fila de la condición anterior, o sea tiene que ser de la misma fila del usuario uriel, ya que de no serlo no mostrara nada.
+
+<br>
+
+# cláusula "like" para filtrar datos no específicamente
+
+Como vimos en los ejemplos anteriores siempre teníamos que poner exacto el dato o no lo podía detectar, con la cláusula **like** podemos filtrar datos que contengan caracteres sin tener que saber el dato exacto que queremos filtrar.
+
+`MariaDB [Escuela]> select * from Alumnos where usuario like "d%";`
+
+Esta cadena lo que hace es seleccionar todo de la tabla **Alumnos**, para después en la columna **usuario** nos muestre las filas de la columna **usuario** que comiencen con la letra d, usando la cláusula **like**, seguido de la letra con la que queremos que nos filtre las filas que empiecen con dicha letra, y al final del lado derecho de la letra hay un % quiere decir que ese valor o sea d, filtrara en la primera letra del valor de esa fila de la columna **usuario**.
+
+Por lo que nos mostrara en este ejemplo:
+
+![select](/assets/images/SQLi/like_inicio.png)
+
+Podemos ver que nos mostró de la columna **usuario** la fila que su valor iniciaba con una letra d.
+
+<br>
+
+Ahora para hacer lo mismo, pero en vez de que la letra se filtre por el inicio de los datos ahora se filtrara por el final de los datos, quedando la cadena así:
+
+`MariaDB [Escuela]> select * from Alumnos where usuario like "%l";`
+
+Ahora pusimos el signo de % del lado opuesto, ya que ahora queremos que las filas de la columna **usuario** nos muestre las filas que terminen en l.
+
+Por ejemplo:
+
+![select](/assets/images/SQLi/like_fin.png)
+
+Vemos que ahora nos filtró por las filas de la columna **usuario** que en sus filas tengan valores con una l al final, en este caso solo es 1 resultado pero si hubiese más usuarios que terminaran en la letra l obviamente se mostraría también.
+
+<br>
+
+Ahora aparte de filtrar una letra por el inicio o final también podemos filtrar por las filas que tengan ciertos caracteres aunque no sean exactos nos mostrara los que coincidan con esos caracteres.
+
+`MariaDB [Escuela]> select * from Alumnos where usuario like "%e%";`
+
+![select](/assets/images/SQLi/like_medium.png)
+
+Vemos que nos mostró las filas que contenían los caracteres que especificamos en la cadena, estas filas son de la columna **usuario**, en este caso se usan 2 signos de % y en medio los caracteres que queremos filtrar, vemos que lo que nos filtró no importo el orden mientras tuviera los caracteres que ingresamos en orden nos mostrará las filas.
+
+> Recuerda que no solo puede ser 1 carácter como lo mostramos aquí, pueden ser palabras completas para filtrar lo deseado.
