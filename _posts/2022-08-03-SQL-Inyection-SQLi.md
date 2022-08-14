@@ -92,6 +92,8 @@ Primero debemos iniciar el servicio mysql desde la terminal:
 
 `service mysql start`
 
+> Si no tienes instalado el servicio mysql se instala con: `sudo apt install default-mysql-server` en la terminal.
+
 Ahora como root nos conectaremos al servidor de la base de datos:
 
 `mysql -u root`
@@ -187,7 +189,7 @@ Si queremos filtrar por algunas columnas en específico y no mostrarnos todo com
 
 Esto nos va a seleccionar las columnas que especificamos, en este caso son **id** y **contraseña** de la tabla **Alumnos** y luego las mostrara:
 
-![select](/assets/images/SQLi/select_especifico.png)
+![selectesp](/assets/images/SQLi/select_especifico.png)
 
 <br>
 
@@ -197,7 +199,7 @@ Ahora el comando que sigue es **LIMIT**, esto nos va a permitir saltar y mostrar
 
 Aquí le estamos indicando que nos seleccione todo de la tabla **Alumnos** para después con **LIMIT** mostrarnos limitando el número de filas que saltara y mostrara a partir de una fila en base a los valores que le pasaremos, en este caso solo pusimos 1, que esto significa que solo nos mostrara la primera fila y el resto no, se verá así:
 
-![select](/assets/images/SQLi/limit1.png)
+![limit](/assets/images/SQLi/limit1.png)
 
 > Cuando pasamos solo un valor y no 2 entonces se tomara ese valor como las primeras filas que quieres ver empezando desde la primera.
 
@@ -209,7 +211,7 @@ Ahora si queremos omitir la primera fila, pero mostrar las siguientes 2 entonces
 
 Y veremos que nos saltó la primera fila, y a partir de la que sigue de la que saltamos nos mostró las 2 que seguían hacia abajo viéndose así:
 
-![select](/assets/images/SQLi/limit1-2.png)
+![limit2](/assets/images/SQLi/limit1-2.png)
 
 > LIMIT X,Y en el valor X va las filas que saltara, y el valor Y las filas que mostrara a partir de la que sigue de las que saltamos.
 
@@ -223,7 +225,7 @@ Lo primero que veremos es como hacer para que nos filtre datos con precisión de
 
 Vemos que primero selecciona todo de la tabla **Alumnos**, para después decirle que de la columna **usuario** nos mostrara las filas que tengan el valor de "dansh" en la columna **usuario** y luego nos las muestre, por lo que se verá así:
 
-![select](/assets/images/SQLi/where_1.png)
+![where1](/assets/images/SQLi/where_1.png)
 
 Como solo hay una fila que en la columna **usuario** tenga el valor de "dansh" solo veremos 1 pero en caso de haber más nos los mostraría.
 
@@ -237,7 +239,7 @@ Ahora veremos lo mismo, pero inverso, ahora queremos ver las filas que NO sean i
 
 Seleccionamos todo lo de la tabla **Alumnos**, después decimos que las filas de la columna usuario que NO tengan de valor "dansh" se mostraran, así que veremos todas las filas que no tengan de valor "dansh" en la columna **usuario**:
 
-![select](/assets/images/SQLi/where_not.png)
+![wherenot](/assets/images/SQLi/where_not.png)
 
 <br>
 
@@ -247,7 +249,7 @@ Ahora veremos la condición **or** con **where**:
 
 Esta condición nos da la opción de elegir entre una opción u otra o también ambas, por ejemplo, si queremos ver las filas que en su columna usuario contiene el valor "uriel", o si queremos ver las filas que en su columna id contenga el valor 2, entonces nos mostrará esos valores si la condición se cumple, como vemos aquí:
 
-![select](/assets/images/SQLi/or.png)
+![or](/assets/images/SQLi/or.png)
 
 Vemos que nos mostró las filas que contenían el valor que pusimos en la condición de acuerdo a su columna, así que vemos que nos muestra la fila que contiene "uriel" en la columna **usuario** y la fila que contiene 2 en la columna **id**.
 
@@ -263,7 +265,7 @@ por ejemplo:
 
 Esto selecciona todo lo de la tabla **Alumnos**, para después decirle que en la columna **usuario** si su valor es "uriel", y también que la columna **contraseña** su valor es URGD1414_343!!, entonces nos va a mostrar los valores:
 
-![select](/assets/images/SQLi/and.png)
+![and](/assets/images/SQLi/and.png)
 
 > Recuerda que ambas condiciones deben ser ciertas para poder mostrar los valores, lógicamente deben seguir el orden de fila, por ejemplo si decimos que si en la columna de **nombre** existe una fila con valor "uriel", entonces nos la mostrara, cosa que existe por lo que pasa al siguiente valor que es and y lo que decimos es que también en la columna de **contraseña** debe haber una fila con el valor URGD1414_343!!, pero este valor deberá coincidir con la fila de la condición anterior, o sea tiene que ser de la misma fila del usuario uriel, ya que de no serlo no mostrara nada.
 
@@ -279,7 +281,7 @@ Esta cadena lo que hace es seleccionar todo de la tabla **Alumnos**, para despu�
 
 Por lo que nos mostrara en este ejemplo:
 
-![select](/assets/images/SQLi/like_inicio.png)
+![like](/assets/images/SQLi/like_inicio.png)
 
 Podemos ver que nos mostró de la columna **usuario** la fila que su valor iniciaba con una letra d.
 
@@ -293,7 +295,7 @@ Ahora pusimos el signo de % del lado opuesto, ya que ahora queremos que las fila
 
 Por ejemplo:
 
-![select](/assets/images/SQLi/like_fin.png)
+![likend](/assets/images/SQLi/like_fin.png)
 
 Vemos que ahora nos filtró por las filas de la columna **usuario** que en sus filas tengan valores con una l al final, en este caso solo es 1 resultado pero si hubiese más usuarios que terminaran en la letra l obviamente se mostraría también.
 
@@ -303,8 +305,43 @@ Ahora aparte de filtrar una letra por el inicio o final también podemos filtrar
 
 `MariaDB [Escuela]> select * from Alumnos where usuario like "%e%";`
 
-![select](/assets/images/SQLi/like_medium.png)
+![likemedium](/assets/images/SQLi/like_medium.png)
 
 Vemos que nos mostró las filas que contenían los caracteres que especificamos en la cadena, estas filas son de la columna **usuario**, en este caso se usan 2 signos de % y en medio los caracteres que queremos filtrar, vemos que lo que nos filtró no importo el orden mientras tuviera los caracteres que ingresamos en orden nos mostrará las filas.
 
 > Recuerda que no solo puede ser 1 carácter como lo mostramos aquí, pueden ser palabras completas para filtrar lo deseado.
+
+<br>
+
+# La instrucción UNION
+
+Esta instrucción nos permite combinar los resultados de 2 o más instrucciones SELECT, para recuperar datos de otras tablas y así formar una sola, pero para unir 2 tablas o más en una sola primero debemos saber que deben tener el mismo tipo de dato y seguir su orden, veamos un ejemplo, recordemos que tenemos la tabla **Alumnos**, pero agregaremos otra tabla llamada **Maestros**:
+
+![maestros](/assets/images/SQLi/maestros.png)
+
+Vemos que los tipos de datos van en el orden y son iguales a los de la tabla **Alumnos** cuando recién la creamos, lo único que cambio fueron los nombres de las columnas, pero el tipo de dato sigue siendo el mismo!
+
+Así que ingresamos algunos datos a la tabla **Maestros** y veremos nuestras 2 tablas, que son **Maestros** y **Alumnos**:
+
+![2tablas](/assets/images/SQLi/2tablas.png)
+
+Vemos que los tipos de datos para las variables de las columnas son similares, no tienen que tener el mismo tamaño de caracteres a fuerzas, pero si el mismo tipo de dato y el orden, ahora queremos unir esos datos en una sola tabla así que:
+
+`MariaDB [Escuela]> SELECT usuario,contraseña from Alumnos UNION SELECT profesor,password from Maestros;`
+
+Primero seleccionamos las columnas usuario y contraseña con todo y sus filas de la tabla **Alumnos**, posteriormente hicimos la unión con lo siguiente que seleccionamos, o sea las columnas profesor y password con todo y sus filas de la tabla **Maestros**, quedando así el resultado final:
+
+![union](/assets/images/SQLi/union.png)
+
+Vemos que respetamos el orden de las primeras columnas que seleccionamos y en base a ese orden pusimos las filas de la tabla **Maestros**, recuerda que deben estar en orden de tipo de dato y tiene que tener lógica ese orden, ya que no vas a poner una fila de contraseñas donde previamente ya habíamos asignado ese lugar para un usuario, debe respetarse eso y también tiene que ser la misma cantidad de filas que las otras, ya que de poner una de más o una de menos nos dará un error como aquí:
+
+![error](/assets/images/SQLi/error.png)
+
+Agregamos la columna con sus filas de **id** pero como en la siguiente seleccion no hay nada asignado para ese espacio entonces nos da este error.
+
+Por eso debemos respetar el tipo de dato, y el orden.
+
+<br>
+
+# La instrucción INSERT
+
