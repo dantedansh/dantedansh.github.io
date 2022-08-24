@@ -345,3 +345,62 @@ Por eso debemos respetar el tipo de dato, y el orden.
 
 # La instrucción INSERT
 
+Esta instrucción nos permitirá agregar filas a una tabla en respecto a sus columnas, recordemos que nuestra tabla de Alumnos por el momento esta así:
+
+![antes](/assets/images/SQLi/antes.png)
+
+Ahora para agregar otra fila de datos usaremos:
+
+`insert into Alumnos (usuario,contraseña) values ("test","test123);`
+
+Esto lo que hará es insertar en la tabla **Alumnos** datos, en este caso estos datos se agregaran en formato de filas en las columnas seleccionadas, en este caso las columnas a las que agregaremos datos son **usuario** y **contraseña**, por último agregamos los valores a las filas anteriormente seleccionadas usando **values** seguido de sus respectivos datos, y por lógica respetando el orden.
+
+y se verá así:
+
+![insert](/assets/images/SQLi/insert.png)
+
+Vemos que se agregaron los datos, en la columna **id** dice NULL, ya que no asignamos nada en ese valor, pero puedes hacerlo sin problemas.
+
+> Esto anterior ya lo habíamos visto al inicio, pero aquí lo expliqué un poco mejor.
+
+<br>
+
+# La instrucción UPDATE
+
+Esta otra instrucción nos permitirá actualizar datos de filas, por ejemplo primero como recordamos en la tabla **Alumnos** el usuario de **test** no tiene un id:
+
+![null1](/assets/images/SQLi/null1.png)
+
+Ahora con esta instrucción le agregaremos un id y cambiaremos sus datos:
+
+`update Alumnos SET usuario="prueba",contraseña="prueba1525_D",id=4 where usuario="test";`
+
+Lo que hicimos en esta cadena fue usar la instrucción UPDATE, después elegimos la tabla que deseamos actualizar, en este caso es la tabla **Alumnos**, ahora con **SET** le indicamos que asignaremos valores a estas columnas, en este caso actualizaremos la columna **usuario** y su actualización de fila será **prueba**, en la columna **contraseña** su actualización de fila será **prueba1525**, y por último la actualización de fila de la columna **id** será 4, por último ya que tenemos los valores seteados, toca decirle en que fila hará esos cambios, y estos cambios se realizaran en la fila que su columna **usuario** contenga una fila con el dato de **test**, ahí se aplicaran todos los cambios que asignemos.
+
+Y se verá así el UPDATE:
+
+![update](/assets/images/SQLi/update.png)
+
+Y como vemos ya están los datos de esa fila actualizados.
+
+<br>
+
+# La instrucción DELETE
+
+Por último toca la instrucción **DELETE**, como su nombre lo dice, nos sirve para eliminar, esto nos eliminará las filas o fila que deseemos, por ejemplo de nuestra tabla **Alumnos**:
+
+![tabla](/assets/images/SQLi/tablaAlumnos.png)
+
+Queremos eliminar la fila que en su columna **usuario** tenga de valor "prueba", entonces hacemos:
+
+`delete from Alumnos where usuario="prueba";`
+
+![deleteWhere](/assets/images/SQLi/deleteWhere.png)
+
+Y como vemos nos habrá eliminado la fila de la columna **usuario** cuyo valor era "prueba".
+
+Siempre debes usar where, ya que de lo contrario si usas:
+
+`delete from Alumnos;`
+
+Esto va a eliminar toda la tabla **Alumnos**, ya que no especificamos que filas borrar ni algún límite.
