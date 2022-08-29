@@ -452,11 +452,11 @@ Y como no podemos acceder nos dará error y no nos va a dejar acceder a esa secc
 
 `https://sitioweb/blog?id=2;--`
 
-Ahora esto que acabamos de poner alado del id 2, significa como sabemos que el **;** sirve para terminar una consulta de SQL, ose que decimos que ahí debe terminar la consulta y el resto de lo que se hace por detrás se vuelve a un simple comentario, lo que hace que lo que siga del **--** ya no se interprete y se quede como un simple comentario.
+Ahora esto que acabamos de poner alado del id=2, como sabemos que el **;** sirve para terminar una consulta de SQL, osea que decimos que ahí debe terminar la consulta, y alado de eso vemos estos 2 guiones **- -** , lo que hace es que lo que siga del **- -** ya no se interprete y se quede como un simple comentario.
 
 Haciendo esto nos estaríamos saltando la parte donde verifica por detrás si eso está listo o no para verse en base al valor de su private.
 
-Entonces como cerramos la consulta y comentamos el resto y no se interpretara, y esto fue gracias a que tenemos acceso a la base de datos desde el parámetro id, por lo que ejecutara la base de datos será esto:
+Entonces como cerramos la consulta y comentamos el resto y no se interpretara ya que lo que sigue de la consulta es un simple comentario, y esto fue gracias a que tenemos acceso a la base de datos desde el parámetro id, por lo que ejecutara la base de datos será esto:
 
 `select * from blog where id=2;`
 
