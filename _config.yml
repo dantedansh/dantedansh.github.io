@@ -103,7 +103,7 @@ analytics:
 author:
   name             : "Dansh"
   avatar           : "/assets/images/black.jpg"
-  bio              : "Pentester, CTF player<br>HackTheBox DHG"
+  bio              : "CTF player<br>HackTheBox DHG"
   location         : "México"
 #  email           : ""
   uri              :

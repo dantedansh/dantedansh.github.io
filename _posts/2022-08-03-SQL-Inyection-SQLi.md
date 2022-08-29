@@ -17,9 +17,9 @@ tags:
 
 
 
-# ¿Que es SQLi?
+# ¿Que es SQL?
 
-**SQLi** es un ataque hacia un servidor de bases de datos web que consiste en ejecutar peticiones maliciosas usando la entrada de usuario, esto sucede cuando no está bien sanitizada la base de datos y podríamos aprovecharnos de esto para desplegar las bases de datos que están disponibles en el servidor web.
+Antes de ver **SQLi** debemos saber como funciona **SQL**, es un lenguaje de consulta estructurada, esto quiere decir que con las consultas también llamadas declaraciones, nos sirve para manipular una base de datos y organizar información en forma de bases de datos relacionales.
 
 <br>
 
@@ -404,3 +404,64 @@ Siempre debes usar where, ya que de lo contrario si usas:
 `delete from Alumnos;`
 
 Esto va a eliminar toda la tabla **Alumnos**, ya que no especificamos que filas borrar ni algún límite.
+
+<br>
+
+# ¿Que es SQLi?
+
+**SQLi** es un ataque hacia un servidor de bases de datos web que consiste en ejecutar peticiones maliciosas usando la entrada de usuario, esto sucede cuando no está bien sanitizada la base de datos y podríamos aprovecharnos de esto para desplegar las bases de datos que están disponibles en el servidor web.
+
+Ahora veremos un ejemplo:
+
+Supongamos que entramos a la web de un blog, este blog contiene diferentes secciones, y cada sección una tiene un número único de identificación, en este caso el parámetro para diferenciar esas secciones es **id**, también cada sección tiene una configuración en forma de columna donde nos dice si esa seccion de la web esta lista para que el público la vea o aún no, supongamos que si la sección tiene un valor de 0 en la columna **private** quiere decir que esta lista, en caso de que tenga un 1 quiere decir que no esta lista.
+
+Supongamos que nuestra tabla de esta base de datos es algo así:
+
+![blog](/assets/images/SQLi/blog.png)
+
+Supongamos que al entrar a una sección de la página web, en la url vemos lo siguiente:
+
+`https://sitioweb/blog?id=1`
+
+<br>
+
+Como podemos ver esta en el directorio de **blog**, pero también está en la sección donde el **id** sea el valor de 1.
+
+Por detrás en SQL esto podría verse algo así:
+
+`select * from blog where id=1 and private=0 LIMIT 1;`
+
+Vemos que en esta cadena esta mostrándonos los datos que hay en la sección que de **id** sea igual a 1, pero también nos está diciendo que la columna **private** de esa sección debe tener el valor 0, esto significa que debe estar listo para el público, solo así nos mostrara lo que queremos ver, también vemos que se usa el LIMIT 1 para solo mostrarnos una sección y no el resto en caso de haber más.
+
+<br>
+
+Esto es crítico, ya que nosotros en la url podemos ver como se está comunicando con la base de datos viendo el parámetro de **id**, así que si nosotros vamos a otra sección pero desde la url y supongamos que queremos acceder a la sección con un **id** de valor 2, pero esta sección aún no la han puesto en pública ya que tal vez aún no este lista para el público y entonces como recordamos en la url se ve así:
+
+`https://sitioweb/blog?id=2`
+
+y por detrás así:
+
+`select * from blog where id=2 and private=0 LIMIT 1;`
+
+En el **private** debe estar en 0 para mostrarnos dicha sección, pero en este caso como aún este no está listo para el público como vemos nos lo dice en la fila de la columna **private** del valor del **id** 2.
+
+![id2](/assets/images/SQLi/id2.png)
+
+
+Y como no podemos acceder nos dará error y no nos va a dejar acceder a esa sección, ya que el apartado de **private** no se cumplió, pero como dije, esto es crítico porque podría hacer esto:
+
+`https://sitioweb/blog?id=2;--`
+
+Ahora esto que acabamos de poner alado del id 2, significa como sabemos que el **;** sirve para terminar una consulta de SQL, ose que decimos que ahí debe terminar la consulta y el resto de lo que se hace por detrás se vuelve a un simple comentario, lo que hace que lo que siga del **--** ya no se interprete y se quede como un simple comentario.
+
+Haciendo esto nos estaríamos saltando la parte donde verifica por detrás si eso está listo o no para verse en base al valor de su private.
+
+Entonces como cerramos la consulta y comentamos el resto y no se interpretara, y esto fue gracias a que tenemos acceso a la base de datos desde el parámetro id, por lo que ejecutara la base de datos será esto:
+
+`select * from blog where id=2;`
+
+Y no esto:
+
+`select * from blog where id=2 and private=0 LIMIT 1;`
+
+Ya que como recordamos comentamos el resto que seguía de la consulta y ahora nos mostrara todos los datos del id que tenga de valor 2 y podremos ver sin consentimiento lo que hay ahí.
