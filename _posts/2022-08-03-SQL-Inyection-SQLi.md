@@ -492,11 +492,11 @@ Para practicar esta inyección usaremos la página web:
 
 Al abrir esta página web vulnerable para pruebas veremos que nos carga el inicio, y arriba en la sección de **Categories** iremos a la que dice posters por ejemplo:
 
-![posters](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/posters.png)
+![posters](/assets/images/SQLi/posters.png)
 
 Ahora entramos y vemos unos posters en la página web, pero también aparte de esos posters en la url vemos que hay un parámetro en este caso se llama **cat** y de valor tiene 1, o sea que puede que se comunique con la base de datos mostrándonos el contenido que hay en el valor 1, en este caso estos posters.
 
-![cat](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/cat.png)
+![cat](/assets/images/SQLi/cat.png)
 
 Ahora intentaremos romper esta consulta hacia la base de datos usando una comilla, ¿Porque esto?, Es porque por ejemplo la consulta actual en la url es:
 
@@ -521,7 +521,7 @@ Esto en el **DBMS** se interpretara así:
 Y como vemos en la petición del id se agregó una ´ lo cual esto confundirá al **DBMS**, haciendo que nos muestre un error de consulta como este:
 
 
-![comilla](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/comilla.png)
+![comilla](/assets/images/SQLi/comilla.png)
 
 Como vemos ya no nos muestra lo que había en el id 1, que eran los posters, en lugar de eso nos muestra un error de sintaxis porque estaba leyendo desde peticiones web para responder al servidor de bases de datos, pero como las consultas en este caso se hacen desde la url, cosa que no debe hacerse en un entorno real o será vulnerable a sqli, volviendo a lo que decía, vemos que se hace la petición directa de la url por lo que al mostrarnos este error estamos consientes de que ejecuta las consultas desde la url y nos indica que hay una vulnerabilidad de SQL basada en errores, ya que hemos roto la consulta, pero en vez de romperla podriamos empezar a agregar nuestras consultas desde la url y el DBMS nos lo va a interpretar, ya que se pasa directo de la url al DBMS cosa que como dije no debe hacerse o tendrás tu sitio vulnerable.
 
@@ -531,7 +531,7 @@ Ahora lo que sigue sabiendo que el sitio es vulnerable a SQL basado en errores, 
 
 Esto nos servirá para ir descubriendo cuantas tablas nos está regresando sql hacia el servidor web, esto nos interesa para algo que veremos más adelante, primero hay que descubrir cuantas tablas nos está devolviendo, así que para saber cuantas, primero debemos hacer el **order by** y pasarle un valor aproximado, así que para empezar pondremos 50, en la url se verá así:
 
-![50](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/50.png)
+![50](/assets/images/SQLi/50.png)
 
 En la url vemos que pusimos:
 
@@ -539,11 +539,11 @@ En la url vemos que pusimos:
 
 Y como vemos en la imagen, nos da un error, ya que nos hemos pasado de las columnas disponibles, por lo que probaremos con un número más bajo:
 
-![10](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/10.png)
+![10](/assets/images/SQLi/10.png)
 
 Como vemos en la url ahora pusimos 10 y como esta cantidad es menor que las columnas que hay nos carga el contenido sin errores, ahora debemos ir subiendo poco a poco hasta llegar al que sepamos que es el límite, en este caso tras intentar descubrí que el límite de columnas era 11, ya que si era 12 nos daba error porque se pasaba así que ahora sabemos cuantas columnas nos devuelve sql en esta página web
 
-![11](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/11.png)
+![11](/assets/images/SQLi/11.png)
 
 Como vemos en la url sabemos que el límite es 11 columnas, pero aparte vemos 2 guiones como se ve en la imagen, estos guiones:
 
@@ -563,13 +563,13 @@ Ya que de lo contrario si no lo hubiésemos comentado nos daría algún error, y
 
 <br>
 
-Aclarando eso, volveremos a la web, recordamos que sabemos el número de filas exactas devueltas, en este caso 11, por lo que ahora debemos saber en qué parte de la página web se adaptan esas columnas y ver si algunas son visibles para sacar provecho de que las podemos ver como veremos a continuación.
+Aclarando eso, volveremos a la web, recordamos que sabemos el número de columnas exactas devueltas, en este caso 11, por lo que ahora debemos saber en qué parte de la página web se adaptan esas columnas y ver si algunas son visibles para sacar provecho de que las podemos ver como veremos a continuación.
 
 Pero antes de eso debemos saber en qué parte de la web están esas columnas, por lo que aquí entra la parte de **UNION SELECT**.
 
 Primero aquí vemos esto:
 
-![union select](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/union_select.png)
+![union select](/assets/images/SQLi/union_select.png)
 
 Primero vemos que el parámetro **cat** que habíamos mencionado antes ya no es 1, ya que de lo contrario si seguiría siendo 1 nos mostraría lo que hay en el valor 1 de la tabla correspondiente que serian seguramente las secciones de los **posters** como habíamos visto, pero como nosotros no queremos ver eso como primera opción, lo que hice fue cambiar ese 1 por 0 para que nos muestre lo que queremos y no el contenido real, también podríamos agregar un -1 o un **NULL**, haciendo esa parte inválida y dejándonos vacío para lo siguiente que queremos hacer.
 
@@ -581,4 +581,31 @@ Vemos que usamos el operador **UNION** junto con la declaracion **SELECT**, como
 
 <br>
 
-Un ejemplo de que podríamos hacer teniendo a nuestra vista las columnas es lo siguiente,
+Un ejemplo de que podríamos hacer teniendo a nuestra vista las columnas es lo siguiente:
+
+![version](/assets/images/SQLi/version.png)
+
+Vemos en la url:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=0 union select 1,2,3,4,5,6,@@version,8,9,10,11 --`
+
+Que en el lugar del número 7 establecimos el comando @@version, que esto si lo interpreta Sql nos da la versión que corre la base de datos, y como en la imagen vemos en vez del lugar del número 7 nos muestra la versión actual, en este caso es:
+
+`8.0.22-0ubuntu0.20.04.2`
+
+De la misma manera podríamos saber otras cosas como por ejemplo ver la base de datos actual:
+
+![database](/assets/images/SQLi/database.png)
+
+Vemos que ahora la url es:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=0 union select 1,2,3,4,5,6,database(),8,9,10,11 --`
+
+Que esa es la función que nos devuelve la base de datos actual en uso que en este caso se llama **acuart** como vemos en la respuesta de la consulta.
+
+<br>
+
+Ahora seguiremos probando cosas, pero esta vez usando una máquina de una sala de try hack me que es la siguiente:
+
+[TryHackMe](https://tryhackme.com/room/sqlinjectionlm)
+
