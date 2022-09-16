@@ -452,9 +452,9 @@ Y como no podemos acceder nos dará error y no nos va a dejar acceder a esa secc
 
 `https://sitioweb/blog?id=2;--`
 
-Ahora esto que acabamos de poner alado del id=2, como sabemos que el **;** sirve para terminar una consulta de SQL, osea que decimos que ahí debe terminar la consulta, y alado de eso vemos estos 2 guiones **- -** , lo que hace es que lo que siga del **- -** ya no se interprete y se quede como un simple comentario.
+Ahora esto que acabamos de poner alado del id=2 en la petición de la url, como sabemos que el **;** sirve para terminar una consulta de SQL, osea que decimos que ahí debe terminar la consulta, y alado de eso vemos estos 2 guiones **- -** , lo que hace es que lo que siga del **- -** ya no se interprete y se quede como un simple comentario.
 
-Haciendo esto nos estaríamos saltando la parte donde verifica por detrás si eso está listo o no para verse en base al valor de su private.
+Haciendo esto nos estaríamos saltando la parte donde verifica por detrás si eso está listo o no para verse en base al valor de su **private**.
 
 Entonces como cerramos la consulta y comentamos el resto y no se interpretara ya que lo que sigue de la consulta es un simple comentario, y esto fue gracias a que tenemos acceso a la base de datos desde el parámetro id, por lo que ejecutara la base de datos será esto:
 
@@ -465,3 +465,120 @@ Y no esto:
 `select * from blog where id=2 and private=0 LIMIT 1;`
 
 Ya que como recordamos comentamos el resto que seguía de la consulta y ahora nos mostrara todos los datos del id que tenga de valor 2 y podremos ver sin consentimiento lo que hay ahí.
+
+<br>
+
+# Tipos de Inyecciones SQL
+
+**In-Band SQL Inyection** trata sobre una vulnerabilidad no tan complicada, ya que puedes explotar la vulnerabilidad desde la misma página web y ver en pantalla los resultados, existen 2 maneras la **Basada en errores** y **Basada en unión**.
+
+<br>
+
+# Inyección Basada en errores
+
+La inyección SQL **Basada en errores** nos es más útil y rápida para obtener información de como está estructurada la base de datos que corre en la página web, esto nos puede servir para ir enumerando la base de datos conforme a los resultados y podríamos extraer información importante de la **estructura** de la base de datos.
+
+# Inyección Basada en unión
+
+Esta inyección **Basada en unión**, nos es útil para poder extraer datos usando el operador de SQL **UNION** junto con la declaración **SELECT** para devolver grandes cantidades de datos dentro de la base de datos.
+
+<br>
+
+# Prueba de inyección In-Band
+
+Para practicar esta inyección usaremos la página web:
+
+[web vulnerable](http://testphp.vulnweb.com)
+
+Al abrir esta página web vulnerable para pruebas veremos que nos carga el inicio, y arriba en la sección de **Categories** iremos a la que dice posters por ejemplo:
+
+![posters](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/posters.png)
+
+Ahora entramos y vemos unos posters en la página web, pero también aparte de esos posters en la url vemos que hay un parámetro en este caso se llama **cat** y de valor tiene 1, o sea que puede que se comunique con la base de datos mostrándonos el contenido que hay en el valor 1, en este caso estos posters.
+
+![cat](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/cat.png)
+
+Ahora intentaremos romper esta consulta hacia la base de datos usando una comilla, ¿Porque esto?, Es porque por ejemplo la consulta actual en la url es:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=1`
+
+y por detras en el **DBMS** se veria algo así:
+
+`consulta = "select * from listproducts where ProductID = " + Request["1"];`
+
+Supongamos que está haciendo una consulta la cual selecciona todo de la tabla **listproducts** y nos mostrara el apartado donde el id en la respuesta sea igual a 1, o sea en el apartado de la web que estamos, pero hacerlo de esta forma es peligroso, ya que nosotros como usuarios de la web podemos ver la petición que es 1, y como la web se va cambiando automáticamente de id porque es lógico al cambiar de sección, en este caso estamos en el 1 que es el apartado de **posters**.
+
+<br>
+
+Pero volviendo a lo que comente sobre usar una comilla, esto lo hacemos para romper la consulta y esto nos servirá para lo siguiente, primero en la url agregaremos una comilla simple o doble como sea, el caso es ponerla al final del id:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=1'`
+
+Esto en el **DBMS** se interpretara así:
+
+`consulta = "select * from listproducts where ProductID = " + Request["1'"];`
+
+Y como vemos en la petición del id se agregó una ´ lo cual esto confundirá al **DBMS**, haciendo que nos muestre un error de consulta como este:
+
+
+![comilla](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/comilla.png)
+
+Como vemos ya no nos muestra lo que había en el id 1, que eran los posters, en lugar de eso nos muestra un error de sintaxis porque estaba leyendo desde peticiones web para responder al servidor de bases de datos, pero como las consultas en este caso se hacen desde la url, cosa que no debe hacerse en un entorno real o será vulnerable a sqli, volviendo a lo que decía, vemos que se hace la petición directa de la url por lo que al mostrarnos este error estamos consientes de que ejecuta las consultas desde la url y nos indica que hay una vulnerabilidad de SQL basada en errores, ya que hemos roto la consulta, pero en vez de romperla podriamos empezar a agregar nuestras consultas desde la url y el DBMS nos lo va a interpretar, ya que se pasa directo de la url al DBMS cosa que como dije no debe hacerse o tendrás tu sitio vulnerable.
+
+<br>
+
+Ahora lo que sigue sabiendo que el sitio es vulnerable a SQL basado en errores, es intentar que nos cargue el sitio web correcto sin errores en el apartado posters como lo estamos haciendo en este ejemplo, así que usando el operador **order by**.
+
+Esto nos servirá para ir descubriendo cuantas tablas nos está regresando sql hacia el servidor web, esto nos interesa para algo que veremos más adelante, primero hay que descubrir cuantas tablas nos está devolviendo, así que para saber cuantas, primero debemos hacer el **order by** y pasarle un valor aproximado, así que para empezar pondremos 50, en la url se verá así:
+
+![50](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/50.png)
+
+En la url vemos que pusimos:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=1 order by 50`
+
+Y como vemos en la imagen, nos da un error, ya que nos hemos pasado de las columnas disponibles, por lo que probaremos con un número más bajo:
+
+![10](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/10.png)
+
+Como vemos en la url ahora pusimos 10 y como esta cantidad es menor que las columnas que hay nos carga el contenido sin errores, ahora debemos ir subiendo poco a poco hasta llegar al que sepamos que es el límite, en este caso tras intentar descubrí que el límite de columnas era 11, ya que si era 12 nos daba error porque se pasaba así que ahora sabemos cuantas columnas nos devuelve sql en esta página web
+
+![11](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/11.png)
+
+Como vemos en la url sabemos que el límite es 11 columnas, pero aparte vemos 2 guiones como se ve en la imagen, estos guiones:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=1 order by 11 --`
+
+Vemos que hay **--** esto nos sirve para indicarle que el resto de la consulta se convierta en comentario y no se interprete, haciendo que solo se ejecute lo del inicio hasta donde esta dicho comentario, por ejemplo, supongamos que hemos encontrado una web vulnerable, y hacemos una petición a la base de datos desde la url porque encontramos una vulnerabilidad de inyección sql, y la consulta desde la url se verá así por ejemplo:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=1 order by 11 --`
+
+Y la consulta por detrás algo así:
+
+`consulta = "select * from listproducts where ProductID = " + Request["1 order by 11 --"] and ALGUN_FILTRO..... ;`
+
+Supongamos que en la consulta está lo que intuimos que hay, pero más allá de la petición request no sabemos que filtros pueden haber y si no se cumplen nos dará error arruinándonos la inyección, pues los **--** nos sirven para comentar el resto que sigue de la petición, así evitarnos posibles filtros y poder ejecutar correctamente la inyección.
+
+Ya que de lo contrario si no lo hubiésemos comentado nos daría algún error, ya que podría haber algún filtro y esto gracias a que en el AND de la consulta nos extiende la petición, pero como dije, con los guiones podemos omitir el resto y saltarnos posibles filtros.
+
+<br>
+
+Aclarando eso, volveremos a la web, recordamos que sabemos el número de filas exactas devueltas, en este caso 11, por lo que ahora debemos saber en qué parte de la página web se adaptan esas columnas y ver si algunas son visibles para sacar provecho de que las podemos ver como veremos a continuación.
+
+Pero antes de eso debemos saber en qué parte de la web están esas columnas, por lo que aquí entra la parte de **UNION SELECT**.
+
+Primero aquí vemos esto:
+
+![union select](/home/dansh/WebServer/dantedansh.github.io/assets/images/SQLi/union_select.png)
+
+Primero vemos que el parámetro **cat** que habíamos mencionado antes ya no es 1, ya que de lo contrario si seguiría siendo 1 nos mostraría lo que hay en el valor 1 de la tabla correspondiente que serian seguramente las secciones de los **posters** como habíamos visto, pero como nosotros no queremos ver eso como primera opción, lo que hice fue cambiar ese 1 por 0 para que nos muestre lo que queremos y no el contenido real, también podríamos agregar un -1 o un **NULL**, haciendo esa parte inválida y dejándonos vacío para lo siguiente que queremos hacer.
+
+Ahora alado como vemos aparece:
+
+`http://testphp.vulnweb.com/listproducts.php?cat=0 union select 1,2,3,4,5,6,7,8,9,10,11 --`
+
+Vemos que usamos el operador **UNION** junto con la declaracion **SELECT**, como sabemos esto nos sirve para ordenar distintas columnas que hay en uso en una sola y así ver lo que se ve en la imagen, vemos que en la imagen anterior ya no nos mostró el apartado de posts, si no lo que queremos ver, y cambiaron de lugar las columnas por la enumeración que le dimos para identificarlas fácilmente, en este caso vemos que las que se ven a simple vista son la 11, 7, 2 y 9, ahora lo que podríamos hacer es que en el campo de esas columnas podríamos hacer peticiones más interesantes que nos interprete el **DBMS** y poder poco a poco enumerar la base de datos y los **--** ya sabemos para qué son.
+
+<br>
+
+Un ejemplo de que podríamos hacer teniendo a nuestra vista las columnas es lo siguiente,
