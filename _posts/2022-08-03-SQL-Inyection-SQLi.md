@@ -609,4 +609,47 @@ Ahora seguiremos probando cosas, pero esta vez usando una máquina de una sala d
 
 [TryHackMe](https://tryhackme.com/room/sqlinjectionlm)
 
-Prueba-new-arch
+<br>
+
+Al entrar a la página web de la sala, veremos esto con un primer nivel de prueba:
+
+![inicio](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/inicio_sala.png)
+
+Primero intentaremos romper la consulta SQL, como recordamos esto se hace usando una comilla simple o doble:
+
+![error_consulta](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/error_consulta.png)
+
+Vemos que nos muestra el error de la consulta rota, por lo que esto nos indica que puede ser vulnerable, ya que está interpretando directamente desde la url hacia el DBMS.
+
+<br>
+
+Ahora trataremos de descubrir cuantas columnas se están devolviendo hacia el servidor web, usando el **order by** para ordenar las posibles columnas que hay detrás.
+
+Intentamos primero con 4 y nos da este error:
+
+![order4](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/orderby4.png)
+
+Por lo que intuimos que podría ser menos, ya que en la web no se ven muchos datos por lo que pusimos ahora 3:
+
+![order3](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/orderby3.png)
+
+Y ahora nos cargó el contenido sin error!, por lo que la cantidad de columnas devueltas a esa parte de la web es 3.
+
+<br>
+
+Ahora sigue saber en qué parte de la web se están devolviendo esas columnas, por lo que para ver su posición en la ruta actual de la web haremos lo siguiente:
+
+`https://website.thm/article?id=0 union select 1,2,3 --`
+
+Primero, como sabemos el parámetro **id** de la página web es la que en este caso señala en que ruta de la web estamos, por defecto era 1, ya que en el DBMS el del id 1 era el artículo que se nos debía mostrar por defecto, pero en este caso ponemos un 0 para invalidar esa consulta y nos muestre otra cosa, en este caso queremos unir las tablas seleccionadas en este caso la 1,2 y 3. Que son la cantidad de columnas que sabemos que hay en esa sección de la web.
+
+![union](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/unionselect.png)
+
+<br> 
+
+Como vemos nos está mostrando en que parte esta cada columna identificadas por el nombre que les pusimos en este caso números ascendentes, así que sabiendo esto podremos pasar a lo siguiente.
+
+ > En este caso en el **id** invalidamos la petición por defecto por un valor no registrado, en este caso 0, por lo que se marca como nulo y pasa a mostrarnos lo que sigue de la consulta que construimos, en este caso los números para identificar las columnas en su lugar, y no la página por defecto que sería **id=1**, pero en caso de que el **id** contenga caracteres se puede invalidar usando **NULL**.
+
+<br>
+
