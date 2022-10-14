@@ -641,6 +641,8 @@ Ahora sigue saber en qué parte de la web se están devolviendo esas columnas, p
 
 `https://website.thm/article?id=0 union select 1,2,3 --`
 
+> No olvidemos comentar el resto de la consulta para evitar errores de la consulta que puede seguir de nuestras instrucciones.
+
 Primero, como sabemos el parámetro **id** de la página web es la que en este caso señala en que ruta de la web estamos, por defecto era 1, ya que en el DBMS el del id 1 era el artículo que se nos debía mostrar por defecto, pero en este caso ponemos un 0 para invalidar esa consulta y nos muestre otra cosa, en este caso queremos unir las tablas seleccionadas en este caso la 1,2 y 3. Que son la cantidad de columnas que sabemos que hay en esa sección de la web.
 
 ![union](/assets/images/SQLi/unionselect.png)
@@ -650,3 +652,5 @@ Primero, como sabemos el parámetro **id** de la página web es la que en este c
 Como vemos nos está mostrando en que parte esta cada columna identificadas por el nombre que les pusimos en este caso números ascendentes, así que sabiendo esto podremos pasar a lo siguiente.
 
  > En este caso en el **id** invalidamos la petición por defecto por un valor no registrado, en este caso 0, por lo que se marca como nulo y pasa a mostrarnos lo que sigue de la consulta que construimos, en este caso los números para identificar las columnas en su lugar, y no la página por defecto que sería **id=1**, pero en caso de que el **id** contenga caracteres se puede invalidar usando **NULL**.
+
+<br>
