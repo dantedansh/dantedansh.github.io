@@ -593,6 +593,8 @@ Que en el lugar del número 7 establecimos el comando @@version, que esto si lo 
 
 `8.0.22-0ubuntu0.20.04.2`
 
+> Aparte de **@@version** también exiten otros como **@@user**, etc.
+
 De la misma manera podríamos saber otras cosas como por ejemplo ver la base de datos actual:
 
 ![database](/assets/images/SQLi/database.png)
@@ -654,3 +656,43 @@ Como vemos nos está mostrando en que parte esta cada columna identificadas por 
  > En este caso en el **id** invalidamos la petición por defecto por un valor no registrado, en este caso 0, por lo que se marca como nulo y pasa a mostrarnos lo que sigue de la consulta que construimos, en este caso los números para identificar las columnas en su lugar, y no la página por defecto que sería **id=1**, pero en caso de que el **id** contenga caracteres se puede invalidar usando **NULL**.
 
 <br>
+
+Ahora ya que sabemos donde se esta devolviendo cada columna, lo que haremos es reemplazar lo que se tiene que mostrar, por algo de nuestro interes, veremos lo que nos interesa en lugar de lo que esas columnas muestran por defecto, así que lo primero que haremos es cambiar un valor de la consulta que habiamos generado anteriormente, recordamos que esta así:
+
+`https://website.thm/article?id=0 union select 1,2,3 --`
+
+Pero ahora lo que cambiara es que en lugar del 2, pondremos una funcion de sql que nos devolvera el nombre de la base de datos actual:
+
+`https://website.thm/article?id=0 union select 1,database(),3 --`
+
+Ahora vemos que en el lugar de la columna que asignamos la etiqueta numero 2, la cambiamos por una funcion, la cual nos devuelve el nombre de la base de datos, por lo que al tramitar esta consulta se nos vera reflejado de la siguiente manera:
+
+![database](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/databasee.png)
+
+<br>
+
+Vemos que la base de datos en uso se llama **sqli_one**, por lo que ya tenemos algo con lo que empezar!
+
+Lo siguiente es ver todas las bases de datos disponibles en el servidor y no solo la que esta en uso, para eso agregaremos las siguientes instrucciónes a la consulta desde la url:
+
+`https://website.thm/article?id=0 union select 1,schema_name,3 from information_schema.schemata limit 1-- -`
+
+Aqui le estamos indicando en el valor del **2** que nos de el nombre de esquema con **schema_name**, de la base de datos **information_schema.schemata**, y después nos limitara a ver la primera fila del resultado.
+
+> Esta base de datos es accesible por todos los usuarios y dentro de esta base de datos contiene informacion sobre las bases de datos y sus respectivas tablas.
+
+Quedandonos así:
+
+![schema_name](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/schema_name.png)
+
+Esto es lo que hay en la primera fila pero iremos modificando el **limit**, para ver más nombres de bases de datos:
+
+`https://website.thm/article?id=0 union select 1,schema_name,3 from information_schema.schemata limit 1,1-- -`
+
+Ahora le decimos que nos muestre lo que hay 1 fila despues de la primera, y nos mostrara esto:
+
+![sql_one](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/sql_one.png)
+
+Vemos que esta esta base de datos llamada **sql_one** es la que ya habiamos descubrido antes, así que sabemos que por ahora hay 2 bases de datos, intente aumentar el limit pero ya no habia ya que solo hay 2 bases de datos en este servidor web, así que de las 2 bases de datos usaremos la que se llama **sqli_one**, ya que la otra es la que usamos para poder enumerar estas bases de datos.
+
+1:35
