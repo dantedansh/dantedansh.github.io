@@ -657,42 +657,113 @@ Como vemos nos está mostrando en que parte esta cada columna identificadas por 
 
 <br>
 
-Ahora ya que sabemos donde se esta devolviendo cada columna, lo que haremos es reemplazar lo que se tiene que mostrar, por algo de nuestro interes, veremos lo que nos interesa en lugar de lo que esas columnas muestran por defecto, así que lo primero que haremos es cambiar un valor de la consulta que habiamos generado anteriormente, recordamos que esta así:
+Ahora ya que sabemos donde se está devolviendo cada columna, lo que haremos es reemplazar lo que se tiene que mostrar, por algo de nuestro interés, veremos lo que nos interesa en lugar de lo que esas columnas muestran por defecto, así que lo primero que haremos es cambiar un valor de la consulta que habíamos generado anteriormente, recordamos que esta así:
 
 `https://website.thm/article?id=0 union select 1,2,3 --`
 
-Pero ahora lo que cambiara es que en lugar del 2, pondremos una funcion de sql que nos devolvera el nombre de la base de datos actual:
+Pero ahora lo que cambiara es que en lugar del 2, pondremos una función de sql que nos devolverá el nombre de la base de datos actual:
 
 `https://website.thm/article?id=0 union select 1,database(),3 --`
 
-Ahora vemos que en el lugar de la columna que asignamos la etiqueta numero 2, la cambiamos por una funcion, la cual nos devuelve el nombre de la base de datos, por lo que al tramitar esta consulta se nos vera reflejado de la siguiente manera:
+Ahora vemos que en el lugar de la columna que asignamos la etiqueta número 2, la cambiamos por una función, la cual nos devuelve el nombre de la base de datos, por lo que al tramitar esta consulta se nos verá reflejada de la siguiente manera:
 
-![database](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/databasee.png)
+![database](/assets/images/SQLi/databasee.png)
 
 <br>
 
 Vemos que la base de datos en uso se llama **sqli_one**, por lo que ya tenemos algo con lo que empezar!
 
-Lo siguiente es ver todas las bases de datos disponibles en el servidor y no solo la que esta en uso, para eso agregaremos las siguientes instrucciónes a la consulta desde la url:
+Lo siguiente es ver todas las bases de datos disponibles en el servidor y no solo la que está en uso, para eso agregaremos las siguientes instrucciones a la consulta desde la url:
 
 `https://website.thm/article?id=0 union select 1,schema_name,3 from information_schema.schemata limit 1-- -`
 
-Aqui le estamos indicando en el valor del **2** que nos de el nombre de esquema con **schema_name**, de la base de datos **information_schema.schemata**, y después nos limitara a ver la primera fila del resultado.
+Aqui le estamos indicando en el valor del **2** que nos da el nombre de esquema con **schema_name**, de la base de datos **information_schema.schemata**, y después nos limitara a ver la primera fila del resultado.
 
-> Esta base de datos es accesible por todos los usuarios y dentro de esta base de datos contiene informacion sobre las bases de datos y sus respectivas tablas.
+> Esta base de datos es accesible por todos los usuarios y dentro de esta base de datos contiene información sobre las bases de datos y sus respectivas tablas.
 
-Quedandonos así:
+Quedándonos así:
 
-![schema_name](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/schema_name.png)
+![schema_name](/assets/images/SQLi/schema_name.png)
 
-Esto es lo que hay en la primera fila pero iremos modificando el **limit**, para ver más nombres de bases de datos:
+Esto es lo que hay en la primera fila, pero iremos modificando el **limit**, para ver más nombres de bases de datos:
 
 `https://website.thm/article?id=0 union select 1,schema_name,3 from information_schema.schemata limit 1,1-- -`
 
-Ahora le decimos que nos muestre lo que hay 1 fila despues de la primera, y nos mostrara esto:
+Ahora le decimos que nos muestre lo que hay 1 fila después de la primera, y nos mostrara esto:
 
-![sql_one](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/sql_one.png)
+![sql_one](/assets/images/SQLi/sql_one.png)
 
-Vemos que esta esta base de datos llamada **sql_one** es la que ya habiamos descubrido antes, así que sabemos que por ahora hay 2 bases de datos, intente aumentar el limit pero ya no habia ya que solo hay 2 bases de datos en este servidor web, así que de las 2 bases de datos usaremos la que se llama **sqli_one**, ya que la otra es la que usamos para poder enumerar estas bases de datos.
+Vemos que esta está base de datos llamada **sqli_one** es la que ya habíamos descubierto antes, así que sabemos que por ahora hay 2 bases de datos, intente aumentar el limit, pero ya no había, ya que solo hay 2 bases de datos en este servidor web, así que de las 2 bases de datos usaremos la que se llama **sqli_one**, ya que la otra es la que usamos para poder enumerar estas bases de datos.
 
-1:35
+<br>
+
+Ahora como dijimos vamos a  listar las tablas de la base de datos que nos interesa en este caso **sqli_one**, como ya sabemos el nombre de la base de datos lo que haremos es:
+
+`https://website.thm/article?id=0 union select 1,table_name,3 from information_schema.tables where table_schema = "sqli_one" limit 1,1-- -`
+
+Ahora lo que hicimos fue cambiar el valor donde se supone que va el valor de la etiqueta en la columna 2, por el valor de **table_name**, que anteriormente era **schema_name**, pero como ya sabemos la base de datos y ahora queremos sacar las tablas de esa base de datos hacemos eso, y por último le indicamos que queremos que nos muestre las tablas cambiando el **information_schema.schemata** Por **information_schema.tables**, ya que queremos las tablas de la base de datos la cual está en el valor del parámetro **table_schema** que en este caso su valor es como sabemos **sqli_one**.
+
+<br>
+
+Y al final usamos limit para ir viendo de una por una, sé ve algo así:
+
+Aqui vemos lo que hay despues de la primera tabla (limit 1,1):
+
+![table_name](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/table_name.png)
+
+Y aqui vemos lo que hay en la primera tabla (limit 1 recuerda que cuando se pone solo el 1, sin más números, solo te muestra el primer resultado):
+
+![table_name1](/assets/images/SQLi/table_name1.png)
+
+<br>
+
+Buscando más tablas no encontré, ya que solo hay 2:
+
+- **staff_users**
+- **article**
+
+Entonces la que más llama la atención es la de **staff_users**, Ya que su nombre dice que contiene usuarios, por lo que iremos a por esa tabla.
+
+<br>
+
+Ahora intentaremos listar los datos de esa tabla, o sea que listaremos las columnas de esa tabla:
+
+`https://website.thm/article?id=0 union select 1,column_name,3 from information_schema.columns where table_schema = "sqli_one" and table_name = "staff_users" limit 1-- -`
+
+Aquí lo que hicimos fue que reemplazamos el valor de **table_name** por **column_name**, ya que ya sabemos el nombre de la tabla y ahora trabajaremos en mostrar una columna, y ahora cambiaremos **information_schema.tables** por **information_schema.columns**, esto lo que hará es mostrarnos las columnas de una tabla que se encuentra en la base de datos **sqli_one**, Y esa tabla se llama **staff_users** por lo que le agregamos ese valor usando el **and table_name**, por último le decimos que nos muestre la primera columna de la tabla **staff_users** y el resultado es así:
+
+![staff_users](/assets/images/SQLi/staff_users.png)
+
+<br>
+
+Vemos que la primera columna se llama **id**, para encontrar más podríamos jugar con el limit, pero hay una función llamada **group_concat()** que nos permite concatenar todos los datos en una sola consulta para así evitar perder tiempo con el **limit**, puedes usar el **limit** en caso de que el **group_concat()** no te funcione, pero en este caso lo usamos y:
+
+`https://website.thm/article?id=0 union select 1,group_concat(column_name),3 from information_schema.columns where table_schema = "sqli_one" and table_name = "staff_users"-- -`
+
+![group_concat](/assets/images/SQLi/group_concat.png)
+
+Y como vemos nos muestra las columnas de la tabla concatenadas sin tener que perder tiempo una por una con el limit.
+
+En este caso son 3 columnas:
+
+- id
+- username
+- password
+
+<br>
+
+Ahora ya solo queda mostrar los datos de esas columnas de la tabla **staff_users**, en la base de datos **sqli_one**.
+
+> Hay ocasiones donde una base de datos usa de "proteccion" que no acepte consultas en texto claro, si no en hexadecimal, pero esto se puede evadir enviando la consulta en hexadecimal en lugar de texto.
+
+Volviendo a lo que estaba explicando de mostrar los datos de esas columnas, ya que sabemos la base de datos, la tabla, y las columnas que nos interesan solo queda mostrarlas, como se ve aquí:
+
+`https://website.thm/article?id=0 union select 1,group_concat(username,':',password),3 from sqli_one.staff_users -- -`
+
+![group_concat1](/assets/images/SQLi/group_concat1.png)
+
+Solo concatenamos los nombres de las columnas que nos interesan y en medio agregamos dos puntos para separar el usuario de la contraseña en cada fila que recorra cada columna, y por último le decimos que todo eso lo sacara de la base de datos **sqli_one** en la tabla **staff_users**.
+
+Y ya veremos las credenciales que buscamos.
+
+<br>
