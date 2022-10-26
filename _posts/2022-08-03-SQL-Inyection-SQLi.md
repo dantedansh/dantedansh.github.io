@@ -709,7 +709,7 @@ Y al final usamos limit para ir viendo de una por una, sé ve algo así:
 
 Aqui vemos lo que hay despues de la primera tabla (limit 1,1):
 
-![table_name](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLi/table_name.png)
+![table_name](/assets/images/SQLi/table_name.png)
 
 Y aqui vemos lo que hay en la primera tabla (limit 1 recuerda que cuando se pone solo el 1, sin más números, solo te muestra el primer resultado):
 
