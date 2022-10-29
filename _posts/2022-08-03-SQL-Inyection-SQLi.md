@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Inyección SQL - SQLi
-excerpt: "Explicación de como se detecta y explota una vulneravilidad de tipo SQLi."
+excerpt: "Explicación de como se detecta y explota una vulnerabilidad de tipo SQLi."
 date: 2022-08-03
 classes: wide
 header:
@@ -746,9 +746,9 @@ Y como vemos nos muestra las columnas de la tabla concatenadas sin tener que per
 
 En este caso son 3 columnas:
 
-- id
-- username
-- password
+- **id**
+- **username**
+- **password**
 
 <br>
 
@@ -766,4 +766,57 @@ Solo concatenamos los nombres de las columnas que nos interesan y en medio agreg
 
 Y ya veremos las credenciales que buscamos.
 
+> La función **group_concat()** puede servir en cualquier caso para agrupar datos y pudo haberse utilizado al principio pero no se uso para mostrar como funcionaba el limit y después este o sea **group_concat()**, eliges el que más te sirva y te guste.
+
 <br>
+
+# Bypass de autenticación (BLIND SQLi)
+
+
+Ahora pasamos al Nivel 2 de este desafío, el cual es bypassear un panel de login, esto significa que por así decirlo saltarnos el paso y entrar al sistema sin logearnos, y lo de **BLIND SQLi** significa sqli a ciegas, es decir, como anteriormente vimos en el nivel anterior fuimos avanzando a medida de prueba y error para crear la url indicada para enumerar la base de datos, pero en este caso no nos va a mostrar nada o muy poco de información y será difícil saber si la inyección se ejecutó con éxito o no, pero a pesar de esto, si se hace correctamente puede funcionar la inyección, el nivel 2 se ve así:
+
+![level2](/assets/images/SQLi/level2.png)
+
+<br>
+
+Nos pide un usuario y una contraseña, lo que queremos es saltarnos este paso, en este caso nos interesa más pasar el panel del login que enumerar la base de datos, pero antes de esto hay que saber unas cosas importantes y bases para entender esto.
+
+Como leemos en la imagen abajo en la parte izquierda está la siguiente consulta que es como funciona el servidor web, en este caso:
+
+`select * from users where username='%username%' and password='%password%' LIMIT 1;`
+
+Vemos que la base de datos se comunica con la web en el panel login, lo que hace es seleccionar todo lo de la tabla **users**, después pregunta si el parametro **username** y el parámetro **password** son verdaderos entonces si eso se cumple se tomara como **true**, y esto se valida usando los **%username%** que se comunican directamente con el panel login del servidor web, esto obtiene el contenido que hay dentro de los recuadros donde ingresas los datos, igual sucede con **%password%**, y si pones datos correctos, entonces la consulta sql verificara si esos datos ingresados coinciden con alguno de la tabla **users**, y en caso de que si exista nos deja entrar, ya que esto se tomó como verdadero.
+
+<br>
+
+Como sabemos, en teoria si la contraseña y usuario son correctos entonces la consulta sql se tomara como **true** y nos dejara entrar al sistema, caso contrario se tomara como **false**, ya que los datos no coinciden con los de la tabla **users**, así que sabemos que la validación final es si es **true** o **false**, y si es **true** nos deja entrar, si es **false** no nos dejara entrar, pero si un login usa este método de autenticación sin sanitización de la entrada de datos, entonces podremos inyectar directamente consultas sql y alterar el resultado final.
+
+<br>
+
+Lo que haremos ahora es tratar de modificar esa consulta final, sabemos que la original por detrás es:
+
+`select * from users where username='%username%' and password='%password%' LIMIT 1;`
+
+Pero en el recuadro de usuario o password, podríamos hacer esto:
+
+![bypasslogin](/assets/images/SQLi/bypasslogin.png)
+
+Vemos que el servidor web no estaba sanitizado para evitar estas inyecciones, y lo que hicimos fue modificar la consulta quedándonos así la consulta final:
+
+`select * from users where username='' OR 1=1; -- -' and password='%password%' LIMIT 1;`
+
+Lo que paso aquí fue que el servidor web no sanitizo la entrada de datos y se pueden pasar como consultas, primero con la comilla rompemos la primera parte de la consulta, pero agregamos el operador **OR** y algún valor que sea **true** o sea que mientras se cumpla se tomara como verdadero, en este caso decimos que si 1 es igual a 1, esto lógicamente es si o sea que como agregamos el **OR** esto nos permitirá que si la primera parte de la consulta es falsa, pero la segunda verdadera entonces mientras una de las 2 partes sea verdadera toda la respuesta será **true** y al final ponemos los **;** para terminar la consulta sql, y comentando todo el resto que era la parte de **password** para evitar problemas, asi que lo que hicimos que saltarnos el **and**, ya que fue comentado y con el **OR** logramos una validación dándonos como resultado **true** y dejándonos entrar al sistema.
+
+aquí vemos un ejemplo de la consulta:
+
+![comentado](/assets/images/SQLi/comentado.png)
+
+Vemos que desde que comentamos el resto de la consulta se torna color gris, ya que nos indica que eso no se tomara en cuenta y solo lo que está en negro.
+
+<br>
+
+Así que al tramitar esta petición vemos que nos deja acceder al sistema:
+
+![entrada](/assets/images/SQLi/entrada.png)
+
+Vemos que sigue el nivel 3!.
