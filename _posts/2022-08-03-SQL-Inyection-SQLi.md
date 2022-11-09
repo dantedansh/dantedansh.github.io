@@ -887,13 +887,13 @@ Empezamos:
 
 `https://website.thm/checkuser?username=admin5' UNION SELECT 1,2,3 where database() LIKE 's%'; --`
 
-Aquí iniciamos diciéndole en base a **database()** y la cláusula **LIKE** que nos muestre lo que empiece con la letra "s", y como esta función de **database()** solo nos devuelve la base de datos actual, entonces solo habrá una posible respuesta y nos la mostraría, pero como esto es blind no veremos nada, pero en el valor de **true o false** podremos ver si nos mostró algo o no, en este caso el valor es **true** por lo que la base de datos actual inicia con la letra "s", de lo contrario nos daría false, ya que no inicia con esa letra.
+Aquí iniciamos diciéndole en base a **database()** y la cláusula **LIKE** que nos muestre lo que empiece con la letra "s", y como esta función de **database()** solo nos devuelve la base de datos actual, entonces solo habrá una posible respuesta y nos la mostraría, pero como esto es blind no veremos nada, pero en el valor de **true o false** podremos ver si por detras nos mostró algo o no, en este caso el valor es **true** por lo que la base de datos actual inicia con la letra "s", de lo contrario nos daría false, ya que no inicia con esa letra.
 
 ![lt](/assets/images/SQLi/liketrue.png)
 
 <br>
 
-Así que ya tenemos la letra con la que empieza la base de datos, y en este punto es de intentar con cada carácter hasta descubrir el nombre de la base de datos:
+Así que ya tenemos la letra con la que empieza la base de datos, y en este punto es de intentar con cada carácter hasta descubrir el nombre completo de la base de datos:
 
 ![sq](/assets/images/SQLi/sq.png)
 
@@ -907,7 +907,7 @@ Anteriormente para enumerar las tablas de una base de datos podría hacerse así
 
 `admin123' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema = 'sqli_three';--`
 
-Esto funcionaria si este nivel fuera basado en errores, pero como es blind, esto no nos va a funcionar, ya que lo que hacía la basada en errores era mostrarnos en el campo del número 2, la respuesta de nuestras consultas que era obtener las tablas **FROM information_schema.tables** de la base de datos **WHERE table_schema** con el nombre de en este ejemplo **sqli_three**, pero, como en este caso no podemos ver nada de esta consulta, tendrá que cambiar la manera en que lo hacíamos.
+Esto funcionaria si este nivel fuera basado en errores, pero como es blind, esto no nos va a funcionar, ya que lo que hacía la basada en errores era mostrarnos en el campo del número 2, la respuesta de nuestras consultas que era obtener las tablas **FROM information_schema.tables** de la base de datos **WHERE table_schema** con el nombre de **sqli_three**, pero, como en este caso no podemos ver nada de esta consulta, tendrá que cambiar la manera en que lo hacíamos.
 
 > Algo que no explique en sqli basada en errores es que si quieres enumerar las tablas o columnas de la base de datos actual, no es necesario indicarle en que base de datos ejecutara las consultas, ya que tomara la actual como la primera, y así te ahorras tiempo.
 Así que si quisiéramos en este ejemplo mostrar las tablas de la base de datos actual podría hacerse simplemente así:
