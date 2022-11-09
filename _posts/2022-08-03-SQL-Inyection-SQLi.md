@@ -820,3 +820,200 @@ Así que al tramitar esta petición vemos que nos deja acceder al sistema:
 ![entrada](/assets/images/SQLi/entrada.png)
 
 Vemos que sigue el nivel 3!.
+
+<br>
+
+# Basado en Booleanos (Blind SQLi)
+
+Como recordamos, Blind SQLi es un ataque del cual no puedes ver mucha información y debes trabajar más a ciegas, esta es la contraria de la basada en errores que como recordamos nos mostraba todo en pantalla, este ataque llamado **Basado en booleanos** se le denomina así, ya que como sabemos un booleano en programación es algo que solo tiene dos posibles respuestas ante una consulta, por ejemplo, los más comunes son las respuestas **true** y **false**, son un tipo de dato que solo tiene 2 respuestas, y con base en esto sabremos si nuestra consulta de sqli fue exitosa o no.
+
+> Aunque esto parezca muy imposible de enumerar una base de datos con estas limitaciones es posible y veremos como.
+
+<br>
+
+![boolean](/assets/images/SQLi/basedboolean.png)
+
+<br>
+
+Vemos en la imagen que nos muestra el panel login en el que debemos hacer la inyección basada en booleanos.
+
+`https://website.thm/checkuser?username=admin`
+
+La URL se ve así, ya que le estamos dando en el campo de username el valor de **admin**.
+
+Pero también vemos arriba la respuesta de una función que se encuentra en muchos formularios de login, es una parte de una API que nos muestra con **true** o **false** si un usuario ya está registrado o no, en la imagen se ve el valor **true** por lo que un usuario llamado **admin** ya existe, así que si cambiamos ese nombre por otro por ejemplo **admin5**, veremos que se torna **false** la respuesta de esa función:
+
+![false](/assets/images/SQLi/false.png)
+
+Vemos que en la consulta se ve así:
+
+`select * from users where username = '%username%' LIMIT 1;`
+
+Recordemos que el **%username%** en este caso es el campo de **username** que se ve en el panel login y estos porcentajes indican que de esa parte del panel login obtendrá el valor deseado para la consulta.
+
+<br>
+
+Ahora queremos enumerar la base de datos, y como el primer paso es saber la cantidad de columnas dentro de la página web haremos esto, manteniendo el usuario **admin5** hacemos la siguiente consulta en la url:
+
+![false1](/assets/images/SQLi/false1.png)
+
+<br>
+
+`https://website.thm/checkuser?username=admin5' UNION SELECT 1,2; --`
+
+Vemos que hicimos algo parecido a lo que hicimos con bases de datos anteriores, cerramos con una comilla la parte donde nos pide ingresar el usuario que en este caso es admin5, despues procedemos a inyectar la consulta **UNION SELECT** para que nos junte las columnas en un solo lugar y después de esto vemos que la respuesta es **false**, ya que no es la cantidad correcta de columnas devueltas, y no usamos el **order by**, ya que en este caso no nos detectó usar el order by.
+
+<br>
+
+Pero como vemos en la respuesta es **false** por lo que podemos saber que esa no es la cantidad correcta de columnas devueltas, así que agregaremos valores hasta que sea el valor correcto, por lo que iremos aumentando hasta obtener un **true**:
+
+![true](/assets/images/SQLi/true.png)
+
+`https://website.thm/checkuser?username=admin5' UNION SELECT 1,2,3; --`
+
+Vemos que ahora esta es la cantidad correcta de columnas devueltas, ya que nos devuelve un **true**!
+
+<br>
+
+Así que ya sabemos la cantidad de columnas devueltas, 3.
+
+<br>
+
+Ahora enumeraremos el nombre de la base de datos en uso, recordemos que podemos usar, **database()** para saber la base de datos en uso, pero como esta es una Blind SQLi, no nos mostrara nada, por lo que cambiaremos el modo, como recordamos usando la cláusula **like** y sus parámetros de porcentaje, podríamos decirle que nos mostrara aquello que empezara, terminara o contenga un carácter de un nombre de lo que se le haya indicado, en este caso, lo usaremos para ir probando letra por letra y con base en la respuesta de la función de valores booleanos ir formando lo que queremos ver.
+
+<br>
+
+Empezamos:
+
+`https://website.thm/checkuser?username=admin5' UNION SELECT 1,2,3 where database() LIKE 's%'; --`
+
+Aquí iniciamos diciéndole en base a **database()** y la cláusula **LIKE** que nos muestre lo que empiece con la letra "s", y como esta función de **database()** solo nos devuelve la base de datos actual, entonces solo habrá una posible respuesta y nos la mostraría, pero como esto es blind no veremos nada, pero en el valor de **true o false** podremos ver si nos mostró algo o no, en este caso el valor es **true** por lo que la base de datos actual inicia con la letra "s", de lo contrario nos daría false, ya que no inicia con esa letra.
+
+![lt](/assets/images/SQLi/liketrue.png)
+
+<br>
+
+Así que ya tenemos la letra con la que empieza la base de datos, y en este punto es de intentar con cada carácter hasta descubrir el nombre de la base de datos:
+
+![sq](/assets/images/SQLi/sq.png)
+
+<br>
+
+Vemos que la siguiente letra del nombre de la base de datos es "q", así que ya una vez hayamos descubierto el nombre entero que en este caso es, **sqli_three**, procederemos a enumerar las tablas de esta base de datos.
+
+<br>
+
+Anteriormente para enumerar las tablas de una base de datos podría hacerse así:
+
+`admin123' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema = 'sqli_three';--`
+
+Esto funcionaria si este nivel fuera basado en errores, pero como es blind, esto no nos va a funcionar, ya que lo que hacía la basada en errores era mostrarnos en el campo del número 2, la respuesta de nuestras consultas que era obtener las tablas **FROM information_schema.tables** de la base de datos **WHERE table_schema** con el nombre de en este ejemplo **sqli_three**, pero, como en este caso no podemos ver nada de esta consulta, tendrá que cambiar la manera en que lo hacíamos.
+
+> Algo que no explique en sqli basada en errores es que si quieres enumerar las tablas o columnas de la base de datos actual, no es necesario indicarle en que base de datos ejecutara las consultas, ya que tomara la actual como la primera, y así te ahorras tiempo.
+Así que si quisiéramos en este ejemplo mostrar las tablas de la base de datos actual podría hacerse simplemente así:
+`admin123' UNION SELECT 1,table_name,3 FROM information_schema.tables;--` al igual que con una columna.
+
+<br>
+
+Volviendo al blind sqli, Ahora en vez de mostrar los resultados en un campo del lugar de una tabla con etiqueta como lo hacíamos en la basada en errores, lo haremos sin ella, así:
+
+`admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'a%';--`
+
+<br>
+
+Esta consulta es algo parecido a lo que hicimos con lo que descubrimos el nombre de la base de datos jugando con **database()** y **LIKE**, pero en este caso como queremos saber las tablas jugaremos con **table_name** y **LIKE**, empezamos indicándole que si hay alguna tabla que empiece con la letra "a".
+
+En este caso nos responde con esto:
+
+![falsee](/assets/images/SQLi/falsee.png)
+
+Responde con un **false**, ya que ninguna tabla inicia con esa letra, por lo que seguiremos probando!
+
+<br>
+
+Seguimos intentando hasta que encontré que la base de datos comienza con la letra u:
+
+![u](/assets/images/SQLi/u.png)
+
+Como vemos aquí arriba.
+
+<br>
+
+Después de descubrir cada carácter descubrí que el nombre de la tabla es **users**:
+
+`admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'users%';--`
+
+<br>
+
+Ya tenemos la base de datos, la tabla y ahora nos interesa enumerar las columnas de esas tablas!.
+
+> Es lógico que existan más tablas y por eso puedes tardar más en enumerar hasta que alguna sea de tu interés, en este caso la tabla que nos interesa es **users**.
+
+<br>
+
+Ahora haremos el mismo método, pero esta vez lo haremos con las columnas de la tabla **users** de la base de datos **sqli_three**, vemos que agregamos un AND para el nombre de la columna que queremos descubrir, como sabemos jugando con la cláusula **LIKE**:
+
+`admin123' UNION SELECT 1,2,3 FROM information_schema.columns WHERE table_schema = 'sqli_three' and table_name = 'users' and column_name like 'i%';--`
+
+<br>
+
+Primero le indicamos que si hay una columna que comience con la letra "i":
+
+![i](/assets/images/SQLi/i.png)
+
+<br>
+
+Y como apreciamos en la imagen existe una columna que comienza con la letra "i", por lo que al seguir intentando más caracteres descubrí que era la columna **id**.
+
+<br>
+
+Después de investigar a fondo con múltiples caracteres descubrí 3 columnas en total:
+
+- **id**
+- **user**
+- **password**
+
+<br>
+
+Ahora, las columnas que llaman nuestra atención son **user** y **password**, por lo que como sabemos haremos el mismo método pero esta vez con esas columnas:
+
+`admin123' UNION SELECT 1,2,3 FROM users where username LIKE 'a%';--`
+
+<br>
+
+Vemos que ahora le decimos que de la tabla **users**, nos muestre donde la columna **username**, jugando con la cláusula LIKE, comience con la letra "a".
+
+En este caso el valor nos regresa **true**:
+
+![a](/assets/images/SQLi/a.png)
+
+Y como sabemos es señal de que hay datos dentro de la columna **username** que comienzan con la letra "a", por lo que al seguir enumerando encontramos el usuario **admin**.
+
+<br>
+
+Al encontrar un usuario que por lógica de su nombre es importante entonces nos quedaremos con este usuario **admin** y ahora enumeraremos lo que hay en la columna **password** del usuario **admin**:
+
+`admin123' UNION SELECT 1,2,3 FROM  users where username = 'admin' AND password LIKE '3%' ;--`
+
+> Recuerda que filtramos solamente el valor de la columna **password** perteneciente al usuario **admin**, porque en la consulta le indicamos con condicionales que queremos exactamente ese valor, y no se mezcle con otras posibles contraseñas de otros usuarios, ya que le estamos diciendo que donde el username sea admin nos mostrara su valor de password, y solo queda ver ese valor jugando con like.
+
+Volviendo a la enumeración de la columna **password**, me di cuenta de que el dígito 3 retornaba true, por lo que la contraseña debe empezar con el dígito 3, ahora como sabemos seguimos enumerando hasta que dimos con la password del usuario **admin**:
+
+![3](/assets/images/SQLi/3.png)
+
+<br>
+
+Como sabemos debemos seguir con los caracteres siguientes hasta descubrir el valor, en este caso el valor final era **3845**, por lo que esa es la contraseña del usuario admin!.
+
+<br>
+
+Como resolvimos esto hemos pasado al penúltimo nivel de esta sala:
+
+![nivel4](/assets/images/SQLi/nivel4.png)
+
+Comencemos con el siguiente nivel!
+
+<br>
+
+# Basado en Tiempo (Blind SQLi)
+
