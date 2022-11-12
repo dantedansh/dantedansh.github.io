@@ -15,7 +15,33 @@ tags:
   - SQLi
 ---
 
+<br>
 
+**Índice de contenido**
+
+1. [¿Que es SQL?](#id1)
+2. [¿Cómo está conformada una base de datos?](#id2)
+3. [¿Cómo está conformada una tabla de datos?](#id3)
+4. [Bases de datos relacionales y no relacionales](#id4)
+5. [Creando una base de datos para la prueba](#id5)
+6. [Formas de filtrar los datos de una tabla](#id6)
+7. [cláusula "where" para filtrar datos específicamente](#id7)
+8. [cláusula "like" para filtrar datos no específicamente](#id8)
+9. [La instrucción UNION](#id9)
+10. [La instrucción INSERT](#id10)
+11. [La instrucción UPDATE](#id11)
+12. [La instrucción DELETE](#id12)
+13. [¿Que es SQLi?](#id13)
+14. [Tipos de Inyecciones SQL](#id14)
+15. [Prueba de inyección Basada en errores (practica en Acuentix)](#id15)
+16. [Inyección SQL Basada en errores (Prueba en TryHackMe)](#id16)
+17. [Bypass de autenticación (BLIND SQLi)](#id17)
+18. [Basado en Booleanos (Blind SQLi)](#id18)
+19. [Basado en Tiempo (Blind SQLi)](#id19)
+
+<div id='id1' />
+
+<br>
 
 # ¿Que es SQL?
 
@@ -24,6 +50,7 @@ Antes de ver **SQLi** debemos saber como funciona **SQL**, es un lenguaje de con
 <br>
 
 
+<div id='id2' />
 
 # ¿Cómo está conformada una base de datos?
 
@@ -36,6 +63,8 @@ Después vemos que en la base de datos "Escuela" tiene 2 tablas, una de Alumnos 
 Al lado derecho vemos otra base de datos que es prácticamente lo mismo pero con diferente información, pero vemos que es posible tener más de 1 base de datos dentro del servidor de bases de datos.
 
 <br>
+
+<div id='id3' />
 
 # ¿Cómo está conformada una tabla de datos?
 
@@ -71,6 +100,8 @@ como se ve a continuación:
 
 <br>
 
+<div id='id4' />
+
 # Bases de datos relacionales y no relacionales
 
 **Relacional:**
@@ -85,6 +116,8 @@ Y la **base de datos no relacional** que se les llama NoSQL, a las relacionales 
 
 
 <br>
+
+<div id='id5' />
 
 # Creando una base de datos para la prueba
 
@@ -170,6 +203,7 @@ Y al hacer esto nos mostrará como le dijimos, todos los datos de la tabla **Alu
 
 <br>
 
+<div id='id6' />
 
 # Formas de filtrar los datos de una tabla
 
@@ -216,6 +250,8 @@ Y veremos que nos saltó la primera fila, y a partir de la que sigue de la que s
 > LIMIT X,Y en el valor X va las filas que saltara, y el valor Y las filas que mostrara a partir de la que sigue de las que saltamos.
 
 <br>
+
+<div id='id7' />
 
 # cláusula "where" para filtrar datos específicamente
 
@@ -271,6 +307,8 @@ Esto selecciona todo lo de la tabla **Alumnos**, para después decirle que en la
 
 <br>
 
+<div id='id8' />
+
 # cláusula "like" para filtrar datos no específicamente
 
 Como vimos en los ejemplos anteriores siempre teníamos que poner exacto el dato o no lo podía detectar, con la cláusula **like** podemos filtrar datos que contengan caracteres sin tener que saber el dato exacto que queremos filtrar.
@@ -313,6 +351,8 @@ Vemos que nos mostró las filas que contenían los caracteres que especificamos 
 
 <br>
 
+<div id='id9' />
+
 # La instrucción UNION
 
 Esta instrucción nos permite combinar los resultados de 2 o más instrucciones SELECT, para recuperar datos de otras tablas y así formar una sola, pero para unir 2 tablas o más en una sola primero debemos saber que deben tener el mismo tipo de dato y seguir su orden, veamos un ejemplo, recordemos que tenemos la tabla **Alumnos**, pero agregaremos otra tabla llamada **Maestros**:
@@ -343,6 +383,8 @@ Por eso debemos respetar el tipo de dato, y el orden.
 
 <br>
 
+<div id='id10' />
+
 # La instrucción INSERT
 
 Esta instrucción nos permitirá agregar filas a una tabla en respecto a sus columnas, recordemos que nuestra tabla de Alumnos por el momento esta así:
@@ -365,6 +407,8 @@ Vemos que se agregaron los datos, en la columna **id** dice NULL, ya que no asig
 
 <br>
 
+<div id='id11' />
+
 # La instrucción UPDATE
 
 Esta otra instrucción nos permitirá actualizar datos de filas, por ejemplo primero como recordamos en la tabla **Alumnos** el usuario de **test** no tiene un id:
@@ -384,6 +428,8 @@ Y se verá así el UPDATE:
 Y como vemos ya están los datos de esa fila actualizados.
 
 <br>
+
+<div id='id12' />
 
 # La instrucción DELETE
 
@@ -406,6 +452,8 @@ Siempre debes usar where, ya que de lo contrario si usas:
 Esto va a eliminar toda la tabla **Alumnos**, ya que no especificamos que filas borrar ni algún límite.
 
 <br>
+
+<div id='id13' />
 
 # ¿Que es SQLi?
 
@@ -468,6 +516,8 @@ Ya que como recordamos comentamos el resto que seguía de la consulta y ahora no
 
 <br>
 
+<div id='id14' />
+
 # Tipos de Inyecciones SQL
 
 **In-Band SQL Inyection** trata sobre una vulnerabilidad no tan complicada, ya que puedes explotar la vulnerabilidad desde la misma página web y ver en pantalla los resultados, existen 2 maneras la **Basada en errores** y **Basada en unión**.
@@ -484,7 +534,9 @@ Esta inyección **Basada en unión**, nos es útil para poder extraer datos usan
 
 <br>
 
-# Prueba de inyección In-Band
+<div id='id15' />
+
+# Prueba de inyección Basada en errores (practica en Acuentix)
 
 Para practicar esta inyección usaremos la página web:
 
@@ -624,6 +676,10 @@ Primero intentaremos romper la consulta SQL, como recordamos esto se hace usando
 Vemos que nos muestra el error de la consulta rota, por lo que esto nos indica que puede ser vulnerable, ya que está interpretando directamente desde la url hacia el DBMS.
 
 <br>
+
+<div id='id16' />
+
+# Inyección SQL Basada en errores (Prueba en TryHackMe)
 
 Ahora trataremos de descubrir cuantas columnas se están devolviendo hacia el servidor web, usando el **order by** para ordenar las posibles columnas que hay detrás.
 
@@ -770,6 +826,8 @@ Y ya veremos las credenciales que buscamos.
 
 <br>
 
+<div id='id17' />
+
 # Bypass de autenticación (BLIND SQLi)
 
 
@@ -822,6 +880,8 @@ Así que al tramitar esta petición vemos que nos deja acceder al sistema:
 Vemos que sigue el nivel 3!.
 
 <br>
+
+<div id='id18' />
 
 # Basado en Booleanos (Blind SQLi)
 
@@ -1012,6 +1072,8 @@ Como resolvimos esto hemos pasado al penúltimo nivel de esta sala.
 Comencemos con el siguiente nivel!
 
 <br>
+
+<div id='id19' />
 
 # Basado en Tiempo (Blind SQLi)
 
