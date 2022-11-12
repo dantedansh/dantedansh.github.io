@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Inyección SQL - SQLi
-excerpt: "Explicación de como se detecta y explota una vulnerabilidad de tipo SQLi."
+excerpt: "Explicación de como se detectan y explotan vulnerabilidades de tipo SQLi."
 date: 2022-08-03
 classes: wide
 header:
@@ -905,19 +905,19 @@ Vemos que la siguiente letra del nombre de la base de datos es "q", así que ya 
 
 Anteriormente para enumerar las tablas de una base de datos podría hacerse así:
 
-`admin123' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema = 'sqli_three';--`
+`admin5' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema = 'sqli_three';--`
 
 Esto funcionaria si este nivel fuera basado en errores, pero como es blind, esto no nos va a funcionar, ya que lo que hacía la basada en errores era mostrarnos en el campo del número 2, la respuesta de nuestras consultas que era obtener las tablas **FROM information_schema.tables** de la base de datos **WHERE table_schema** con el nombre de **sqli_three**, pero, como en este caso no podemos ver nada de esta consulta, tendrá que cambiar la manera en que lo hacíamos.
 
 > Algo que no explique en sqli basada en errores es que si quieres enumerar las tablas o columnas de la base de datos actual, no es necesario indicarle en que base de datos ejecutara las consultas, ya que tomara la actual como la primera, y así te ahorras tiempo.
 Así que si quisiéramos en este ejemplo mostrar las tablas de la base de datos actual podría hacerse simplemente así:
-`admin123' UNION SELECT 1,table_name,3 FROM information_schema.tables;--` al igual que con una columna.
+`admin5' UNION SELECT 1,table_name,3 FROM information_schema.tables;--` al igual que con una columna.
 
 <br>
 
 Volviendo al blind sqli, Ahora en vez de mostrar los resultados en un campo del lugar de una tabla con etiqueta como lo hacíamos en la basada en errores, lo haremos sin ella, así:
 
-`admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'a%';--`
+`admin5' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'a%';--`
 
 <br>
 
@@ -941,7 +941,7 @@ Como vemos aquí arriba.
 
 Después de descubrir cada carácter descubrí que el nombre de la tabla es **users**:
 
-`admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'users%';--`
+`admin5' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'users%';--`
 
 <br>
 
@@ -953,7 +953,7 @@ Ya tenemos la base de datos, la tabla y ahora nos interesa enumerar las columnas
 
 Ahora haremos el mismo método, pero esta vez lo haremos con las columnas de la tabla **users** de la base de datos **sqli_three**, vemos que agregamos un AND para el nombre de la columna que queremos descubrir, como sabemos jugando con la cláusula **LIKE**:
 
-`admin123' UNION SELECT 1,2,3 FROM information_schema.columns WHERE table_schema = 'sqli_three' and table_name = 'users' and column_name like 'i%';--`
+`admin5' UNION SELECT 1,2,3 FROM information_schema.columns WHERE table_schema = 'sqli_three' and table_name = 'users' and column_name like 'i%';--`
 
 <br>
 
@@ -977,11 +977,11 @@ Después de investigar a fondo con múltiples caracteres descubrí 3 columnas en
 
 Ahora, las columnas que llaman nuestra atención son **user** y **password**, por lo que como sabemos haremos el mismo método pero esta vez con esas columnas:
 
-`admin123' UNION SELECT 1,2,3 FROM users where username LIKE 'a%';--`
+`admin5' UNION SELECT 1,2,3 FROM sqli_three.users WHERE username LIKE 'a%';--`
+
+Lo que hicimos en esta consulta nueva fue que ahora como ya tenemos el nombre de la base de datos, de la tabla, y de la columna, y ya solo queda saber los datos de dicha columna que nos interesa, entonces le decimos que queremos datos de(FROM) donde la base de datos se llame **sqli_three** y ahora les mostraré algo que no había explicado, y es que al poner el nombre de la base de datos y seguido separado por un punto, el nombre de la tabla que nos interesa, entonces estamos sacando datos de la tabla **users** de la ya dicha base de datos, y por último le decimos que exactamente(WHERE) queremos de la columna **username** lo que inicie en este caso con la letra "a" como ya sabemos jugando con LIKE.
 
 <br>
-
-Vemos que ahora le decimos que de la tabla **users**, nos muestre donde la columna **username**, jugando con la cláusula LIKE, comience con la letra "a".
 
 En este caso el valor nos regresa **true**:
 
@@ -993,9 +993,9 @@ Y como sabemos es señal de que hay datos dentro de la columna **username** que 
 
 Al encontrar un usuario que por lógica de su nombre es importante entonces nos quedaremos con este usuario **admin** y ahora enumeraremos lo que hay en la columna **password** del usuario **admin**:
 
-`admin123' UNION SELECT 1,2,3 FROM  users where username = 'admin' AND password LIKE '3%' ;--`
+`admin5' UNION SELECT 1,2,3 FROM sqli_three.users WHERE username = 'admin' AND password LIKE '3%' ;--`
 
-> Recuerda que filtramos solamente el valor de la columna **password** perteneciente al usuario **admin**, porque en la consulta le indicamos con condicionales que queremos exactamente ese valor, y no se mezcle con otras posibles contraseñas de otros usuarios, ya que le estamos diciendo que donde el username sea admin nos mostrara su valor de password, y solo queda ver ese valor jugando con like.
+> Recuerda que filtramos solamente el valor de la columna **password** perteneciente al usuario **admin**, porque en la consulta le indicamos con condicionales que queremos exactamente ese valor, y no se mezcle con otras posibles contraseñas de otros usuarios, ya que le estamos diciendo que donde el username sea **admin** nos mostrara su valor de password, y solo queda ver ese valor jugando con like.
 
 Volviendo a la enumeración de la columna **password**, me di cuenta de que el dígito 3 retornaba true, por lo que la contraseña debe empezar con el dígito 3, ahora como sabemos seguimos enumerando hasta que dimos con la password del usuario **admin**:
 
@@ -1007,9 +1007,7 @@ Como sabemos debemos seguir con los caracteres siguientes hasta descubrir el val
 
 <br>
 
-Como resolvimos esto hemos pasado al penúltimo nivel de esta sala:
-
-![nivel4](/assets/images/SQLi/nivel4.png)
+Como resolvimos esto hemos pasado al penúltimo nivel de esta sala.
 
 Comencemos con el siguiente nivel!
 
@@ -1017,3 +1015,152 @@ Comencemos con el siguiente nivel!
 
 # Basado en Tiempo (Blind SQLi)
 
+Este método igual es Blind, por lo que no veremos alguna respuesta del servidor, sin embargo podremos saber usando un método integrado llamado **SLEEP(X)**, este método nos servirá para decirle que tarde X segundos y después nos da el resultado, para entenderlo veamos un ejemplo:
+
+En este caso detectamos la vulnerabilidad en el panel login, similar al anterior:
+
+![nivel4](/assets/images/SQLi/nivel4.png)
+
+<br>
+
+En este caso vemos la primera url donde está la vulnerabilidad y después el otro panel que es el login, y en medio hay un reloj que nos ayudara a  guiarnos cuanto tarda en responder cada consulta!
+
+Como vemos en la url:
+
+`https://website.thm/analytics?referrer=tryhackme.com`
+
+Esta por defecto el usuario tryhackme.com, pero nosotros haremos la inyección usando la ya conocida comilla para escapar del parámetro por defecto en este caso es **referrer**, y poder asignarnos a la consulta, por lo que pondremos lo siguiente:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5); --`
+
+Como vemos agregamos el método SLEEP diciendo que espere 5 segundos, pero esto solo esperara X cantidad de tiempo siempre y cuando la consulta que hagamos se torne como verdadera **true**, pero en este caso:
+
+![time1](/assets/images/SQLi/time1.png)
+
+Vemos que solo tardo menos de 1 segundo para interpretar esta consulta, por lo que sabemos significa que no tuvo éxito en este caso **false**.
+
+Así que intentaremos agregar más etiquetas para detectar el número de tablas devueltas:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2; --`
+
+Como vemos agregamos una etiqueta para la siguiente columna, en este caso en total hay 2 columnas, la primera no tiene etiqueta, pero si el método SLEEP que cuenta como una etiqueta, por eso agregamos el 2 al siguiente valor de columna, realmente no afecta el nombre de etiqueta, pero es para ordenar más tu consulta.
+
+Y la respuesta del tiempo será algo así:
+
+![time5](/assets/images/SQLi/time5.png)
+
+<br>
+
+Vemos que tardo 5 segundos en responder!, lo cual significa que esta consulta tuvo éxito, y ya sabemos el total de columnas devueltas, 2.
+
+<br>
+
+Lo que sigue es enumerar la base de datos en uso si es que nos interesa, por lo que similar a la inyección anterior, jugaremos con la cláusula LIKE:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 WHERE database() LIKE 'a%' ; --`
+
+Como vemos ahora queremos saber el valor donde la base de datos actual comience con la letra "a":
+
+![LIKEa](/assets/images/SQLi/LIKEa.png)
+
+Vemos que nos responde que tardo menos de 1 segundo, por lo que sabemos que esta respuesta es false y no comienza con la letra "a".
+
+<br>
+
+Después al probar la siguiente letra "s", tardo 5 segundos en responder, por lo que es una señal de que devolvió un valor **true** esa consulta, y al seguir intentando el nombre de esa base de datos que descubrimos por intentos es **sqli_four**, como vemos en la siguiente consulta:
+
+![sqli_four](/assets/images/SQLi/sqli_four.png)
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 WHERE database() LIKE 'sqli_four%' ; --`
+
+<br>
+
+Ahora procederemos a crear las consultas para enumerar nombres de tablas dentro de esta base de datos:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM information_schema.tables WHERE table_schema = 'sqli_four' AND table_name LIKE 'a%' ; --`
+
+En esta consulta ahora agregamos el **information_schema.tables**, para obtener información sobre las tablas en la base de datos **sqli_four**, y esa información se filtrará donde también el nombre de una tabla **table_name** empiece con la letra "a".
+
+En este caso el servidor web nos responde que tardo 5 segundos!, lo cual significa que esto es **true**:
+
+![5s](/assets/images/SQLi/5s.png)
+
+<br>
+
+Vemos que hay una o también varias tablas que pueden iniciar con la letra "a", así que como sabemos iremos repitiendo el método de descubrir los nombres por medio de la cláusula LIKE.
+
+<br>
+
+Una vez enumeremos los nombres de las tablas que encontramos, en este caso encontré:
+
+- **analytics_referrers**
+- **users**
+
+<br>
+
+![users123](/assets/images/SQLi/users123.png)
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM information_schema.tables WHERE table_schema = 'sqli_four' AND table_name LIKE 'users%' ; --`
+
+<br>
+
+Como vemos hemos encontrado 2 tablas dentro de esta base de datos, ahora debemos sacar las columnas de la tabla que nos interesa, en este caso **users** nos llama más la atención, por lo que procederemos a buscar sus columnas:
+
+![like_a](/assets/images/SQLi/like_a.png)
+
+<br>
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM information_schema.columns WHERE table_schema = 'sqli_four' AND table_name = 'users' AND column_name LIKE 'a%' ; --`
+
+> Para recordar, cuando usamos **FROM** es de donde vamos a obtener lo que queremos en este caso de **information_schema.columns** y **WHERE** son las condiciones para mostrar lo que queremos específicamente, como filtrar datos de la tabla **users** especificamente datos de ahí y no de otra, y cuando usamos **AND** eso que sigue del AND sigue siendo parte del **WHERE**.
+
+<br>
+
+Vemos que ya que tenemos el nombre de la tabla que nos interesa, entonces cambiamos lo de **information_schema.tables** por **information_schema.columns**, ya que queremos saber las columnas de la tabla **users**, y agregamos la cláusula **LIKE**, para intentar descubrir nombres de columnas.
+
+<br>
+
+Así que tras intentar descubrir cada columna encontramos 3:
+
+- **id**
+- **username**
+- **password**
+
+<br>
+
+![pass1](/assets/images/SQLi/pass1.png)
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM information_schema.columns WHERE table_schema = 'sqli_four' AND table_name = 'users' AND column_name LIKE 'username%' ; --`
+
+<br>
+
+Vemos que ya encontramos las columnas que nos interesan, en este caso nos llaman la atención **username** y **password**, por lo que procederemos a enumerar su contenido, empezando por el **username**:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM sqli_four.users WHERE username LIKE 'a%' ; --`
+<br>
+
+Al intentar varias veces hasta descubrir lo que hay en la columna **username** encontramos el usuario **admin**:
+
+![admin5s](/assets/images/SQLi/admin5s.png)
+
+<br>
+
+Ya no buscamos más usuarios porque encontramos el que tiene nombre interesante, aunque nunca esta de más enumerar todo como sea posible, ahora que ya tenemos el usuario **admin** que encontramos en la columna **username** solo queda filtrar la columna **password** o sea contraseña, de dicho usuario.
+
+<br>
+
+Por lo que haremos una nueva consulta:
+
+`https://website.thm/analytics?referrer=admin5' UNION SELECT SLEEP(5),2 FROM sqli_four.users WHERE username = 'admin' AND password LIKE 'a%' ; --`
+
+<br>
+
+En este caso estamos agregando la columna **password** y para descubrir su valor como sabemos jugamos con LIKE, vemos que dejamos la columna **username** con el valor **admin**,ya que queremos el valor de la columna **password** de dicho usuario.
+
+<br>
+
+Ahora como sabemos trataremos de enumerar el valor de **password** del usuario admin, por lo que al intentar con la consulta anterior descubrimos que dicho valor de esa columna es **4961**, por lo que ya hemos descubierto el usuario y contraseña para terminar este nivel!
+
+![endd](/assets/images/SQLi/endd.png)
+
+<br>
