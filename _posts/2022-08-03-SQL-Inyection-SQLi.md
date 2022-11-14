@@ -13,6 +13,7 @@ categories:
 tags:  
   - mysql
   - SQLi
+  - TryHackMe
 ---
 
 <br>
