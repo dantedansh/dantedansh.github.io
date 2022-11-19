@@ -55,17 +55,17 @@ Como la categoría que nos dijeron al inicio, así que ya tenemos por donde empe
 
 Recordemos que al inicio nos dicen que existe una vulnerabilidad SQLi en el filtro de categoría, por lo que accederemos a alguna de esas categorías, en este caso ingresaremos a la categoría de **"Gifts"**, y al abrir esa categoría vemos esta respuesta de la página:
 
-![Gifts](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/Gifts.png)
+![Gifts](/assets/images/SQLiPortswigger/lab1/Gifts.png)
 
 Vemos que nos muestra este contenido, en la url vemos algo como esto:
 
-![url](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/url.png)
+![url](/assets/images/SQLiPortswigger/lab1/url.png)
 
 <br>
 
 Pero la parte que nos interesa es esta:
 
-![url1](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/url1.png)
+![url1](/assets/images/SQLiPortswigger/lab1/url1.png)
 
 Como sabemos aquí está haciendo una consulta, y como ya explicamos antes por detrás la consulta se puede ver algo así:
 
@@ -83,7 +83,7 @@ Nos dice que quiere que mostremos todos los productos de cualquier categoría en
 
 Sabemos que por detrás la consulta se ve algo así:
 
-![consulta](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/consulta1.png)
+![consulta](/assets/images/SQLiPortswigger/lab1/consulta1.png)
 
 La cual nos muestra que está seleccionando todo de la tabla **products**, y filtramos para que nos muestre donde algún valor de la columna **category** tenga el valor de **'Gifts'** y en la columna **released** tenga el valor 1. En caso de que en la columna **released** tenga el valor de 1, se retornara un valor **true** lo cual indica que nos dejara ver dicho contenido.
 
@@ -91,11 +91,11 @@ La cual nos muestra que está seleccionando todo de la tabla **products**, y fil
 
 Y lo que haremos nosotros es que en la url la editaremos, para poder inyectar nuestras consultas, como ya sabemos el objetivo el cual es mostrar todos los productos de todas las categorías en un solo lugar y además mostrar también los productos que no están listos para mostrarse, o sea que no tienen valor 1 en **released**, por lo que primero haremos esto:
 
-![url](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/Url1.png)
+![url](/assets/images/SQLiPortswigger/lab1/Url1.png)
 
 Vemos que en la url hemos agregado una comilla simple después de la categoría, y lo que estamos haciendo ahora, es cerrar el apartado de **category** que es **"Gifts"** y escaparnos de ese apartado para poder inyectar nuestras propias consultas, como vemos en la parte derecha, que agregamos el operador **OR**, el cual haremos un valor que nos de **true**, en este caso decimos, O que 1 sea igual a 1, lo cual es verdadero, dándonos permiso para desplegar todo lo de la tabla **products**, ya que el valor que filtraba lo de **released** estará comentado y no se interpretara, así que por detrás la consulta se vería algo así:
 
-![query](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/query1.png)
+![query](/assets/images/SQLiPortswigger/lab1/query1.png)
 
 <br>
 
@@ -105,7 +105,7 @@ Como podemos ver, la comilla simple que agregamos hizo que el apartado de **cate
 
 Por lo que ya no habrá filtros que respetar, mostrándonos todo lo de esa tabla en un solo lugar:
 
-![respuesta](/home/dansh/Webserver/dantedansh.github.io/assets/images/SQLiPortswigger/lab1/respuesta1.png)
+![respuesta](/assets/images/SQLiPortswigger/lab1/respuesta1.png)
 
 Así que hemos logrado el objetivo de este laboratorio, mostramos todos los productos de todas las categorías en una sola parte, evadiendo el filtro de sí está listo para lanzarse o no, así que estamos viendo productos tanto lanzados como no lanzados, o sea que en **released** tenían un valor diferente a 1, por lo que la consulta se tornaría false y solo nos mostraría lo que estuviese en 1, pero como evadimos este filtro mostramos todo valor sea o no listo para mostrarse!
 
