@@ -109,3 +109,39 @@ Por lo que ya no habrá filtros que respetar, mostrándonos todo lo de esa tabla
 
 Así que hemos logrado el objetivo de este laboratorio, mostramos todos los productos de todas las categorías en una sola parte, evadiendo el filtro de sí está listo para lanzarse o no, así que estamos viendo productos tanto lanzados como no lanzados, o sea que en **released** tenían un valor diferente a 1, por lo que la consulta se tornaría false y solo nos mostraría lo que estuviese en 1, pero como evadimos este filtro mostramos todo valor sea o no listo para mostrarse!
 
+<br>
+
+# Laboratorio 2: vulnerabilidad de inyección SQL que permite omitir el inicio de sesión (bypass)
+
+En este segundo laboratorio, nos dice que tenemos un panel login vulnerable a SQLi, y nos dice que para resolverlo debemos hacer un bypass del usuario **administrator**, esto quiere decir que debemos encontrar una manera de acceder como el usuario **administrator** sin conocer su contraseña.
+
+![lab2](/assets/images/SQLiPortswigger/lab2/lab2.png)
+
+<br>
+
+Al acceder al laboratorio nos encontramos con este panel login en la sección de "My account":
+
+![login](/assets/images/SQLiPortswigger/lab2/login.png)
+
+Desde aquí es donde probaremos inyectar nuestras consultas para ver si logramos hacer bypass en este panel usando el usuario **administrator**, así que primero, supondremos que por detrás se ejecuta alguna consulta similar a esta:
+
+![consulta](/assets/images/SQLiPortswigger/lab2/consulta.png)
+
+Aquí lo que nos interesa es que se está usando la tabla **users**, que dentro de esta puede haber columnas más interesantes que las que llama por defecto la consulta, vemos que después de hacer la selección de columnas en dicha tabla en este caso **users**, nos dice que donde el **username** y **password** que toman sus valores del panel login, coincidan con algún valor dentro de la tabla, entonces si esto se cumple nos va a dejar acceder al sistema.
+
+Pero solo Conocemos el usuario más no la contraseña, por lo que intentaremos algo:
+
+![login_bypass](/assets/images/SQLiPortswigger/lab2/login_bypass.png)
+
+Lo que hicimos fue agregar el usuario, pero también agregamos una comilla simple para escapar de la consulta por defecto e inyectar nuestras propias consultas, esto se entiende más al ver como se interpretó la consulta por detrás:
+
+![consulta_bypass](/assets/images/SQLiPortswigger/lab2/consulta_bypass.png)
+
+Como podemos ver al agregar la comilla después de nuestro usuario lo que sucedió es que cerramos el campo de **username** para pasar a comentar el apartado de **password**, haciendo que eso ya no deba validarse con nuestros datos que pusimos en el cuadro de password del panel login, por lo que ahora la comilla que estaba antes paso a recorrerse hasta el final, pero como hemos comentado de resto todo, no nos afectara la otra parte gris de la consulta, ya que está comentada, y al hacer esto la base de datos interpretara esto como **true**, ya que solo nos está validando el **username** que en este caso es correcto, por lo que ya no verificara el apartado de **password** porque como dije antes esto ya está comentado e invalido, dejándonos acceder como dicho usuario al dar Log in, ya que todo lo que mencione se interpretara dándonos el resultado ya esperado.
+
+<br>
+
+Al hacer esto ya habremos completado el nivel y dejándonos un aviso de que hemos completado este laboratorio:
+
+![fin](/assets/images/SQLiPortswigger/lab2/final.png)
+
