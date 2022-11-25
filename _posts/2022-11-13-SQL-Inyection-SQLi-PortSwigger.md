@@ -145,3 +145,55 @@ Al hacer esto ya habremos completado el nivel y dejándonos un aviso de que hemo
 
 ![fin](/assets/images/SQLiPortswigger/lab2/final.png)
 
+<br>
+
+# Laboratorio 3: Ataque UNION de inyección SQL, determinando el número de columnas devueltas por la consulta
+
+Lo que nos dice este laboratorio, es que hay una vulnerabilidad nuevamente en el filtro de categorías de tipo SQLi, además de que los resultados de las consultas dentro de esta web, se muestran en pantalla, en este caso los productos que hemos visto serían los resultados, así que podríamos usar un ataque usando el operador **UNION**, para sacar datos de tablas, etc., pero antes de esto, antes de cualquier cosa, debemos saber cuantas columnas nos está devolviendo la consulta.
+
+![determinar_columnas](/assets/images/SQLiPortswigger/lab3/determinar_columnas.png)
+
+<br>
+
+Así que nuestro objetivo principal es descubrir cuantas columnas se están devolviendo a la web para que nos muestre lo que vemos, primero al entrar a alguna categoría, en este caso **pets**, vemos que nos devuelve esto:
+
+![pets](/assets/images/SQLiPortswigger/lab3/pets.png)
+
+Primero haremos la prueba de la comilla simple para verificar si es vulnerable a SQLi, por lo que agregaremos una comilla simple a la url:
+
+![consulta1](/assets/images/SQLiPortswigger/lab3/consultaweb1.png)
+
+![err](/assets/images/SQLiPortswigger/lab3/error.png)
+
+En este caso nos muestra este error, lo cual puede ser posible que sea vulnerable, por lo que ahora que ya sabemos que podría ser vulnerable, pasaremos a probar lo siguiente.
+
+Cuando entramos al filtro de **pets**, podemos ver que en esta respuesta podemos intuir que se están devolviendo 3 columnas, el nombre, precio y los detalles, por lo que jugaremos con la cláusula **order by**, que viene en SQL, esto nos permitirá mezclar la cantidad de columnas devueltas y saber cuantas hay, así que al hacer esta consulta desde la URL:
+
+![c2](/assets/images/SQLiPortswigger/lab3/consultaweb2.png)
+
+Como vemos lo primero que hicimos fue dejar la comilla, esto para romper la consulta y que se invalide lo que nos iba a mostrar por defecto, en su lugar le pedimos que nos ordene las 3 primeras columnas devueltas, sabemos que son 3, ya que lo hemos intuido al contar las columnas visibles en lo que nos mostraría por defecto, así que en este caso si eran 3 y nos mostró esto:
+
+![order](/assets/images/SQLiPortswigger/lab3/orderby.png)
+
+Vemos que nos ha interpretado lo que le pedimos sin ningún error, sabemos que esta es la cantidad exacta de columnas devueltas, ya que de ser más, por ejemplo probemos con 4 en vez de 3:
+
+![err](/assets/images/SQLiPortswigger/lab3/error.png)
+
+Rápidamente nos arroja este aviso de error, ya que no pudo interpretar lo que le dijimos, ya que solo hay 3 columnas devueltas y no 4.
+
+<br>
+
+Una vez sepamos la cantidad de columnas devueltas, en este caso 3, lo siguiente será usar **UNION SELECT** para de todas las columnas devueltas, agruparlas:
+
+![c3](/assets/images/SQLiPortswigger/lab3/consultaweb3.png)
+
+Aquí lo que hicimos fue agregar el **UNION SELECT** a la url, para que después sea interpretado por la consulta, seguido de 3 valores los cuales asignamos como **NULL**, ya que si poníamos número, o string, no nos deja.
+
+> Si hubiese más columnas devueltas hay más probabilidad de que alguna de ellas nos aplique las etiquetas de número o string, y poder inyectar nuestras consultas basadas en error, pero en este caso son pocas que no sucede eso.
+
+Por lo que al hacer esto estaremos mezclando los valores de dichas columnas junto con el valor **NULL**, que en este caso no se muestra nada, pero el objetivo de este laboratorio era determinar el número de columnas devueltas jugando con **UNION SELECT**, por lo que al tramitar la petición de la url estaremos completando este nivel:
+
+![fin](/assets/images/SQLiPortswigger/lab3/fin.png)
+
+<br>
+
