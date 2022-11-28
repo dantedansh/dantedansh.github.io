@@ -201,7 +201,7 @@ Por lo que al hacer esto estaremos mezclando los valores de dichas columnas junt
 
 Buscar una columna que interpreta cadenas de texto, nos puede servir para después inyectar nuestras consultas directamente, pero primero necesitamos encontrar que columnas devueltas aceptan texto.
 
-![4](/assets/images/SQLiPortswigger/lab3/lab4.png)
+![4](/assets/images/SQLiPortswigger/lab4/lab4.png)
 
 Para ello, nos dan un laboratorio el cual como sabemos, en la web principal nos dice que es vulnerable a SQLi dentro del filtro de categorías, por lo que primero iremos a ello:
 
