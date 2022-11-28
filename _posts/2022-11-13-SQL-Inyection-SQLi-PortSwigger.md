@@ -197,3 +197,46 @@ Por lo que al hacer esto estaremos mezclando los valores de dichas columnas junt
 
 <br>
 
+# Laboratorio 4: Ataque UNION de inyección SQL, encontrando una columna que contiene texto
+
+Buscar una columna que interpreta cadenas de texto, nos puede servir para después inyectar nuestras consultas directamente, pero primero necesitamos encontrar que columnas devueltas aceptan texto.
+
+![4](/assets/images/SQLiPortswigger/lab3/lab4.png)
+
+Para ello, nos dan un laboratorio el cual como sabemos, en la web principal nos dice que es vulnerable a SQLi dentro del filtro de categorías, por lo que primero iremos a ello:
+
+![category](/assets/images/SQLiPortswigger/lab4/Gifts.png)
+
+Vemos que primero estamos en este filtro de la categoría **Gifts**, vemos que la url se ve así:
+
+![url](/assets/images/SQLiPortswigger/lab4/url.png)
+
+Y para resolver este laboratorio debemos mostrar esta cadena de texto en una columna devuelta que admita cadena de texto, también llamadas strings:
+
+![string](/assets/images/SQLiPortswigger/lab4/string.png)
+
+Como vemos, en esta parte nos dice que hagamos que la base de datos nos devuelva el valor "VqagHe" en el valor de la columna.
+
+<br>
+
+Ya sabemos el objetivo, así que primero iniciaremos descubriendo el número de columnas devueltas, que lo haremos como sabemos con **order by** y **UNION SELECT**:
+
+![url2](/assets/images/SQLiPortswigger/lab4/url2.png)
+
+![orderby](/assets/images/SQLiPortswigger/lab4/orderby.png)
+
+Como vemos hemos descubierto que el número de columnas devueltas es 3, por lo que ahora usando **UNION SELECT** descubriremos cuál de las 3 columnas interpreta texto, probamos con la primera y:
+
+![1](/assets/images/SQLiPortswigger/lab4/1.png)
+
+Vemos que en la url hemos dicho que en lugar del primer NULL, nos muestre un valor de texto, y al intentar tramitar esta petición el servidor nos responde con esto:
+
+![error](/assets/images/SQLiPortswigger/lab4/error.png)
+
+Por lo que ahora probaremos con el valor de la segunda columna:
+
+![2](/assets/images/SQLiPortswigger/lab4/2.png)
+
+Y como vemos esta vez nos ha interpretado, ya que esta columna es de valor string, lo cual nos permitió inyectar nuestro texto, aunque podríamos inyectar código, pero esto aún no, por lo que como vemos arriba nos dice que hemos completado este nivel, ya que logramos mostrar ese valor string en lugar de una columna, la cual podemos ver al final de la tabla:
+
+![fin](/assets/images/SQLiPortswigger/lab4/final.png)
