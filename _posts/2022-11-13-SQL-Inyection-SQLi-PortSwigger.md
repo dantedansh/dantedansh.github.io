@@ -240,3 +240,74 @@ Por lo que ahora probaremos con el valor de la segunda columna:
 Y como vemos esta vez nos ha interpretado, ya que esta columna es de valor string, lo cual nos permitió inyectar nuestro texto, aunque podríamos inyectar código, pero esto aún no, por lo que como vemos arriba nos dice que hemos completado este nivel, ya que logramos mostrar ese valor string en lugar de una columna, la cual podemos ver al final de la tabla:
 
 ![fin](/assets/images/SQLiPortswigger/lab4/final.png)
+
+<br>
+
+# Laboratorio 5: Ataque UNION de inyección SQL, recuperación de datos de otras tablas
+
+En el siguiente laboratorio, podemos ver que nos dice lo siguiente:
+
+![lab5](/assets/images/SQLiPortswigger/lab5/lab5.png)
+
+Dice que en el filtro de categoría hay como sabemos una vulnerabilidad de tipo SQLi, como los resultados de estas consultas se muestran en la web podremos hacer uso de un ataque **UNION SELECT**, que como sabemos nos mezcla datos junto con los resultados de las consultas, comúnmente usamos esto para inyectar consultas y verlo mezclado en lugar de que nos muestre lo que debería esa columna.
+
+Después dice que la base de datos actual, tiene una tabla llamada **users**, la cual contiene 2 columnas interesantes, las cuales son **username** y **password**, y al final nos dice que debemos acceder al sistema como el usuario **administrator**.
+
+Como sabemos, lo primero que debemos hacer es detectar cuantas columnas nos está devolviendo en el apartado vulnerable:
+
+![vuln](/assets/images/SQLiPortswigger/lab5/vuln.png)
+
+Como podemos ver, en este apartado podemos ver que vemos los resultados de las consultas que se hacen por detrás en la base de datos, podemos ver que posiblemente haya 2 columnas:
+
+![col](/assets/images/SQLiPortswigger/lab5/col.png)
+
+La primera, el título, y la segunda el contenido de dicho título, por lo que intuimos que hay 2 columnas, y lo sabremos jugando con **order by**:
+
+![3](/assets/images/SQLiPortswigger/lab5/orderby3.png)
+
+![order](/assets/images/SQLiPortswigger/lab5/order.png)
+
+Y como podemos apreciar, encontramos el número correcto de columnas, ya que no nos muestra ningún error, y sabemos que es 3, ya que si ponemos 1 más nos daría error.
+
+<br>
+
+Ahora que ya conocemos el número de columnas, recordemos que debemos saber cuál de esas columnas nos interpreta texto, por lo que probaremos con esta petición web:
+
+![text1](/assets/images/SQLiPortswigger/lab5/texto1.png)
+
+Y nos muestra esto:
+
+![res1](/assets/images/SQLiPortswigger/lab5/respuesta1.png)
+
+Y como vemos hasta abajo en la última línea nos ha interpretado el texto!
+
+Probemos si la siguiente columna igual admite texto:
+
+![text2](/assets/images/SQLiPortswigger/lab5/texto2.png)
+
+Y nos responde:
+
+![res2](/assets/images/SQLiPortswigger/lab5/respuesta2.png)
+
+Vemos que igual interpreta texto, esto es lógico, ya que antes de saber esto podemos ver que en este caso las columnas solo nos devuelven texto, como supimos arriba, el título y la descripción de este título, como ambos son texto no es extraño que esto suceda.
+
+<br>
+
+Ahora la siguiente parte de este reto no solo es esto, si no que debemos saber la contraseña del usuario **administrator**, por lo que ahora necesitamos saber los nombres de tablas disponibles dentro de la base de datos actual, por lo que ahora en vez de mostrar simple texto, usaremos esto para inyectar consultas SQL que determinen los nombres de tablas.
+
+Como ya sabemos que hay una tabla llamada **users** y 2 columnas llamadas **username** y **password** en este caso no será necesario enumerar esto, ya que el mismo reto nos ha dado esta información por lo que en este caso no será necesario enumerar y podremos pasar simplemente a sacar los datos de dichas columnas:
+
+![sqli](/assets/images/SQLiPortswigger/lab5/sqli.png)
+
+Aquí le estamos indicando que en vez de las cadenas de texto, nos muestre lo que hay en las columnas **username** y **password**, de la tabla **users**, lo cual al tramitar esta petición el servidor de la base de datos nos responderá esto:
+
+![res3](/assets/images/SQLiPortswigger/lab5/respuesta3.png)
+
+Como vemos hemos sacado los datos de dichas columnas dentro de esa tabla, esto fue facil, ya que la página nos proporcionó los nombres de las columnas y de la tabla, pero esto si no lo sabemos tendríamos que enumerar las tablas, para posteriormente enumerar las columnas de dicha tabla, que veremos más adelante, y por ahora ya podemos ir al panel login y ingresar con las credenciales recién encontradas, como el reto nos dice que debemos acceder como el usuario **administrator** usaremos dichas credenciales para acceder y terminar el reto:
+
+![final](/assets/images/SQLiPortswigger/lab5/final.png)
+
+Como vemos hemos completado con éxito este laboratorio, pero como sabemos en un entorno real esto es más extenso, ya que nadie nos dirá el nombre de las bases de datos, tablas y columnas, y tendremos que hacerlo por nuestra cuenta.
+
+<br>
+
