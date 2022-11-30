@@ -315,7 +315,7 @@ Como vemos hemos completado con éxito este laboratorio, pero como sabemos en un
 
 # Laboratorio 6: ataque SQL inyection UNION, recuperando múltiples valores en una sola columna
 
-Como recordamos en el laboratorio anterior, logramos recuperar datos de una tabla, gracias a que había 2 valores que interpretaban cadenas de texto y esto nos facilito concluir ese laboratorio, pero en este caso:
+Como recordamos en el laboratorio anterior, logramos recuperar datos de una tabla, gracias a que había 2 valores que interpretaban cadenas de texto y esto nos facilitó concluir ese laboratorio, pero en este caso:
 
 ![lab6](/assets/images/SQLiPortswigger/lab6/lab6.png)
 
@@ -323,27 +323,27 @@ Nos dice que ahora solo podremos hacerlo en una sola columna y no 2, y en este l
 
 <br>
 
-Al acceder a este laboratorio, sabemos que en el apartado de filtro de categorias existe la vulnerabilidad SQLi, por lo que sabemos que el primer paso es detectar el numero de columnas devueltas:
+Al acceder a este laboratorio, sabemos que en el apartado de filtro de categorías existe la vulnerabilidad SQLi, por lo que sabemos que el primer paso es detectar el número de columnas devueltas:
 
 ![consulta1](/assets/images/SQLiPortswigger/lab6/consulta1.png)
 
-Como ya sabemos detectar el numero de columnas devueltas usando **order by**, en este caso descubri que las columnas devueltas son 2:
+Como ya sabemos detectar el número de columnas devueltas usando **order by**, en este caso descubri que las columnas devueltas son 2:
 
 ![order](/assets/images/SQLiPortswigger/lab6/orderby.png)
 
-Ahora que hemos descubierto la cantidad, procederemos a detectar cual de estas columnas interpreta texto, por lo que empezaremos con la primera:
+Ahora que hemos descubierto la cantidad, procederemos a detectar cuál de estas columnas interpreta texto, por lo que empezaremos con la primera:
 
 ![columna1](/assets/images/SQLiPortswigger/lab6/columna1.png)
 
-Vemos que intentaremos ver si la primera columna interpreta texto, y al enviar esta peticion nos muestra:
+Vemos que intentaremos ver si la primera columna interpreta texto, y al enviar esta petición nos muestra:
 
 ![error](/assets/images/SQLiPortswigger/lab6/error.png)
 
 Vemos que nos da un error, ya que esta columna posiblemente no admite cadenas de texto, por lo que intentaremos probar con la segunda columna:
 
-![columna2](/assets/images/SQLiPortswigger/lab5/columna2.png)
+![columna2](/assets/images/SQLiPortswigger/lab6/columna2.png)
 
-Y al enviar esta peticion nos responde con esto:
+Y al enviar esta petición nos responde con esto:
 
 ![respuesta2](/assets/images/SQLiPortswigger/lab6/respuesta2.png)
 
@@ -353,21 +353,49 @@ Como podemos ver al final de todo vemos que nos ha interpretado dicho texto en e
 
 <br>
 
-Ahora que ya sabemos que columna es la que nos permitira inyectar nuestras consultas, pero como solo tenemos una columna, tendremos que jugar con la concatenacion de cadenas, o "string concatenation".
+Ahora que ya sabemos que columna es la que nos permitirá inyectar nuestras consultas, pero como solo tenemos una columna, tendremos que jugar con la concatenación de cadenas, o "string concatenation".
 
 Para saber más sobre esto podemos visitar la [SQL injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet), lo cual es una hoja de trucos que nos facilitara ciertas consultas a la hora de hacer inyecciones sql.
 
-Al leerlo, sabremos que para concatenar multiples cadenas de texto hay diferentes formas de hacerlo, dependiendo de la base de datos que funcione por detras, para esto inyectaremos esta consulta para saber la version de la base de datos:
+Al leerlo, sabremos que para concatenar múltiples cadenas de texto hay diferentes formas de hacerlo, dependiendo de la base de datos que funcione por detrás, para esto inyectaremos esta consulta para saber la versión de la base de datos:
 
 ![version](/assets/images/SQLiPortswigger/lab6/version.png)
 
-Como vemos hemos agregado una pequeña funcion la cual nos dira que version usa la base de datos, y al tramitar esta peticion veremos que nos dice la version hasta abajo junto a la ultima columna:
+Como vemos hemos agregado una pequeña función la cual nos dirá que versión usa la base de datos, y al tramitar esta petición veremos que nos dice la versión hasta abajo junto a la ultima columna:
 
 ![version](/assets/images/SQLiPortswigger/lab6/version_response.png)
 
-Podemos ver que la base de datos usa **PostgreSQL 12.12**, y como vemos en la hoja de trucos, mejor conocida como Cheat Sheet, vemos que para concatenar cadenas en esa version tendremos que hacer esto:
+Podemos ver que la base de datos usa **PostgreSQL 12.12**, y como vemos en la hoja de trucos, mejor conocida como Cheat Sheet, vemos que para concatenar cadenas en esa versión tendremos que hacer esto:
 
 ![concatenation](/assets/images/SQLiPortswigger/lab6/concatenation.png)
 
-Vemos que en la version de **PostgreSQL** que como sabemos usa la base de datos, entonces ahí nos especifica como se concatenan cadenas en dicha version.
+Vemos que en la versión de **PostgreSQL** que como sabemos usa la base de datos, entonces ahí nos especifica como se concatenan cadenas en dicha versión.
+
+<br>
+
+Al saber que para concatenar con esta versión se usa **"||"**, debemos agregarlo a nuestra consulta y quedara algo así:
+
+![exploit](/assets/images/SQLiPortswigger/lab6/exploit.png)
+
+Le decimos que nos una las columnas **username** y **password** en un solo lugar, y después esas columnas las obtendremos de la tabla **users**.
+
+Y vemos que la web nos responde:
+
+![resupesta](/assets/images/SQLiPortswigger/lab6/respuesta3.png)
+
+Como podemos ver, abajo podemos leer como 3 usuarios y a la derecha su contraseña, podemos ver que tanto el usuario como la contraseña están pegados y no se distinguen bien, por lo que podemos modificar la petición para agregar una coma que nos separe ambas columnas:
+
+![exploit2](/assets/images/SQLiPortswigger/lab6/exploitnation.png)
+
+Y ahora ahí ya podremos leer la contraseña y el usuario separados por una coma y distinguirlos mejor ya que en medio de los pipes hemos agregado una comilla para separar los valores por dicha comilla, aunque también podriamos probar usando **concat()**, pero en este caso lo haré con la comilla en medio de los pipes.
+
+> Aveces las webs usarán filtros para evitar inyecciones SQL, pero estos filtros aveces tratan de que no leen cadenas de texto pero si lo convertimos en hexadecimal nos valdrá igualmente, como cuando no te deja poner el nombre de columna que quieres dumpear en su nombre, entonces tocaría intentar con su valor en hexadecimal, y como este podría haber más casos.
+
+Ahora ya solo quedaría entrar como el usuario**administrator**, poner su password que acabamos de dumpear, y poner las credenciales en el panel login para terminar este laboratorio:
+
+![final](/assets/images/SQLiPortswigger/lab6/final.png)
+
+Y hemos completado este laboratorio.
+
+<br>
 
