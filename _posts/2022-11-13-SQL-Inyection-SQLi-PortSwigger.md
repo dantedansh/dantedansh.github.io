@@ -263,11 +263,13 @@ Como podemos ver, en este apartado podemos ver que vemos los resultados de las c
 
 La primera, el título, y la segunda el contenido de dicho título, por lo que intuimos que hay 2 columnas, y lo sabremos jugando con **order by**:
 
-![3](/assets/images/SQLiPortswigger/lab5/orderby3.png)
+![2](/assets/images/SQLiPortswigger/lab5/orderby.png)
 
 ![order](/assets/images/SQLiPortswigger/lab5/order.png)
 
-Y como podemos apreciar, encontramos el número correcto de columnas, ya que no nos muestra ningún error, y sabemos que es 3, ya que si ponemos 1 más nos daría error.
+Y como podemos apreciar, encontramos el número correcto de columnas, ya que no nos muestra ningún error, y sabemos que es 2, ya que si ponemos 1 más nos daría error.
+
+> Recuerda que se debe mostrar el contenido mas a parte que no nos marque error, ya que si no nos muestra el contenido quiere decir que algo hicimos mal, como olvidar poner la comilla simple al inicio del apartado vulnerable que en este caso es Pets, para que nos interprete lo que queremos.
 
 <br>
 
@@ -310,4 +312,62 @@ Como vemos hemos sacado los datos de dichas columnas dentro de esa tabla, esto f
 Como vemos hemos completado con éxito este laboratorio, pero como sabemos en un entorno real esto es más extenso, ya que nadie nos dirá el nombre de las bases de datos, tablas y columnas, y tendremos que hacerlo por nuestra cuenta.
 
 <br>
+
+# Laboratorio 6: ataque SQL inyection UNION, recuperando múltiples valores en una sola columna
+
+Como recordamos en el laboratorio anterior, logramos recuperar datos de una tabla, gracias a que había 2 valores que interpretaban cadenas de texto y esto nos facilito concluir ese laboratorio, pero en este caso:
+
+![lab6](/assets/images/SQLiPortswigger/lab5/lab6.png)
+
+Nos dice que ahora solo podremos hacerlo en una sola columna y no 2, y en este laboratorio nos dice que en esta base de datos hay una tabla llamada **users**, con columnas las cuales son **username** y **password**, y nuevamente nos dice que debemos acceder como el usuario **administrator**, por lo que debemos descubrir su contraseña.
+
+<br>
+
+Al acceder a este laboratorio, sabemos que en el apartado de filtro de categorias existe la vulnerabilidad SQLi, por lo que sabemos que el primer paso es detectar el numero de columnas devueltas:
+
+![consulta1](/assets/images/SQLiPortswigger/lab5/consulta1.png)
+
+Como ya sabemos detectar el numero de columnas devueltas usando **order by**, en este caso descubri que las columnas devueltas son 2:
+
+![order](/assets/images/SQLiPortswigger/lab5/orderby.png)
+
+Ahora que hemos descubierto la cantidad, procederemos a detectar cual de estas columnas interpreta texto, por lo que empezaremos con la primera:
+
+![columna1](/assets/images/SQLiPortswigger/lab5/columna1.png)
+
+Vemos que intentaremos ver si la primera columna interpreta texto, y al enviar esta peticion nos muestra:
+
+![error](/assets/images/SQLiPortswigger/lab5/error.png)
+
+Vemos que nos da un error, ya que esta columna posiblemente no admite cadenas de texto, por lo que intentaremos probar con la segunda columna:
+
+![columna2](/assets/images/SQLiPortswigger/lab5/columna2.png)
+
+Y al enviar esta peticion nos responde con esto:
+
+![respuesta2](/assets/images/SQLiPortswigger/lab5/respuesta2.png)
+
+Como podemos ver al final de todo vemos que nos ha interpretado dicho texto en esa columna, por lo que podremos inyectar nuestras consultas SQL.
+
+> La diferencia de este laboratorio con el anterior es que en el anterior las 2 columnas nos interpretaban texto, y en este caso solo una.
+
+<br>
+
+Ahora que ya sabemos que columna es la que nos permitira inyectar nuestras consultas, pero como solo tenemos una columna, tendremos que jugar con la concatenacion de cadenas, o "string concatenation".
+
+Para saber más sobre esto podemos visitar la [SQL injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet), lo cual es una hoja de trucos que nos facilitara ciertas consultas a la hora de hacer inyecciones sql.
+
+Al leerlo, sabremos que para concatenar multiples cadenas de texto hay diferentes formas de hacerlo, dependiendo de la base de datos que funcione por detras, para esto inyectaremos esta consulta para saber la version de la base de datos:
+
+![version](/assets/images/SQLiPortswigger/lab5/version.png)
+
+Como vemos hemos agregado una pequeña funcion la cual nos dira que version usa la base de datos, y al tramitar esta peticion veremos que nos dice la version hasta abajo junto a la ultima columna:
+
+![version](/assets/images/SQLiPortswigger/lab5/version_response.png)
+
+Podemos ver que la base de datos usa **PostgreSQL 12.12**, y como vemos en la hoja de trucos, mejor conocida como Cheat Sheet, vemos que para concatenar cadenas en esa version tendremos que hacer esto:
+
+![concatenation](/assets/images/SQLiPortswigger/lab5/concatenation.png)
+
+Vemos que en la version de **PostgreSQL** que como sabemos usa la base de datos, entonces ahí nos especifica como se concatenan cadenas en dicha version.
 
