@@ -399,3 +399,40 @@ Y hemos completado este laboratorio.
 
 <br>
 
+# Laboratorio 7: Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en Oracle
+
+En este laboratorio, ahora nos dice que hagamos un ataque de inyección SQL, para consultar el tipo y versión de base de datos, pero en este caso el tipo de base de datos será Oracle, por lo que la sintaxis será diferente, pero la lógica sigue siendo la misma.
+
+![lab7](/assets/images/SQLiPortswigger/lab7/lab7.png)
+
+Como podemos leer, nos dice que este laboratorio contiene una vulnerabilidad de tipo SQLi, en el filtro de categorías, y que podemos usar un ataque de **UNION SELECT** para poder inyectar consultas, como ya lo sabemos y hemos hecho.
+
+Después abajo nos dice que en las bases de datos Oracle, al hacer una declaración **SELECT**, debemos indicarle una tabla desde donde haremos la consulta, en este caso nos dice que existe una tabla llamada **dual**, que al investigar sobre esta tabla nos dice que está presente en la mayoría de bases de datos oracle, esta tabla tiene otro propósito, pero nosotros abusaremos de dicha tabla para empezar a inyectar nuestras consultas.
+
+Así que al ir a la página donde es vulnerable a SQLi vemos esto:
+
+![r1](/assets/images/SQLiPortswigger/lab7/respuesta1.png)
+
+Podemos apreciar que posiblemente haya 2 columnas, la que nos da el título del texto, y la que nos da el texto de ese título, así que podemos intuir que hay 2 tablas que son de tipo string, ya que nos están devolviendo cadenas de texto, así que haremos un **UNION SELECT**, pero como dije antes, con Oracle es necesario darle una tabla, y ya sabemos que tabla darle o sea **dual**, por lo que la consulta nos quedaría algo así:
+
+![consulta1](/assets/images/SQLiPortswigger/lab7/consulta1.png)
+
+Podemos apreciar que agregamos dicha tabla al final, ya que de no ponerla nos dará error, ya que Oracle requiere de una tabla al hacer declaraciones **UNION**.
+
+Y al tramitar esta petición nos responde esto:
+
+![r2](/assets/images/SQLiPortswigger/lab7/respuesta2.png)
+
+Vemos que teníamos razón, las 2 columnas eran de tipo string, por lo que vemos que nos interpreta dicho contenido, y ahora solo queda hacer lo que nos dice el reto, que es mostrar la versión de esta base de datos, en este caso la hoja de trucos nos dice que para llamar a la función que nos dice la versión en Oracle se hace de la siguiente manera:
+
+![v](/assets/images/SQLiPortswigger/lab7/vers.png)
+
+Podemos apreciar que es necesario llamar al valor **banner** de **v$version**, por lo que en este caso necesitaremos llamar a otro recurso y ya no será necesario usar la tabla **dual**, ya que esto solo se hace en caso de no tener algo a lo que llamar, por lo que en este caso tenemos que llamar a **v$version** quedándonos la consulta así:
+
+![consulta1](/assets/images/SQLiPortswigger/lab7/consulta1.png)
+
+Podemos apreciar que estamos llamando al valor **banner** en lugar de la columna, y lo que nos mostrará en ese lugar será lo que nos devuelva **v$version**, que en este caso es la versión de la base de datos y al tramitar la petición podremos ver:
+
+![final](/assets/images/SQLiPortswigger/lab7/final.png)
+
+Como podemos ver, hasta abajo esta la respuesta de nuestra inyección, y como el laboratorio nos decía que solo debemos saber la versión hemos terminado este reto.
