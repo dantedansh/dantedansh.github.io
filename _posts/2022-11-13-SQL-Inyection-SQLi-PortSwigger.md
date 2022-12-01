@@ -436,3 +436,36 @@ Podemos apreciar que estamos llamando al valor **banner** en lugar de la columna
 ![final](/assets/images/SQLiPortswigger/lab7/final.png)
 
 Como podemos ver, hasta abajo esta la respuesta de nuestra inyección, y como el laboratorio nos decía que solo debemos saber la versión hemos terminado este reto.
+
+<br>
+
+# Laboratorio 8: Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en MySQL y Microsoft
+
+Este laboratorio es similar al anterior, la única diferencia es que debemos hacerlo en la versión de base de datos Microsoft, también dice MySQL, ya que lo que haremos funciona exactamente igual que en MySQL.
+
+Debemos inyectar una consulta que nos devuelva la versión del tipo de base de datos, estos niveles sirven para que vayas practicando diferentes tipos de bases de datos y no solo la que hemos usado comúnmente, puedes practicar dumpear datos de diferentes versiones en estos laboratorios y no solo quedarte con lo que te dice el reto.
+
+Sabemos que hay una vulnerabilidad SQLi en el filtro de categoría, el cual se ve así:
+
+![lab8](/assets/images/SQLiPortswigger/lab8/lab8.png)
+
+Podemos intuir que existen 2 columnas de tipo string, ya que una contiene el título, y otra el texto.
+
+Al consultar la hoja de trucos podemos apreciar que nos dice lo siguiente:
+
+![ver](/assets/images/SQLiPortswigger/lab8/version.png)
+
+Vemos que en la versión de Microsoft, para llamar a esa función de versión de la base de datos es simplemente **@@version**, y nuestra consulta quedara algo así:
+
+![consulta](/assets/images/SQLiPortswigger/lab8/consulta.png)
+
+Y en caso de que los parámetros sean correctos, que en este caso he comprobado que si, entonces nos mostrara esto en la respuesta:
+
+![fin](/assets/images/SQLiPortswigger/lab8/final.png)
+
+Podemos ver que hemos logrado inyectar nuestra consulta y saber la versión de esta base de datos, y hemos concluido con este laboratorio.
+
+<br>
+
+# Laboratorio 9: Ataque de inyección SQL, enumerando el contenido de la base de datos en bases de datos que no son de Oracle
+
