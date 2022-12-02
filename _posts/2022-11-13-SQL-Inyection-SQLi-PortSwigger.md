@@ -473,13 +473,13 @@ En este laboratorio, nos dicen que debemos dumpear contenido de una tabla dentro
 
 ![lab9](/assets/images/SQLiPortswigger/lab9/lab9.png)
 
-Como en los niveles anteriores, la vulnerabilidad sigue siendo la del filtro en las categorias, entonces ahí empezaremos, pero después nos dice que dentro de esta base de datos hay una tabla que contiene nombres de usuario y contraseñas, pero en este caso no nos estan diciendo el nombre de las tablas ni mucho menos de las columnas, por lo que ahora lo investigaremos por nuestra cuenta, nos dice que para completar este laboratorio debemos acceder al panel login como el usuario **administrator**, cuya contraseña debemos descubrir.
+Como en los niveles anteriores, la vulnerabilidad sigue siendo la del filtro en las categorías, entonces ahí empezaremos, pero después nos dice que dentro de esta base de datos hay una tabla que contiene nombres de usuario y contraseñas, pero en este caso no nos están diciendo el nombre de las tablas ni mucho menos de las columnas, por lo que ahora lo investigaremos por nuestra cuenta, nos dice que para completar este laboratorio debemos acceder al panel login como el usuario **administrator**, cuya contraseña debemos descubrir.
 
 Al ir a la parte vulnerable del laboratorio vemos lo siguiente:
 
 ![respuesta1](/assets/images/SQLiPortswigger/lab9/respuesta1.png)
 
-Como recordamos, podemos intuir que en este caso podemos saber que probablemente hay 2 columnas devueltas, la del titulo del texto y el texto en si, por lo que con **ORDER BY** o directamente jugando con **UNION SELECT** podemos comprobar que en efecto tiene 2 columnas, y también descubrimos que ambas aceptas strings, ya que interpretan texto por lo que vemos en la respuesta o sea el titulo y descripcion de ese titulo, nuestra consulta queda algo así:
+Como recordamos, podemos intuir que en este caso podemos saber que probablemente hay 2 columnas devueltas, la del título del texto y el texto en sí, por lo que con **ORDER BY** o directamente jugando con **UNION SELECT** podemos comprobar que en efecto tiene 2 columnas, y también descubrimos que ambas aceptas strings, ya que interpretan texto por lo que vemos en la respuesta o sea el título y descripción de ese título, nuestra consulta queda algo así:
 
 ![consulta1](/assets/images/SQLiPortswigger/lab9/consulta1.png)
 
@@ -487,7 +487,7 @@ Y la respuesta de esta nos muestra:
 
 ![respuesta2](/assets/images/SQLiPortswigger/lab9/respuesta2.png)
 
-Vemos que nos interpreta lo que le hemos dicho, ya que la columna es de tipo string, por lo que ahora trataremos de intuir que tipo de base de datos usa, sabemos que no usa Oracle, ya que el mismo nivel lo dice, ademas podemos saberlo porque no estamos usando la tabla **dual**, así que nos quedan Microsoft,MySQL y PostgreSQL, así que probe con **@@version** y me marco error, por lo que la unica opcion que quedaba era la de PostgreSQL que es **version()**, ya que Microsoft y MySQL son similares en cuanto a este caso, y esto lo puedes recordar viendo la hoja de trucos:
+Vemos que nos interpreta lo que le hemos dicho, ya que la columna es de tipo string, por lo que ahora trataremos de intuir que tipo de base de datos usa, sabemos que no usa Oracle, ya que el mismo nivel lo dice, además podemos saberlo porque no estamos usando la tabla **dual**, así que nos quedan Microsoft,MySQL y PostgreSQL, así que probé con **@@version** y me marco error, por lo que la única opción que quedaba era la de PostgreSQL que es **version()**, ya que Microsoft y MySQL son similares en cuanto a este caso, y esto lo puedes recordar viendo la hoja de trucos:
 
 ![ver](/assets/images/SQLiPortswigger/lab9/dbversion.png)
 
@@ -495,11 +495,11 @@ Así que nuestra consulta quedo así:
 
 ![ver](/assets/images/SQLiPortswigger/lab9/postgreSQL.png)
 
-Y nos respondio:
+Y nos respondió:
 
 ![respuesta3](/assets/images/SQLiPortswigger/lab9/respuesta3.png)
 
-Y como sabemos que version es ahora empezaremos a enumerar en base a la sintaxis de PostgreSQL.
+Y como sabemos que versión es ahora empezaremos a enumerar en base a la sintaxis de PostgreSQL.
 
 <br>
 
@@ -507,7 +507,7 @@ Primero empezaremos a descubrir que bases de datos existen, para ello crearemos 
 
 ![databases](/assets/images/SQLiPortswigger/lab9/databases.png)
 
-Estamos indicando que en la primera columna, en esa posicion nos muestre el nombre de esquema **schema_name**, esto son las bases de datos, y las consultas para obtenerlas las pusimos a la derecha, alado de la columna 2, le decimos que de la base de datos **information_schema** nos de los valores de la tabla **schemata**, y en medio de estos 2 valores ponemos un **.** para poder separarlos y la base de datos sepa que esta haciendo una consulta de la base de datos **schema_name** a la tabla **schemata**.
+Estamos indicando que en la primera columna, en esa posición nos muestre el nombre de esquema **schema_name**, esto son las bases de datos, y las consultas para obtenerlas las pusimos a la derecha, alado de la columna 2, le decimos que de la base de datos **information_schema** nos dé los valores de la tabla **schemata**, y en medio de estos 2 valores ponemos un **.** para poder separarlos y la base de datos sepa que está haciendo una consulta de la base de datos **schema_name** a la tabla **schemata**.
 
 Y ahora que sabemos que es esto, veremos lo que nos responde el servidor:
 
@@ -519,11 +519,11 @@ Podemos apreciar que nos ha respondido y nos ha dumpeado varias bases de datos, 
 - **public**
 - **pg_catalog**
 
-Así que la que nos llama la atencion es la que se llama la atencion la tabla de **public**, por lo que sacaremos las tablas de dicha base de datos con la siguiente consulta:
+Así que la que nos llama la atención es la que se llama la atención la tabla de **public**, por lo que sacaremos las tablas de dicha base de datos con la siguiente consulta:
 
 `https://web-security-academy.net//filter?category=Gifts' UNION SELECT table_name,'texto 2' FROM information_schema.tables WHERE table_schema = 'public' -- -`
 
-> Puse la consulta en este formato ya que es muy grande, y recuerda que no es necesario indicar la base de datos cuando las tablas que buscas estan en la base de datos ya en uso, pero en este caso lo use para que se entienda bien todo.
+> Puse la consulta en este formato, ya que es muy grande, y recuerda que no es necesario indicar la base de datos cuando las tablas que buscas están en la base de datos ya en uso, pero en este caso lo use para que se entienda bien todo.
 
 Lo que estamos haciendo es primero en el lugar de la primera columna nos mostrara las tablas, estas tablas las obtendremos de la base de datos **information_schema** y dentro de su tabla **tables**, obtendremos las tablas donde el nombre de la base de datos **table_schema** se llame **public**.
 
@@ -542,7 +542,7 @@ Ahora que ya conocemos la tabla que nos importa **users_lwkejd** toca descubrir 
 
 `https://web-security-academy.net//filter?category=Gifts' UNION SELECT column_name,'texto 2' FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users_lwkejd' -- -`
 
-Aquí le estamos indicando que ahora en la parte de la primera columna nos mostrara las columnas, estas columnas las obtendra de la base de datos **information_schema** en su tabla **columns**, obtendremos las columnas donde el nombre de la base de datos **table_schema** se llame **public**, y despues agregamos el operador AND, para indicarle que también donde la tabla se llame **users_lwkejd**, y esto nos respondera:
+Aquí le estamos indicando que ahora en la parte de la primera columna nos mostrara las columnas, estas columnas las obtendrá de la base de datos **information_schema** en su tabla **columns**, obtendremos las columnas donde el nombre de la base de datos **table_schema** se llame **public**, y después agregamos el operador AND, para indicarle que también donde la tabla se llame **users_lwkejd**, y esto nos responderá:
 
 ![respuesta6](/assets/images/SQLiPortswigger/lab9/respuesta6.png)
 
@@ -555,10 +555,13 @@ Ahora solo queda dumpear los datos de esas columnas, que haremos con la siguient
 
 `https://web-security-academy.net//filter?category=Gifts' UNION SELECT username_nemdqx,password_ypezho FROM public.users_lwkejd -- -`
 
-Aqui le estamos indicando que nos muestre lo que hay en las columnas **username_nemdqx** y **password_ypezho** reemplazandolos en lugar de las columnas originales, bueno más bien mezclando, después le decimos que esto lo obtendra de la base de datos **public** en la tabla **users_lwkejd**, y podremos dumpeaer las credenciales como vemos aqui:
+Aquí le estamos indicando que nos muestre lo que hay en las columnas **username_nemdqx** y **password_ypezho** reemplazándolos en lugar de las columnas originales, bueno más bien mezclando, después le decimos que esto lo obtendrá de la base de datos **public** en la tabla **users_lwkejd**, y podremos dumpeaer las credenciales como vemos aquí:
 
 ![dump](/assets/images/SQLiPortswigger/lab9/dump.png)
 
 Como podemos apreciar hemos dumpeado los datos de dichas columnas, y ya solo queda tomar las credenciales del usuario **administrator** para terminar el laboratorio:
 
 ![final](/assets/images/SQLiPortswigger/lab9/final.png)
+
+<br>
+
