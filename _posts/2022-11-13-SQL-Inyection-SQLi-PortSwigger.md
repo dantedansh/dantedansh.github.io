@@ -523,7 +523,7 @@ Así que la que nos llama la atención es la que se llama la atención la tabla 
 
 `https://web-security-academy.net//filter?category=Gifts' UNION SELECT table_name,'texto 2' FROM information_schema.tables WHERE table_schema = 'public' -- -`
 
-> Puse la consulta en este formato, ya que es muy grande, y recuerda que no es necesario indicar la base de datos cuando las tablas que buscas están en la base de datos ya en uso, pero en este caso lo use para que se entienda bien todo.
+> Puse la consulta en este formato, ya que es muy grande, y recuerda que no es necesario indicar la base de datos cuando las tablas que buscas están en la base de datos ya en uso, pero en este caso lo use para que se entienda bien todo y para que nos muestre solo las tablas de la base de datos que nos interesa y no de todas las bases de datos.
 
 Lo que estamos haciendo es primero en el lugar de la primera columna nos mostrara las tablas, estas tablas las obtendremos de la base de datos **information_schema** y dentro de su tabla **tables**, obtendremos las tablas donde el nombre de la base de datos **table_schema** se llame **public**.
 
@@ -562,6 +562,88 @@ Aquí le estamos indicando que nos muestre lo que hay en las columnas **username
 Como podemos apreciar hemos dumpeado los datos de dichas columnas, y ya solo queda tomar las credenciales del usuario **administrator** para terminar el laboratorio:
 
 ![final](/assets/images/SQLiPortswigger/lab9/final.png)
+
+<br>
+
+# Laboratorio 10: Ataque de inyección SQL, enumerando el contenido de la base de datos en Oracle
+
+Este laboratorio es similar al anterior, con la diferencia de que ahora enumeraremos datos de una base de datos que es Oracle.
+
+En este caso no es necesario descubrir que versión usa, ya que el mismo reto nos lo dice, por lo que iremos directamente a descubrir cuantas tablas se devuelven en la parte vulnerable, en este caso descubrimos que son 2:
+
+![lab10](/assets/images/SQLiPortswigger/lab10/lab10.png)
+
+Podemos apreciar que son 2, como hemos visto anteriormente, el título, y su respectiva descripción, por lo que hay 2 columnas seguramente de tipo string, esto lo hemos comprobado.
+
+Ahora que sabemos esto, lo que debemos hacer es como sabemos hacer una unión de las columnas que seleccionemos usando **UNION SELECT**, pero como recordamos cuando la versión es Oracle debemos hacerlo un poco distinto.
+
+Cuando se trata de Oracle debemos indicarle una tabla, esta tabla es una que está presente en la mayoría de bases de datos Oracle la cual es **dual**, y la podremos llamar para ejecutar nuestra consulta quedando así:
+
+`https://web-security-academy.net/filter?category=Gifts' UNION SELECT 'texto 1','texto 2' FROM dual -- -`
+
+Y al hacer esta petición veremos en su respuesta:
+
+![respuesta1](/assets/images/SQLiPortswigger/lab10/respuesta1.png)
+
+Podemos apreciar hasta abajo que nos interpreta lo que le hemos dicho, ya que sabemos que estas columnas son tipo string, pero lo que nos interesa ahora es listar las bases de datos, por lo que haremos la siguiente consulta:
+
+`https://web-security-academy.net/filter?category=Gifts' UNION SELECT owner,'texto 2' FROM all_tables -- -`
+
+> Recuerda que en Oracle o dependiendo de que versión sea cambia la sintaxis de enumeración de bases de datos, lo puedes ver en la hoja de trucos, en este caso usamos all_tables y no inforamtion_schema.tables.
+
+En este caso usamos **owner**, para que nos liste los propietarios de las tablas, ya que si ponemos table_name en vez de owner nos mostrara todas las tablas y tardaremos en encontrar la que nos interesa, por lo que al hacer esta consulta nos mostrara los propietarios de las tablas que existen:
+
+![owners](/assets/images/SQLiPortswigger/lab10/owners.png)
+
+Como vemos podemos apreciar múltiples propietarios de distintas tablas, entre estos propietarios están:
+
+- **XDB**
+- **SYSTEM**
+- **SYS**
+- **PETER**
+- **MDSYS**
+- **APEX_040000**
+- **CTXSYS**
+
+Podemos ver que existen múltiples propietarios de distintas tablas, probaremos con la de **PETER**, ya que es diferente a las demás, por lo que pondremos esta condición de que nos muestre las tablas donde el propietario sea **PETER**:
+
+`https://web-security-academy.net/filter?category=Gifts' UNION SELECT table_name,'texto 2' FROM all_tables WHERE owner = 'PETER' -- -`
+
+Y al hacer esta consulta nos dumpeara las tablas pertenecientes a este propietario:
+
+![PETER](/assets/images/SQLiPortswigger/lab10/PETER.png)
+
+Podemos apreciar que nos dumpeo 2 tablas de este propietario:
+
+- **PRODUCTS**
+- **USERS_KXSGFS**
+
+Por lo que nos llama la atención la tabla de **USERS_KXSGFS**, así que haremos una consulta para dumpear sus columnas:
+
+`https://web-security-academy.net/filter?category=Gifts' UNION SELECT column_name,'texto 2' FROM all_tab_columns WHERE owner = 'PETER' AND table_name = 'USERS_KXSGFS' -- -`
+
+En esta consulta cambiamos que nos muestre las tablas por las columnas, y después esas columnas las obtendrá de **all_tab_columns**, que en este caso es distinto a **information_schema.columns**, ya que es distinta versión y podemos comprobar esto en la hoja de trucos, por lo que ahora aparte de que el propietario sea **PETER** también le indicamos que donde el nombre de la tabla sea **USERS_KXSGFS** entonces nos muestre esos datos, por lo que veremos en la respuesta:
+
+![columns](/assets/images/SQLiPortswigger/lab10/all_tab_columns.png)
+
+Y podemos ver que hemos dumpeado 2 columnas:
+
+- **USERNAME_BZAJCR**
+- **PASSWORD_KYCHOY**
+
+Por lo que ya solo nos quedaría dumpear los datos de dichas columnas:
+
+`https://web-security-academy.net/filter?category=Gifts' UNION SELECT USERNAME_BZAJCR,PASSWORD_KYCHOY FROM USERS_KXSGFS -- -`
+
+Estamos diciendo que nos muestre los datos de las columnas **USERNAME_BZAJCR** y **PASSWORD_KYCHOY** de la tabla **USERS_KXSGFS**, y entonces veremos:
+
+![respuesta2](/assets/images/SQLiPortswigger/lab10/respuesta2.png)
+
+Y usamos las credenciales de **administrator** para terminar este laboratorio:
+
+![final](/assets/images/SQLiPortswigger/lab10/final.png)
+
+Y hemos terminado este laboratorio.
 
 <br>
 
