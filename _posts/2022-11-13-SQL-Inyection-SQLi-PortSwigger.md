@@ -649,11 +649,11 @@ Y hemos terminado este laboratorio.
 
 # Laboratorio 11: inyección SQL ciega con respuestas condicionales
 
-En este laboratorio el metodo cambiara completamente, ya que como es inyeccion ciega, no podremos ver en pantalla la respuesta de la consulta como lo hemos estado haciendo anteriormente, primero en este nivel nos dice lo siguiente:
+En este laboratorio el método cambiará completamente, ya que como es inyección ciega, no podremos ver en pantalla la respuesta de la consulta como lo hemos estado haciendo anteriormente, primero en este nivel nos dice lo siguiente:
 
 ![lab11](/assets/images/SQLiPortswigger/lab11/lab11.png)
 
-Podemos apreciar que nos dice que esta vez la vulnerabilidad SQLi no esta dentro del filtro de categorias, si no que esta vez se trata de una cookie, por detras de la consulta esta toma la cookie para usarla, pero lo que nos interesa es que la consulta toma la cookie y nosotros podemos interceptar esta cookie para inyectar nuestras consultas.
+Podemos apreciar que nos dice que esta vez la vulnerabilidad SQLi no está dentro del filtro de categorías, sino que esta vez se trata de una cookie, por detrás de la consulta esta toma la cookie para usarla, pero lo que nos interesa es que la consulta toma la cookie y nosotros podemos interceptar esta cookie para inyectar nuestras consultas.
 
 También nos dice que tenemos una tabla llamada **users**, que contiene 2 columnas, llamadas **username** y **password**, por lo que ya tenemos algo con lo que atacar, dice que para completar este laboratorio debemos sacar la contraseña del usuario **administrator** y loguearnos en el panel login.
 
@@ -663,57 +663,57 @@ También nos da una pequeña sugerencia:
 
 ![sugerencia](/assets/images/SQLiPortswigger/lab11/sugerencia.png)
 
-Nos dice que la contraseña contiene caracteres alfanumericos, por lo que solo usa letras y numeros.
+Nos dice que la contraseña contiene caracteres alfanuméricos, por lo que solo usa letras y números.
 
-Primero debemos configurar algun navegador para que pase por el proxy de burpsuite y nos intercepte las peticiones que hagamos a traves de ese proxy, en este caso tengo configurado el firefox con la extension foxyproxy para interceptar peticiones, pero también puedes usar el navegador que viene dentro de burpsuite.
+Primero debemos configurar algún navegador para que pase por el proxy de burpsuite y nos intercepte las peticiones que hagamos a través de ese proxy, en este caso tengo configurado el firefox con la extensión foxyproxy para interceptar peticiones, pero también puedes usar el navegador que viene dentro de burpsuite.
 
 <br>
 
 Primero abriremos la pagina web del laboratorio:
 
-![web](/assets/images/SQLiPortswigger/lab11/web1.png)
+![web](/assets/images/SQLiPortswigger/lab11/web.png)
 
-Como vemos es una pagina parecida a las que ya hemos visto, por lo que interceptaremos esta peticion y veremos lo siguiente:
+Como vemos es una página parecida a las que ya hemos visto, por lo que interceptaremos esta petición y veremos lo siguiente:
 
 ![intercept](/assets/images/SQLiPortswigger/lab11/intercept.png)
 
-Podemos ver que nos esta interceptando la peticion web, y dentro vemos la cookie que usa la consulta SQL, así que la enviaremos al repeater para repetir esta peticion cuantas veces queramos con ctrl + r la enviamos, y desde aqui haremos todo, primero vermeos que sucede si enviamos la peticion normal sin modificar nada:
+Podemos ver que nos está interceptando la petición web, y dentro vemos la cookie que usa la consulta SQL, así que la enviaremos al repeater para repetir esta petición cuantas veces queramos con ctrl + r la enviamos, y desde aquí haremos todo, primero veremos que sucede si enviamos la petición normal sin modificar nada:
 
 ![i1](/assets/images/SQLiPortswigger/lab11/i1.png)
 
-Podemos apreciar a la izquierda la peticion web que hemos interceptado, y a la derecha la respuesta en formato renderizado, o sea mostrandonos como se veria en la web, vemos que nos muestra lo que ya hemos visto pero ahora vemos algo que es lo que dice "Welcome Back!", así que tendremos eso en cuenta, ahora a la izquierda donde nos muestra el valor de la cookie algo asi:
+Podemos apreciar a la izquierda la petición web que hemos interceptado, y a la derecha la respuesta en formato renderizado, o sea mostrándonos como se vería en la web, vemos que nos muestra lo que ya hemos visto, pero ahora vemos algo que es lo que dice "Welcome Back!", así que tendremos eso en cuenta, ahora a la izquierda donde nos muestra el valor de la cookie algo así:
 
 `TrackingId=xyz`
 
-Hemos acortado el valor para ahorrar espacio, podemos apreciar que esta este parametro llamado **TrackingId**, el cual contiene un valor, por lo que intentaremos algo, y esto es agregar una comilla para ver si podemos romper la cookie y hacer fallar la consulta y nos responda algo diferente, nuestra cookie quedara así:
+Hemos acortado el valor para ahorrar espacio, podemos apreciar que esta este parámetro llamado **TrackingId**, el cual contiene un valor, por lo que intentaremos algo, y esto es agregar una comilla para ver si podemos romper la cookie y hacer fallar la consulta y nos responda algo diferente, nuestra cookie quedara así:
 
 `TrackingId=xyz'`
 
-Y esto nos respondera:
+Y esto nos responderá:
 
 ![i2](/assets/images/SQLiPortswigger/lab11/i2.png)
 
-Podemos apreciar que esta vez el mensaje de "Welcome Back!" ha desaparecido, lo cual nos da a pensar que habia una consulta que obtenia dicho valor de la cookie, pero al ser incorrecto genera un false por detras de la consulta sin devolvernos dicho mensaje, por lo que ahora trataremos de inyectar consultas.
+Podemos apreciar que esta vez el mensaje de "Welcome Back!" ha desaparecido, lo cual nos da a pensar que había una consulta que obtenía dicho valor de la cookie, pero al ser incorrecto genera un false por detrás de la consulta sin devolvernos dicho mensaje, por lo que ahora trataremos de inyectar consultas.
 
-Podemos intuir que por detras podria suceder una consulta asi:
+Podemos intuir que por detrás podría suceder una consulta así:
 
 `SELECT * FROM products WHERE TrackingId='xyz'`
 
-Y gracias a la comilla que hemos agregado la consulta por detras se veria como:
+Y gracias a la comilla que hemos agregado la consulta por detrás se vería como:
 
 `SELECT * FROM products WHERE TrackingId='xyz''`
 
-Vemos que la comilla que hemos agregado cierra el valor de TrackingId, dejando la comilla que ya estaba por defecto colgada a la parte derecha, por este motivo esta consulta nos da error y como devuelve error no nos muestra nada ya que no reconoce esta cookie, así que ahora lo que intentaremos es lo siguiente:
+Vemos que la comilla que hemos agregado cierra el valor de TrackingId, dejando la comilla que ya estaba por defecto colgada a la parte derecha, por este motivo esta consulta nos da error y como devuelve error no nos muestra nada, ya que no reconoce esta cookie, así que ahora lo que intentaremos es lo siguiente:
 
 `SELECT * FROM products WHERE TrackingId='xyz' AND 1=1-- -'`
 
-Podemos apreciar que hemos agregado una parte de consulta diciendo que nos diga si 1 es igual a 1, lo cual claramente es que si y esto lo hacemos para que nos marque como correcta la consulta, y comentamos la comilla que queda colgada por detras para evitar un error de sintaxis y como vemos en la peticion interceptada nos respondera esto al enviar esta peticion:
+Podemos apreciar que hemos agregado una parte de consulta diciendo que nos diga si 1 es igual a 1, lo cual claramente es que si y esto lo hacemos para que nos marque como correcta la consulta, y comentamos la comilla que queda colgada por detrás para evitar un error de sintaxis y como vemos en la petición interceptada nos responderá esto al enviar esta petición:
 
 ![i3](/assets/images/SQLiPortswigger/lab11/i3.png)
 
-Y ahora vemos que nos responde con el "Welcome Back!" ya que la cookie esta mal pero hemos inyectado el operador **AND** junto con una consulta que claramente nos dará un resultado **true**, por lo que la consulta por detras se marco como **true** haciendo que nos muestre dicho contenido, o sea el mensaje, y también esto nos sirve de que tenemos un apartado donde inyectar consultas y sabremos si lo que hay dentro es **true** o **false** basandonos en el mensaje de bienvenida.
+Y ahora vemos que nos responde con el "Welcome Back!"ya que la cookie está mal, pero hemos inyectado el operador **AND** junto con una consulta que claramente nos dará un resultado **true**, por lo que la consulta por detrás se marcó como **true** haciendo que nos muestre dicho contenido, o sea el mensaje, y también esto nos sirve de que tenemos un apartado donde inyectar consultas y sabremos si lo que hay dentro es **true** o **false** basándonos en el mensaje de bienvenida.
 
-Sabemos que si nos muestra el mensaje significa **true**, y si le damos algo que dará **false** en la consulta como por ejemplo, cambiar el 1=1 por 2=1, obviamente 2 no es igual a 1 por lo que nos dara error y no nos mostrara el mensaje de bienvenida:
+Sabemos que si nos muestra el mensaje significa **true**, y si le damos algo que dará **false** en la consulta como por ejemplo, cambiar el 1=1 por 2=1, obviamente 2 no es igual a 1 por lo que nos dará error y no nos mostrara el mensaje de bienvenida:
 
 ![i4](/assets/images/SQLiPortswigger/lab11/i4.png)
 
@@ -725,11 +725,11 @@ Ahora que sabemos que podemos basarnos en este mensaje de bienvenida procederemo
 
 `TrackingId=oRAy9H26tmKe3R9F' AND (SELECT '1' FROM users limit 1)='1`
 
-Primero estamos haciendo una subconsulta en medio de los parentesis, y dentro de ella decimos que nos tome el valor por ejemplo '1' y que esta seleccion la haga dentro de la tabla **users** que como sabemos existe, limitando el resultado al primer registro ya que debe tener algo en que dejar ese valor, y despues si esto que hicimos en la consulta se puede cumplir sin errores o sea **FROM users limit 1**, entonces nos permitira comparar si ese valor '1' es igual al '1' que esta fuera de la consulta, así que al interpretarse la subconsulta, y en caso de que lo de la subconsulta sea **true** entonces la consulta normal será algo como **AND '1'='1'**, el primer uno se tomara en cuenta siempre y cuando lo de su subconsulta se cumpla, ya que de lo contrario daria error y se estaria comparando un error con el valor '1' que hay fuera de la subconsulta y obviamente nos daría **false** sin mostrarnos el mensaje de bienvenida.
+Primero estamos haciendo una sub consulta en medio de los paréntesis, y dentro de ella decimos que nos tome el valor por ejemplo '1' y que esta selección la haga dentro de la tabla **users** que como sabemos existe, limitando el resultado al primer registro, ya que debe tener algo en que dejar ese valor, y después si esto que hicimos en la consulta se puede cumplir sin errores o sea **FROM users limit 1**, entonces nos permitirá comparar si ese valor '1' es igual al '1' que está fuera de la consulta, así que al interpretarse la sub consulta, y en caso de que lo de la sub consulta sea **true** entonces la consulta normal será algo como **AND '1'='1'**, el primer uno se tomara en cuenta siempre y cuando lo de su sub consulta se cumpla, ya que de lo contrario daría error y se estaría comparando un error con el valor '1' que hay fuera de la sub consulta y obviamente nos daría **false** sin mostrarnos el mensaje de bienvenida.
 
-> Al final de la consulta en el valor 1 vemos que solo le hemos puesto una comilla, y esto es porque como sabemos al romper la consulta estaríamos dejando una comilla colgada por detras, así que solo abrimos la primera comilla y dejamos el espacio para que la comilla que queda colgada por detras cierre esa parte, y tener que evitar usar los **-- -** para alargar la consulta.
+> Al final de la consulta en el valor 1 vemos que solo le hemos puesto una comilla, y esto es porque como sabemos al romper la consulta estaríamos dejando una comilla colgada por detrás, así que solo abrimos la primera comilla y dejamos el espacio para que la comilla que queda colgada por detrás cierre esa parte, y tener que evitar usar los **-- -** para alargar la consulta.
 
-Así que esto nos responderia lo siguiente:
+Así que esto nos respondería lo siguiente:
 
 ![i5](/assets/images/SQLiPortswigger/lab11/i5.png)
 
@@ -737,20 +737,99 @@ Esto quiere decir que existe la tabla **users**, ahora probaremos lo siguiente:
 
 `TrackingId=oRAy9H26tmKe3R9F' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
 
-Aqui vemos un par de cosas nuevas, primero, dentro de la subconsulta, usamos la funcion **substring()**, y lo que hace esta funcion es obtener los valores por separado de una cierta cadena de texto, por ejemplo en este ejemplo de la funcion **SELECT SUBSTRING("Hola mundo", 1, 3)**, en este ejemplo estamos seleccionando lo que nos devolvera la funcion, dentro de la funcion la cadena será "Hola mundo" para después con el segundo parametro el cual es 1, indicando que queremos que empieze desde el primer caracter, o sea "H", y el valor 3 indica la cantidad a mostrar después de ese primer caracter, en este caso el resultado de esto sería: "Hol".
+Aquí vemos un par de cosas nuevas, primero, dentro de la subconsulta, usamos la función **substring()**, y lo que hace esta función es obtener los valores por separado de una cierta cadena de texto, por ejemplo en este ejemplo de la función **SELECT SUBSTRING("Hola mundo", 1, 3)**, en este ejemplo estamos seleccionando lo que nos devolverá la función, dentro de la función la cadena será "Hola mundo" para después con el segundo parámetro el cual es 1, indicando que queremos que empiece desde el primer carácter, o sea "H", y el valor 3 indica la cantidad a mostrar después de ese primer carácter, en este caso el resultado de esto sería: "Hol".
 
-Ahora que sabemos el uso de esta función, volvamos a la subconsulta:
+Ahora que sabemos el uso de esta función, volvamos a la sub consulta:
 
 `TrackingId=oRAy9H26tmKe3R9F' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
 
-Recordemos que aqui estamos seleccionando lo que nos devuelva la funcion **substring()**, dentro de esta funcion le decimos que empieze a tomar del primer caracter, y queremos que nos tome solo 1 caracter, después esto lo tomaremos del primer registro de la tabla **users**, cuando digo registro me refiero a la primera fila de dicha tabla.
+Recordemos que aquí estamos seleccionando lo que nos devuelva la función **substring()**, dentro de esta función le decimos que empiece a tomar del primer carácter, y queremos que nos tome solo 1 carácter, después esto lo tomaremos del primer registro de la tabla **users**, cuando digo registro me refiero a la primera fila de dicha tabla.
 
-Lo que hacemos es que seleccionamos lo que nos devuelve la funcion **substring()** de la subconsulta, y esto lo sacara  de la primera fila de la columna **username**, así que estamos obteniendo el primer caracter de la primera fila gracias a limit 1, y esto sera donde la columna sea **username**, hacemos el limit 1 para ir de uno en uno y que no nos de error al llamar a todos.
+Lo que hacemos es que seleccionamos lo que nos devuelve la función **substring()** de la sub consulta, y esto lo sacara  de la primera fila de la columna **username**, así que estamos obteniendo el primer carácter de la primera fila gracias a limit 1, y esto será donde la columna sea **username**, hacemos el limit 1 para ir de uno en uno y que no nos dé error al llamar a todos.
 
-Después de que obtengamos ese caracter verificaremos si ese carcater es igual que al que esta al final de la subconsulta, en este caso es "a".
+Después de que obtengamos ese carácter verificaremos si ese caracter es igual que al que esta al final de la sub consulta, en este caso es "a".
 
-Así que en caso de que lo que nos devuelva el primer caracter de la subconsulta sea "a" entonces se verificara que es igual al caracter que esta fuera de la subconsulta, o sea "a", entonces nos dara **true** por lo que nos mostrara el mensaje de bienvenida, ya que de lo contrario que el primer caracter de lo que devuelve la subconsulta no sea "a", dará error ya que no será igual al valor del final de la subconsulta o sea "a".
+Así que en caso de que lo que nos devuelva el primer carácter de la sub consulta sea "a" entonces se verificara que es igual al carácter que está fuera de la sub consulta, o sea "a", entonces nos dará **true** por lo que nos mostrara el mensaje de bienvenida, ya que de lo contrario que el primer carácter de lo que devuelve la sub consulta no sea "a", dará error, ya que no será igual al valor del final de la sub consulta o sea "a".
 
 <br>
 
-Así que en base a esto, podemos hacer algo para ir verificando caracter por caracter y en base al mensaje de bienvenida saber que usuario es el del primer registro de la tabla **users**.
+Así que en base a esto, podemos hacer algo para ir verificando carácter por carácter y en base al mensaje de bienvenida saber que usuario es el del primer registro de la tabla **users** en base a su columna **username**.
+
+Podemos ir fuzzeando el nombre del primer registro manualmente así:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
+
+Vemos que esta consulta es la misma que explique arriba, pero ahora la usaremos para lo que queremos, primero indicamos que queremos comprobar si el primer carácter del primer registro donde la columna sea **username** en la tabla **users** es igual al carácter 'a'.
+
+En caso de ser cierto nos mostrará esto la respuesta:
+
+![i6](/assets/images/SQLiPortswigger/lab11/i6.png)
+
+Vemos que nos muestra el mensaje de bienvenida, por lo que ese primer carácter si es igual a "a".
+
+Así que ahora cambiaremos la consulta por:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='a`
+
+Que ahora los seleccione desde el segundo carácter, y solo queremos tomar un valor de ahí en adelante, esto es lo mismo, y como el segundo carácter no es "a", nos mostrara esto:
+
+![i7](/assets/images/SQLiPortswigger/lab11/i7.png)
+
+Por lo que probaremos otro carácter:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='d`
+
+Y nos responde:
+
+![i8](/assets/images/SQLiPortswigger/lab11/i8.png)
+
+Y vemos que el segundo carácter si es "d".
+
+Por lo que nos podemos dar la idea de que el usuario es "administrator", así que modificaremos nuestra consulta:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT 'a' FROM users WHERE username='administrator')='a`
+
+Lo que hicimos fue volver a lo de 'a'='a' para comprobar si lo que hay en la sub consulta es **true**, en este caso agregamos que nos seleccione 'a' de la tabla sea **users** donde la columna **username** sea igual a el valor **"administrator"** y en caso de que esto exista pasara a comprobar nuestro primer valor 'a' con el segundo valor 'a', mostrándonos el mensaje de bienvenida:
+
+![i9](/assets/images/SQLiPortswigger/lab11/i9.png)
+
+
+<br>
+
+Ahora que sabemos que el usuario es correcto, iremos a fuzzear su columna de **password**:
+
+Primero obtendremos el tamaño de la contraseña, por lo que usaremos esta consulta:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>2)='a`
+
+Aquí estamos haciendo lo que ya sabemos de validar "a" = "a", para comprobar si la sub consulta devuelve un **true** o **false**, pero en este caso le estamos indicando que seleccione el valor "a" de la tabla **users** donde la columna **username** tenga de valor **"administrator"** entonces en ese lugar en caso de ser correcto lo anterior, pasara a el operador AND, diciendo que si la longitud del valor **password** dentro de ese registro que fuimos anteriormente es mayor a 2, en caso de ser cierto nos mostrara lo siguiente:
+
+![length](/assets/images/SQLiPortswigger/lab11/length1.png)
+
+Por lo que descubriremos probando así hasta llegar al número de caracteres de la contraseña del usuario administrator:
+
+![length2](/assets/images/SQLiPortswigger/lab11/length2.png)
+
+En este caso descubrimos que la contraseña es igual a 20 caracteres:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>=20)='a`
+
+Usamos el Mayor o igual para determinar la longitud y dimos con que era 20 caracteres.
+
+<br>
+
+Ahora que ya sabemos la longitud de la contraseña procederemos a descubrirla, primero usaremos esta consulta:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
+
+Lo que estamos haciendo aquí es decirle que nos seleccione el primer carácter de la columna **password** de la tabla **users** donde la columna **username** contenga el valor de **"administrator"**, para después comparar ese valor con el que está fuera de la sub consulta, en este caso es "a".
+
+![p1](/assets/images/SQLiPortswigger/lab11/p1.png)
+
+Y podemos ver que no nos muestra el mensaje de bienvenida, por lo que la contraseña del usuario administrator no inicia con una letra "a".
+
+Esto es un poco cansado, probar letra por letra, y no solo pueden ser letras, ya que el laboratorio dice que igual puede contener números, por lo que es un texto alfanumérico, así que para facilitar esto vamos a crear un script en python que nos automaticé todo esto.
+
+<br>
+
+# Creando un script en python para autoamatizar la enumeración de la inyección SQL ciega
