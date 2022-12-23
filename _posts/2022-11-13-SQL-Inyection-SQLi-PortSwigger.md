@@ -832,4 +832,189 @@ Esto es un poco cansado, probar letra por letra, y no solo pueden ser letras, ya
 
 <br>
 
-# Creando un script en python para autoamatizar la enumeración de la inyección SQL ciega
+# Creando un script en python para automatizar la enumeración de la inyección SQL ciega
+
+Nuestro código terminado se ve así:
+
+![carbon](/assets/images/SQLiPortswigger/lab11/carbon.png)
+
+La primera línea del código es esto:
+
+`#!/usr/bin/python3`
+
+Le estamos indicando que al ejecutar el script este se ejecutara usando python3.
+
+`from pwn import *`
+
+Este módulo que hemos importado todo de el, tanto como funciones o variables contiene funciones para los atacantes, como conectarse a servidores por medio de diferentes protocolos tales como TCP o UDP, analizar paquetes de red, o también análisis de memoria para buscar y explotar vulnerabilidades, entre otras cosas más.
+
+`import requests, signal, time, pdb, sys, string`
+
+**requests**: Este módulo nos sirve para enviar solicitudes HTTP usando python, podemos enviar solicitudes en formato GET,POST,PUT,DELETE y otro tipo de solicitudes, también nos permite modificar la petición web que se hará.
+
+**signal**: Este lo usaremos para que cuando hagamos ctrl + c, se nos detenga el programa en caso de requerirlo.
+
+**time**: Con este módulo podremos manejar datos de tiempo, como la hora actual, pero en este caso lo usaremos para detener el tiempo del script cuando necesitemos esa función.
+
+**pdb**: Este es un depurador de nuestro código para poder identificar en caso de que haya algún error donde esta y como corregirlo.
+
+**sys**: Esto nos sirve para redirigir los errores, por ejemplo, en caso de error usar la función exit(1).
+
+**string**: Esto nos permite trabajar y manipular cadenas de texto, en este caso lo usaremos para ir manejando por las posiciones de las cadenas.
+
+<br>
+
+La primera función que definiremos se llama **def_handler**, que le estamos pasando 2 argumentos, sig y frame, después lo que hará esta función es mostrarnos un mensaje que diga "[!] Saliendo..." y después hacer una salida con un estado de error, `sys.exit(1)`
+
+Después de terminar esa función, abajo agregamos esta línea:
+
+`signal.signal(signal.SIGINT, def_handler)`
+
+Esto es para esperar cuando se presione CTRL + C entonces se llamara a la función **def_handler** que definimos anteriormente.
+
+<br>
+
+Después creamos una variable de tipo string con este contenido:
+
+`main_url = "https://0a8a00dc03454998c09f90e700180095.web-security-academy.net"`
+
+Lo que es esto es la petición que como sabemos es el inicio de la página donde está la vulnerabilidad de la cookie, la usaremos más adelante.
+
+Después en otra esta variable que creamos le asignamos estos valores:
+
+`characters = string.ascii_lowercase + string.digits`
+
+Con el módulo string que importamos, usaremos 2 opciones de dicho módulo, el primero que es **string.ascii_lowercase** nos da todas las letras del alfabeto en minúsculas, y aparte de esos caracteres agregaremos todos los dígitos del 0 al 9, con **string.digits**, por lo que la variable **characters** contiene todas las letras del alfabeto en minúsculas y los números del 0 al 9, esto es para que sea nuestro diccionario de donde sacaremos la contraseña más adelante.
+
+<br>
+
+Después definiremos una función llamada **makeRequest()**, la cual dentro de ella estará todo esto:
+
+Primero una variable llamada **password** vacía, ya que aquí iremos almacenando la contraseña a medida que descubramos carácter por carácter, por lo que necesita estar vacía para ir llenándose conforme se vaya ejecutando lo que sigue.
+
+<br>
+
+`p1 = log.progress("Fuerza bruta")`
+
+Lo que hacemos aquí es crear un objeto de progreso llamado **p1**, con el título "Fuerza bruta", esto lo hace usando la función progress del módulo log, lo que hará esto es mostrarnos la barra de progreso en la ejecución del script con dicho título.
+
+Después de esto haremos esto:
+
+`p1.status("Iniciando ataque de fuerza bruta")`
+
+Lo que hacemos aquí es establecer el estado del objeto de progreso llamado **p1**, en este caso lo que nos mostrara será el mensaje de **"Iniciando ataque de fuerza bruta"**.
+
+`time.sleep(2)`
+
+Después pausamos la ejecución del script por 2 segundos, para que se pueda leer el mensaje anterior.
+
+<br>
+
+Después crearemos otro objeto de progreso:
+
+`p2 = log.progress("Password")`
+
+Pero esta vez con el título de **"Password"**, el estado de este objeto de progreso se asignará ahora.
+
+<br>
+
+Como recordaremos, para descubrir el primer carácter de la contraseña del usuario **administrator** usamos la vulnerabilidad SQLi ciega de este laboratorio que era esto:
+
+`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
+
+Entonces lo que debemos hacer es automatizar el cambio de posición de la substring de la contraseña y a la vez ir intentando con cada carácter posible, para eso creamos la variable **characters**, pero para ir cambiando de posiciones necesitaremos hacer lo siguiente:
+
+`for position in range(1,21):`
+
+Primero crearemos un ciclo for, este bucle itera en un rango del 1 al 20, que como recordamos es el tamaño de caracteres que descubrimos de la contraseña, y en cada iteración asigna el valor actual de la iteración a la variable position, que usaremos más adelante, así que esto será para recorrer cada carácter de la contraseña del usuario **administrator**.
+
+<br>
+
+Ahora haremos otro ciclo for anidado dentro del que hicimos anteriormente:
+
+`for character in characters:`
+
+Este otro ciclo lo que hará es iterar sobre cada posición dentro de la variable characters que es nuestro diccionario que contiene letras y números, y por cada valor que seleccione actual se guardara dentro de la variable **character**, esto lo usaremos más adelante para probar cada carácter de este diccionario en la posición actual de la contraseña.
+
+<br>
+
+Después crearemos un diccionario llamado **cookies**:
+
+`cookies = {
+'TrackingId': "EkppvYfQrcHQK79N' AND (SELECT SUBSTRING(password,%d,1) FROM users WHERE username='administrator')='%s" % (position, character),
+'session': '6Ditk4mK0zirtmo81PYSbUwnGni78Aqf'
+}`
+
+Lo que hacemos aquí es crear el diccionario de cookies que pondremos en cada petición que se intente con cada carácter, lo que hicimos primero fue definir la entrada de la cookie con la clave **"TrackingId"** y esta tiene un valor, el cual es una string la cual definimos entre comillas dobles, después asignamos dentro de los valores que irán iterando cada posición y valor, por eso en la parte de **(SELECT SUBSTRING(password,%d,1)** vemos el **"%d"**, lo que significa que ahí se pondrá el valor de un dígito, el cual sabemos que será útil para ir cambiando de posición en la contraseña, y al final donde dice **WHERE username='administrator')='%s** vemos que agregamos el **"%s"** esto quiere decir que ahí se reemplazara una string, esto es para que nos vaya probando cada carácter de nuestra variable que creamos que contiene todos los caracteres alfanuméricos.
+
+Después de definir esto asignaremos en orden los valores que se irán pasando a las posiciones anteriores: **% (position, character)** aquí con el símbolo de porcentaje le estamos indicando que los valores que asignamos anteriormente tendrán el valor de lo que está dentro de los paréntesis y esto debe ir en orden, primero pusimos el %d o sea que primero pondremos el dígito que lo obtendrá de la variable **position** del primer bucle for, después el siguiente valor que ira en %s de string irá el valor de la variable **character** del bucle for anidado, el cual contiene un carácter de la variable que contiene los caracteres alfanuméricos.
+
+Lo que hará esto es primero con el primer bucle for posicionarse en la primera posición del rango contraseña, una vez en esa posición lo que hará es tomar el primer carácter con el segundo bucle for anidado y después generara dicho diccionario actual de cookies.
+
+<br>
+
+Después de que se genere el primer diccionario de cookie lo que hará es definir otra entrada la cual es **session**, pero este no necesitamos modificarlo, ya que será un valor fijo que no ocupamos modificar.
+
+<br>
+
+Después de definir el diccionario de cookies la siguiente línea será esto:
+
+`p1.status(cookies['TrackingId'])`
+
+Esto lo que hará es cambiar el estado del primer objeto de progreso, el cual ya no será "iniciando ataque de fuerza bruta", sino que será reemplazado por lo que se interpretará en este intento, lo cual ya interpretado nos mostrara algo así el script en funcionamiento:
+
+`[◤] Fuerza bruta: EkppvYfQrcHQK79N' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
+
+Vemos que nos cambió el estado del objeto de progreso llamado "Fuerza bruta", su estado antiguo era "Iniciando ataque de fuerza bruta", pero ahora hemos cambiado ese estado por lo que se intentará en esta próxima petición, y como vemos ya no están los valores que eran %d y %s, y esto es porque el intérprete de python ya nos ha asignado los valores que dimos y que irán cambiando cada vez a medida que se vayan descubriendo y esto lo veremos ahora.
+
+
+
+Después de este estado lo que hará el script por detrás es interpretar estas siguientes líneas:
+
+`r = requests.get(main_url, cookies=cookies)`
+
+Primero hará una petición por el método GET, hacia la url que está dentro de la variable **main_url**, y asignándole unas cookies, las cuales le pasamos el diccionario **cookies** el cual como recordamos que está dentro de los for anidados nos hará esa petición con los valores que estén en este momento iterando sobre el diccionario y esta respuesta las guarda dentro de **"r"**.
+
+<br>
+
+Después de hacer esta petición:
+
+`if "Welcome back!" in r.text:`
+
+Comprobaremos si dentro del archivo generado en **"r"**, al cual accedemos con r.txt, comprobaremos si dentro de esa respuesta de la petición nos devolvió el texto "Welcome back!", que como sabemos este mensaje solo se mostraba en caso de que el carácter correcto este en la posición correcta de la contraseña.
+
+Y en caso de que esto se cumpla porque la petición actual es correcta entonces hará lo siguiente:
+
+`password += character`
+
+Estamos agregando el carácter actual que es el correcto a la variable password, para que poco a poco se vaya completando la contraseña.
+
+<br>
+
+Ahora aquí:
+
+`p2.status(password)`
+
+Estamos cambiando el estado del objeto de progreso p2, el cual su estado anterior era password, pero ahora volverá a ser password, pero hacemos esto para que se actualice el valor recién encontrado y nos lo muestre en pantalla.
+
+Después de esto debemos detener el for para que siga intentando pero ahora con la siguiente posición de la contraseña.
+
+Por lo que:
+
+`break`
+
+Usamos break para que salga, ya que en caso de que entre al if que comprueba si el mensaje de bienvenida está en la respuesta entonces quiere decir que es el correcto y ya no tiene que seguir probando con otros caracteres, ya que hemos encontrado el correcto.
+
+<br>
+
+Ahora que hemos terminado de definir esta función llamada **makeRequests()**, solo nos queda mandarla a llamar en el menú del código:
+
+`if __name__ == '__main__':`
+
+y llamamos a la función:
+
+`makeRequest()`
+
+Después ejecutaremos el script y descubriremos la contraseña poco a poco hasta dar con ella y terminar este laboratorio.
+
+<br>
