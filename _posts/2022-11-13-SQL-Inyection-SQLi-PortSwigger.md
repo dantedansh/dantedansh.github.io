@@ -1018,3 +1018,110 @@ y llamamos a la función:
 Después ejecutaremos el script y descubriremos la contraseña poco a poco hasta dar con ella y terminar este laboratorio.
 
 <br>
+
+
+
+# Laboratorio 12: Inyección ciega de SQL con errores condicionales
+
+<br>
+
+En este laboratorio, como en los anteriores nos pide que descubramos la contraseña del usuario administrator en la tabla users, como podemos apreciar:
+
+![lab12](/assets/images/SQLiPortswigger/lab12/lab12.png)
+
+<br>
+
+En este caso no hay mensaje de welcomeBack!, por lo que ya no será basada en respuestas condicionales, si no que ahora será basada en errores condicionales.
+
+Lo primero que haremos será interceptar la peticion de la página del laboratorio ya que nos indica que existe una vulnerabilidad de SQLi en las cookies, por lo que con burpsuite interceptaremos la petición y la enviaremos a el repeater:
+
+![i1](/assets/images/SQLiPortswigger/lab12/intercept1.png)
+
+Podemos ver que hemos interceptado la peticion, también podemos leer la cookie, y como en el anterior laboratorio, primero intentaremos escapar de la consulta por defecto:
+
+Por detras debe haber una consulta algo así:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA`
+
+Pero lo que haremos nosotros como sabemos es agregar una comilla simple para primero ver que es lo que pasa:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'`
+
+Y al enviar esta peticion nos responde:
+
+![i2](/assets/images/SQLiPortswigger/lab12/intercept2.png)
+
+Vemos que nos marca un error, probe intentar con cosas que nos habian funcionado antes, como:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA' AND 2=1-- -`
+
+O también:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA' AND '2'='1`
+
+Nos mostraba la pagina pero no tenia sentido esto ya que a pesar de que 2 no es igual a 1 nos seguia mostrando como si fuese algo correcto, por lo que esta manera no nos ayuda para nada.
+
+Así que intentemos cambiar de metódo.
+
+<br>
+
+En los ejercicios anteriores nos funcionaban esos metodos, pero siempre tuvimos la idea de que por detras se usaba una sola comilla la cual al agregar otra es la que se quedaba colgada, pero en este caso intentamos esta peticion:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA''`
+
+Y en vez de mostrarnos un error como lo hubiese hecho con una sola comilla, en este caso no nos mostro un error:
+
+![i3](/assets/images/SQLiPortswigger/lab12/intercept3.png)
+
+Vemos que sin problema nos valida esto, por lo que ya podemos pensar en algo, y esto sería agregar una subconsulta a la consulta, quedando así:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '')||'`
+
+En este caso solo estamos añadiendo una subconsulta indicando algo simple que no nos debería dar ningun error, esto solo nos selecciona una cadena vacia por lo que no deberia dar error, y esta es su respuesta:
+
+![i4](/assets/images/SQLiPortswigger/lab12/intercept4.png)
+
+Podemos ver que nos da un error, como podras recordar no solo existen bases de datos MySQL, existen oracle, entre otras, y como recordamos en la hoja de trucos nos decia que para hacer una seleccion en una base de datos oracle era necesario indicar una tabla, la cual erá "dual", por lo que este error puede ser una señal de que no es una base de datos MySQL o microsoft, si no que puede ser probable que sea una oracle, así que agregamos la tabla por defecto que necesita oracle a la consulta:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM dual)||'`
+
+Y podemos ver que nos responde:
+
+![i5](/assets/images/SQLiPortswigger/lab12/intercept5.png)
+
+Entonces sabemos que ya es oracle y ya esta interpretando nuestras consultas, y para asegurar que lo esta interpretando cambiaremos el nombre de dual por alguna tabla que no exista:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM asopdkaps)||'`
+
+Esto lo hacemos para ver si esta interpretando correctamente las consultas y no nos devuelva todo verdadero como en un principio, asi que esto nos responde:
+
+![i6](/assets/images/SQLiPortswigger/lab12/intercept6.png)
+
+Podemos apreciar que nos marca error, por lo que nos damos cuenta que esta funcionando correctamente y nos esta interpretando las consultas inyectadas.
+
+<br>
+
+Ahora que hemos encontrado el punto vulnerable es hora de empezar a enumerar la base de datos, primero recordamos que nos dice que existe una tabla llamada **users**, y para comprobar esto usaremos la siguiente consulta:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM users WHERE ROWNUM = 1)||'`
+
+Aqui lo que hicimos fue poner que nos tome un valor vacio de la tabla **users**, y agregamos que nos tome solo de la primera fila de datos, esto para evitar que nos de error por no especificarle de que parte de la tabla exactamente queremos tomar ese valor vacio.
+
+Esto en caso de que la tabla **users** exista nos mostrara la pagina web normalmente, como sucede aqui:
+
+![i7](/assets/images/SQLiPortswigger/lab12/intercept7.png)
+
+Vemos que quiere decir que si existe una tabla llamada **users**, ya que de lo contrario al indicarle una tabla que no existe nos daria un error y eso podemos comprobarlo poniendo una tabla que no exista:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM asdsas WHERE ROWNUM = 1)||'`
+
+Dandonos obviamente un error:
+
+![i8](/assets/images/SQLiPortswigger/lab12/intercept8.png)
+
+Y esto demuestra nuevamente que esta funcionando correctamente nuestras consultas inyectadas.
+
+<br>
+
+Ahora que sabemos que existe la tabla **users**, iremos a lo siguiente:
+
