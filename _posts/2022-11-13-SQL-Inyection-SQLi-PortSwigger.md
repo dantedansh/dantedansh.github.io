@@ -1077,7 +1077,7 @@ Vemos que sin problema nos valida esto, por lo que ya podemos pensar en algo, y 
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '')||'`
 
-En este caso solo estamos añadiendo una subconsulta indicando algo simple que no nos debería dar ningun error, esto solo nos selecciona una cadena vacia por lo que no deberia dar error, y esta es su respuesta:
+En este caso solo estamos añadiendo una subconsulta usando el operador OR, estamos indicando algo simple que no nos debería dar ningun error, esto solo nos selecciona una cadena vacia por lo que no deberia dar error, y esta es su respuesta:
 
 ![i4](/assets/images/SQLiPortswigger/lab12/intercept4.png)
 
@@ -1123,5 +1123,80 @@ Y esto demuestra nuevamente que esta funcionando correctamente nuestras consulta
 
 <br>
 
-Ahora que sabemos que existe la tabla **users**, iremos a lo siguiente:
+Ahora que sabemos que existe la tabla **users**, intentaremos descubrir si existe el usuario "administrator" en la columna **username** de la tabla **users**:
 
+Usando la siguiente consulta:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM users WHERE username = 'administrator')||'`
+
+Y nos responde:
+
+![i9](/assets/images/SQLiPortswigger/lab12/intercept9.png)
+
+Podemos apreciar que nos responde con un estado 200, lo cual indica que en teoria deberia estar bien y que el usuario si existe, pero ahora probaremos con un usuario inexistente para probar si esta interpretando nustras consultas de la subconsulta:
+
+`SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM users WHERE username = 'administraasdada')||'`
+
+Y esta consulta nos responde que es correcto:
+
+![i10](/assets/images/SQLiPortswigger/lab12/intercept10.png)
+
+<br>
+
+Por lo que ya podemos sospechar que no esta funcionando bien las respuestas condicionales ya que ese usuario no existe y sin embargo nos muestra como si existiera, así que ahora modificaremos la consulta a esto:
+
+`TrackingId=xyz'||(SELECT CASE WHEN (2=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`
+
+Lo que hace esta consulta es verificar primero si existe la tabla dual, en caso de que exista tomara valor true y se ejecutara el primer CASE en SELECT, lo que preguntara si 1=1, como esto es cierto entonces ejecuta una division de 1 entre 0 que sabemos que da error, pero esto lo hacemos solo para darnos cuenta de que la tabla dual existe, ya que entro a la parte donde nos muestre el error.
+
+Y en caso de que la tabla dual no exista, solo pasaria directo a el else enviando una cadena vacia sin codigo de error.
+
+Esto lo hacemos para poder identificar si nuestra consulta fue exitosa o no en base a los estados de respuesta, en este caso el error 500 quiere decir que la consulta concatenada devuelve un valor true, ya que esta entrando a la parte de la division donde provoca este error, y solo lo provoca si pasa por el CASE WHEN, pero en caso de que sea falso no nos mostrara nada solo una cadena vacia se enviara y veremos un estado 200, que en este caso para nosotros es false.
+
+La respuesta de esta consulta es:
+
+![i11](/assets/images/SQLiPortswigger/lab12/intercept11.png)
+
+Podemos apreciar que nos da un error 505, lo cual en nuestro caso significa true, por lo en teoria esta devolviendo un valor true pero provocamos por medio de la condicion que se provoque un error 500 para darnos cuenta que la respuesta fue true, pero para comprobar que las consultas se interpretan correctamente le cambiaremos el (1=1) por (2=1), esto nos debe de dar un estado 200, ya que sería false pasando a la cadena vacia y no mostrar nada:
+
+`TrackingId=xyz'||(SELECT CASE WHEN (2=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`
+
+Y vemos que nos responde:
+
+![i12](/assets/images/SQLiPortswigger/lab12/intercept12.png)
+
+Por lo que al parecer esta funcionando correctamente y nos esta interpretando nuestras consultas, lo que sigue es, como ya tenemos la tabla y el usuario que el mismo laboratorio nos proporciono, lo que haremos es crear una consulta:
+
+`TrackingId=krzCSjZVDR06s8PR'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administrator')||'`
+
+Va de derecha a izquierda, primero comprueba que exista el usuario "administrator" en la tabla users, si esto es verdadero ira a el case de select, y revisara si 1=1, entonces provocara intencionalmente un error de estado 500 dividiendo 1 entre 0, y como esto no se puede nos dara un error, con este error nos daremos cuenta de que la peticion tomo valor de true, por lo que sabemos que el usuario existe ya que paso por el primer case.
+
+En caso de que el usuario "administrator" no exista en la tabla users, no pasara a el case de select, si no que pasará directamente a el else, lo cual esto solo hace devolver una cadena vacia, lo que significa que dará un estado de 200.
+
+Así que para saber si nuestra consulta fue exitosa el estado debe ser 500 y no 200.
+
+Así que hemos configurado una especie de sistema donde el estado de error 500 es True, y el estado 200 es false en base a nuestras consultas.
+
+Y donde esta el valor de (1=1), nos servira para poner nuestras consultas y saber en base a la respuesta de los estados de error, saber si si eso es verdadero o no lo es.
+
+<br>
+
+Ahora probaremos la respuesta con esta nueva consulta:
+
+![i13](/assets/images/SQLiPortswigger/lab12/intercept13.png)
+
+Podemos apreciar que nos da un error 500, por lo que en teoria el usuario administrator existe dentro de la tabla users.
+
+Ya que de lo contrario al poner un usuario inexistente como por ejemplo:
+
+`TrackingId=krzCSjZVDR06s8PR'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administadada')||'`
+
+Y nos respondera:
+
+![i14](/assets/images/SQLiPortswigger/lab12/intercept14.png)
+
+Por lo que sabemos que esta interpretando nuestras consultas y nos esta devolviendo informacion correcta.
+
+<br>
+
+Ahora intentaremos descubrir cuantos caracteres contiene la contraseña del usuario administrator. punto 10.
