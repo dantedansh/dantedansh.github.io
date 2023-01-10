@@ -1253,7 +1253,7 @@ Y por ultimo cambiamos lo de verificar si en la respuesta nos devolvia el mensaj
 
 Y el script nos queda de la siguiente forma:
 
-```python3
+````python3
 #!/usr/bin/python3
 
 from pwn import *
@@ -1301,6 +1301,6 @@ def makeRequest():
 if __name__ == '__main__':
 
     makeRequest()
-```
+````
 
 Por lo que si ya entendimos la logica podremos ejecutarlo y completar este laboratorio.
