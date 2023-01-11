@@ -1078,15 +1078,15 @@ En este laboratorio, como en los anteriores nos pide que descubramos la contrase
 
 <br>
 
-En este caso no hay mensaje de welcomeBack!, por lo que ya no será basada en respuestas condicionales, si no que ahora será basada en errores condicionales.
+En este caso no hay mensaje de welcomeBack!, por lo que ya no será basada en respuestas condicionales, sino que ahora será basada en errores condicionales.
 
-Lo primero que haremos será interceptar la peticion de la página del laboratorio ya que nos indica que existe una vulnerabilidad de SQLi en las cookies, por lo que con burpsuite interceptaremos la petición y la enviaremos a el repeater:
+Lo primero que haremos será interceptar la petición de la página del laboratorio, ya que nos indica que existe una vulnerabilidad de SQLi en las cookies, por lo que con burpsuite interceptaremos la petición y la enviaremos al repeater:
 
 ![i1](/assets/images/SQLiPortswigger/lab12/intercept1.png)
 
-Podemos ver que hemos interceptado la peticion, también podemos leer la cookie, y como en el anterior laboratorio, primero intentaremos escapar de la consulta por defecto:
+Podemos ver que hemos interceptado la petición, también podemos leer la cookie, y como en el anterior laboratorio, primero intentaremos escapar de la consulta por defecto:
 
-Por detras debe haber una consulta algo así:
+Por detrás debe haber una consulta algo así:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA`
 
@@ -1094,11 +1094,11 @@ Pero lo que haremos nosotros como sabemos es agregar una comilla simple para pri
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'`
 
-Y al enviar esta peticion nos responde:
+Y al enviar esta petición nos responde:
 
 ![i2](/assets/images/SQLiPortswigger/lab12/intercept2.png)
 
-Vemos que nos marca un error, probe intentar con cosas que nos habian funcionado antes, como:
+Vemos que nos marca un error, probé intentar con cosas que nos habían funcionado antes, como:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA' AND 2=1-- -`
 
@@ -1106,17 +1106,17 @@ O también:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA' AND '2'='1`
 
-Nos mostraba la pagina pero no tenia sentido esto ya que a pesar de que 2 no es igual a 1 nos seguia mostrando como si fuese algo correcto, por lo que esta manera no nos ayuda para nada.
+Nos mostraba la página, pero no tenía sentido esto, ya que a pesar de que 2 no es igual a 1 nos seguía mostrando como si fuese algo correcto, por lo que esta manera no nos ayuda para nada.
 
-Así que intentemos cambiar de metódo.
+Así que intentemos cambiar de método.
 
 <br>
 
-En los ejercicios anteriores nos funcionaban esos metodos, pero siempre tuvimos la idea de que por detras se usaba una sola comilla la cual al agregar otra es la que se quedaba colgada, pero en este caso intentamos esta peticion:
+En los ejercicios anteriores nos funcionaban esos métodos, pero siempre tuvimos la idea de que por detrás se usaba una sola comilla la cual al agregar otra es la que se quedaba colgada, pero en este caso intentamos esta petición:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA''`
 
-Y en vez de mostrarnos un error como lo hubiese hecho con una sola comilla, en este caso no nos mostro un error:
+Y en vez de mostrarnos un error como lo hubiese hecho con una sola comilla, en este caso no nos mostró un error:
 
 ![i3](/assets/images/SQLiPortswigger/lab12/intercept3.png)
 
@@ -1124,11 +1124,11 @@ Vemos que sin problema nos valida esto, por lo que ya podemos pensar en algo, y 
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '')||'`
 
-En este caso solo estamos añadiendo una subconsulta usando el operador OR, estamos indicando algo simple que no nos debería dar ningun error, esto solo nos selecciona una cadena vacia por lo que no deberia dar error, y esta es su respuesta:
+En este caso solo estamos añadiendo una subconsulta usando el operador OR, estamos indicando algo simple que no nos debería dar ningún error, esto solo nos selecciona una cadena vacía por lo que no debería dar error, y esta es su respuesta:
 
 ![i4](/assets/images/SQLiPortswigger/lab12/intercept4.png)
 
-Podemos ver que nos da un error, como podras recordar no solo existen bases de datos MySQL, existen oracle, entre otras, y como recordamos en la hoja de trucos nos decia que para hacer una seleccion en una base de datos oracle era necesario indicar una tabla, la cual erá "dual", por lo que este error puede ser una señal de que no es una base de datos MySQL o microsoft, si no que puede ser probable que sea una oracle, así que agregamos la tabla por defecto que necesita oracle a la consulta:
+Podemos ver que nos da un error, como podrás recordar no solo existen bases de datos MySQL, existen oracle, entre otras, y como recordamos en la hoja de trucos nos decía que para hacer una selección en una base de datos oracle era necesario indicar una tabla, la cual erá "dual", por lo que este error puede ser una señal de que no es una base de datos MySQL o microsoft, sino que puede ser probable que sea una oracle, así que agregamos la tabla por defecto que necesita oracle a la consulta:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM dual)||'`
 
@@ -1136,15 +1136,15 @@ Y podemos ver que nos responde:
 
 ![i5](/assets/images/SQLiPortswigger/lab12/intercept5.png)
 
-Entonces sabemos que ya es oracle y ya esta interpretando nuestras consultas, y para asegurar que lo esta interpretando cambiaremos el nombre de dual por alguna tabla que no exista:
+Entonces sabemos que ya es oracle y ya está interpretando nuestras consultas, y para asegurar que lo esta interpretando cambiaremos el nombre de dual por alguna tabla que no exista:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM asopdkaps)||'`
 
-Esto lo hacemos para ver si esta interpretando correctamente las consultas y no nos devuelva todo verdadero como en un principio, asi que esto nos responde:
+Esto lo hacemos para ver si está interpretando correctamente las consultas y no nos devuelva todo verdadero como en un principio, así que esto nos responde:
 
 ![i6](/assets/images/SQLiPortswigger/lab12/intercept6.png)
 
-Podemos apreciar que nos marca error, por lo que nos damos cuenta que esta funcionando correctamente y nos esta interpretando las consultas inyectadas.
+Podemos apreciar que nos marca error, por lo que nos damos cuenta de que está funcionando correctamente y nos está interpretando las consultas inyectadas.
 
 <br>
 
@@ -1152,21 +1152,21 @@ Ahora que hemos encontrado el punto vulnerable es hora de empezar a enumerar la 
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM users WHERE ROWNUM = 1)||'`
 
-Aqui lo que hicimos fue poner que nos tome un valor vacio de la tabla **users**, y agregamos que nos tome solo de la primera fila de datos, esto para evitar que nos de error por no especificarle de que parte de la tabla exactamente queremos tomar ese valor vacio.
+Aqui lo que hicimos fue poner que nos tome un valor vacío de la tabla **users**, y agregamos que nos tome solo de la primera fila de datos, esto para evitar que nos dé error por no especificarle de que parte de la tabla exactamente queremos tomar ese valor vacío.
 
-Esto en caso de que la tabla **users** exista nos mostrara la pagina web normalmente, como sucede aqui:
+Esto en caso de que la tabla **users** exista nos mostrara la página web normalmente, como sucede aquí:
 
 ![i7](/assets/images/SQLiPortswigger/lab12/intercept7.png)
 
-Vemos que quiere decir que si existe una tabla llamada **users**, ya que de lo contrario al indicarle una tabla que no existe nos daria un error y eso podemos comprobarlo poniendo una tabla que no exista:
+Vemos que quiere decir que si existe una tabla llamada **users**, ya que de lo contrario al indicarle una tabla que no existe nos daría un error y eso podemos comprobarlo poniendo una tabla que no exista:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM asdsas WHERE ROWNUM = 1)||'`
 
-Dandonos obviamente un error:
+Dándonos obviamente un error:
 
 ![i8](/assets/images/SQLiPortswigger/lab12/intercept8.png)
 
-Y esto demuestra nuevamente que esta funcionando correctamente nuestras consultas inyectadas.
+Y esto demuestra nuevamente que está funcionando correctamente nuestras consultas inyectadas.
 
 <br>
 
@@ -1180,7 +1180,7 @@ Y nos responde:
 
 ![i9](/assets/images/SQLiPortswigger/lab12/intercept9.png)
 
-Podemos apreciar que nos responde con un estado 200, lo cual indica que en teoria deberia estar bien y que el usuario si existe, pero ahora probaremos con un usuario inexistente para probar si esta interpretando nustras consultas de la subconsulta:
+Podemos apreciar que nos responde con un estado 200, lo cual indica que en teoría debería estar bien y que el usuario si existe, pero ahora probaremos con un usuario inexistente para probar si está interpretando nuestras consultas de la subconsulta:
 
 `SELECT * from products WHERE TrackingId=X3GUYDqzaHtN5MlA'||(SELECT '' FROM users WHERE username = 'administraasdada')||'`
 
@@ -1190,21 +1190,21 @@ Y esta consulta nos responde que es correcto:
 
 <br>
 
-Por lo que ya podemos sospechar que no esta funcionando bien las respuestas condicionales ya que ese usuario no existe y sin embargo nos muestra como si existiera, así que ahora modificaremos la consulta a esto:
+Por lo que ya podemos sospechar que no está funcionando bien las respuestas condicionales, ya que ese usuario no existe y sin embargo nos muestra como si existiera, así que ahora modificaremos la consulta a esto:
 
 `TrackingId=xyz'||(SELECT CASE WHEN (2=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`
 
-Lo que hace esta consulta es verificar primero si existe la tabla dual, en caso de que exista tomara valor true y se ejecutara el primer CASE en SELECT, lo que preguntara si 1=1, como esto es cierto entonces ejecuta una division de 1 entre 0 que sabemos que da error, pero esto lo hacemos solo para darnos cuenta de que la tabla dual existe, ya que entro a la parte donde nos muestre el error.
+Lo que hace esta consulta es verificar primero si existe la tabla dual, en caso de que exista tomara valor true y se ejecutara el primer CASE en SELECT, lo que preguntara si 1=1, como esto es cierto entonces ejecuta una división de 1 entre 0 que sabemos que da error, pero esto lo hacemos solo para darnos cuenta de que la tabla dual existe, ya que entro a la parte donde nos muestre el error.
 
-Y en caso de que la tabla dual no exista, solo pasaria directo a el else enviando una cadena vacia sin codigo de error.
+Y en caso de que la tabla dual no exista, solo pasaría directo al else enviando una cadena vacía sin código de error.
 
-Esto lo hacemos para poder identificar si nuestra consulta fue exitosa o no en base a los estados de respuesta, en este caso el error 500 quiere decir que la consulta concatenada devuelve un valor true, ya que esta entrando a la parte de la division donde provoca este error, y solo lo provoca si pasa por el CASE WHEN, pero en caso de que sea falso no nos mostrara nada solo una cadena vacia se enviara y veremos un estado 200, que en este caso para nosotros es false.
+Esto lo hacemos para poder identificar si nuestra consulta fue exitosa o no en base a los estados de respuesta, en este caso el error 500 quiere decir que la consulta concatenada devuelve un valor true, ya que está entrando a la parte de la división donde provoca este error, y solo lo provoca si pasa por el CASE WHEN, pero en caso de que sea falso no nos mostrara nada solo una cadena vacía se enviara y veremos un estado 200, que en este caso para nosotros es false.
 
 La respuesta de esta consulta es:
 
 ![i11](/assets/images/SQLiPortswigger/lab12/intercept11.png)
 
-Podemos apreciar que nos da un error 505, lo cual en nuestro caso significa true, por lo en teoria esta devolviendo un valor true pero provocamos por medio de la condicion que se provoque un error 500 para darnos cuenta que la respuesta fue true, pero para comprobar que las consultas se interpretan correctamente le cambiaremos el (1=1) por (2=1), esto nos debe de dar un estado 200, ya que sería false pasando a la cadena vacia y no mostrar nada:
+Podemos apreciar que nos da un error 505, lo cual en nuestro caso significa true, por lo que en teoría está devolviendo un valor true, pero provocamos por medio de la condición que se provoque un error 500 para darnos cuenta de que la respuesta fue true, pero para comprobar que las consultas se interpretan correctamente le cambiaremos el (1=1) por (2=1), esto nos debe de dar un estado 200, ya que sería false pasando a la cadena vacía y no mostrar nada:
 
 `TrackingId=xyz'||(SELECT CASE WHEN (2=1) THEN TO_CHAR(1/0) ELSE '' END FROM dual)||'`
 
@@ -1212,19 +1212,19 @@ Y vemos que nos responde:
 
 ![i12](/assets/images/SQLiPortswigger/lab12/intercept12.png)
 
-Por lo que al parecer esta funcionando correctamente y nos esta interpretando nuestras consultas, lo que sigue es, como ya tenemos la tabla y el usuario que el mismo laboratorio nos proporciono, lo que haremos es crear una consulta:
+Por lo que al parecer esta funcionando correctamente y nos está interpretando nuestras consultas, lo que sigue es, como ya tenemos la tabla y el usuario que el mismo laboratorio nos proporcionó, lo que haremos es crear una consulta:
 
 `TrackingId=xyz'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administrator')||'`
 
-Va de derecha a izquierda, primero comprueba que exista el usuario "administrator" en la tabla users, si esto es verdadero ira a el case de select, y revisara si 1=1, entonces provocara intencionalmente un error de estado 500 dividiendo 1 entre 0, y como esto no se puede nos dara un error, con este error nos daremos cuenta de que la peticion tomo valor de true, por lo que sabemos que el usuario existe ya que paso por el primer case.
+Va de derecha a izquierda, primero comprueba que exista el usuario "administrator" en la tabla users, si esto es verdadero ira a él case de select, y revisara si 1=1, entonces provocara intencionalmente un error de estado 500 dividiendo 1 entre 0, y como esto no se puede nos dará un error, con este error nos daremos cuenta de que la petición tomo valor de true, por lo que sabemos que el usuario existe, ya que paso por el primer case.
 
-En caso de que el usuario "administrator" no exista en la tabla users, no pasara a el case de select, si no que pasará directamente a el else, lo cual esto solo hace devolver una cadena vacia, lo que significa que dará un estado de 200.
+En caso de que el usuario "administrator" no exista en la tabla users, no pasara a el case de select, sino que pasará directamente al else, lo cual esto solo hace devolver una cadena vacía, lo que significa que dará un estado de 200.
 
 Así que para saber si nuestra consulta fue exitosa el estado debe ser 500 y no 200.
 
 Así que hemos configurado una especie de sistema donde el estado de error 500 es True, y el estado 200 es false en base a nuestras consultas.
 
-Y donde esta el valor de (1=1), nos servira para poner nuestras consultas y saber en base a la respuesta de los estados de error, saber si si eso es verdadero o no lo es.
+Y donde está el valor de (1=1), nos servirá para poner nuestras consultas y saber en base a la respuesta de los estados de error, saber si eso es verdadero o no lo es.
 
 <br>
 
@@ -1232,17 +1232,17 @@ Ahora probaremos la respuesta con esta nueva consulta:
 
 ![i13](/assets/images/SQLiPortswigger/lab12/intercept13.png)
 
-Podemos apreciar que nos da un error 500, por lo que en teoria el usuario administrator existe dentro de la tabla users.
+Podemos apreciar que nos da un error 500, por lo que en teoría el usuario administrator existe dentro de la tabla users.
 
 Ya que de lo contrario al poner un usuario inexistente como por ejemplo:
 
 `TrackingId=xyz'||(select case when (1=1) then to_char(1/0) else '' end from users where username='administadada')||'`
 
-Y nos respondera:
+Y nos responderá:
 
 ![i14](/assets/images/SQLiPortswigger/lab12/intercept14.png)
 
-Por lo que sabemos que esta interpretando nuestras consultas y nos esta devolviendo informacion correcta.
+Por lo que sabemos que está interpretando nuestras consultas y nos está devolviendo información correcta.
 
 <br>
 
@@ -1280,7 +1280,7 @@ Después de varios intentos, descubrimos que la contraseña es igual a 20 caract
 
 Por lo que al saber esto ahora debemos enumerar dicha contraseña del usuario administrator.
 
-Reutilizaremos el script que ya habiamos creado.
+Reutilizaremos el script que ya habíamos creado.
 
 Pero esta vez solo cambiaremos algunas cosas:
 
@@ -1288,13 +1288,13 @@ Pero esta vez solo cambiaremos algunas cosas:
 
 Lo que se ve en verde es lo que estaba antes y lo que se ve en rojo es lo nuevo que hemos puesto en lugar de eso.
 
-Primero la variable "main_url", que es obvio que debe cambiar ya que es otro laboratorio.
+Primero la variable "main_url", que es obvio que debe cambiar, ya que es otro laboratorio.
 
 Después el payload de la cookie, el cual agregamos nuestro nuevo payload de cookie, y también usamos los espacios donde se iran fuzeando los diferentes caracteres y posiciones.
 
-También cambio la sesion ya que como en main_url, es otro laboratorio.
+También cambio la sesion, ya que como en main_url, es otro laboratorio.
 
-Y por ultimo cambiamos lo de verificar si en la respuesta nos devolvia el mensaje "WelcomeBack!", ya que ahora nos basaremos en la respuesta del servidor, por lo que usamos esta linea:
+Y por último cambiamos lo de verificar si en la respuesta nos devolvía el mensaje "WelcomeBack!", ya que ahora nos basaremos en la respuesta del servidor, por lo que usamos esta línea:
 
 `if  r.status_code == 500:`
 
@@ -1350,4 +1350,9 @@ if __name__ == '__main__':
     makeRequest()
 ```
 
-Por lo que si ya entendimos la logica podremos ejecutarlo y completar este laboratorio.
+Por lo que si ya entendimos la lógica podremos ejecutarlo y completar este laboratorio.
+
+<br>
+
+# Laboratorio 13: Inyección ciega de SQL con retrasos de tiempo
+
