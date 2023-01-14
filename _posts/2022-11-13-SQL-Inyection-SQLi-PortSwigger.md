@@ -1,6 +1,6 @@
 ---
 layout: single
-title: Inyección SQL - SQLi
+title: Inyección SQL - SQLi - Laboratorios de PortSwigger
 excerpt: "Explicación de como resolver los laboratorios de PortSwigger sobre SQL inyection SQLi."
 date: 2022-11-13
 classes: wide
