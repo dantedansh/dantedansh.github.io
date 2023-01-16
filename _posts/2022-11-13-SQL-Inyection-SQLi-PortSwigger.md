@@ -16,6 +16,30 @@ tags:
   - Portswigger
 ---
 
+<br>
+
+**Índice de contenido**
+
+- [Laboratorio 1](#id1)
+- [Laboratorio 2](#id2)
+- [Laboratorio 3](#id3)
+- [Laboratorio 4](#id4)
+- [Laboratorio 5](#id5)
+- [Laboratorio 6](#id6)
+- [Laboratorio 7](#id7)
+- [Laboratorio 8](#id8)
+- [Laboratorio 9](#id9)
+- [Laboratorio 10](#id10)
+- [Laboratorio 11](#id11)
+- [Creando un script para dumpear datos](#id1010)
+- [Laboratorio 12](#id12)
+- [Laboratorio 13](#id13)
+- [Laboratorio 14](#id14)
+- [Laboratorio 17](#id17)
+
+
+<div id='id1' />
+
 # Laboratorio 1: vulnerabilidad de inyección SQL en la cláusula WHERE que permite la recuperación de datos ocultos
 
 <br>
@@ -111,6 +135,8 @@ Así que hemos logrado el objetivo de este laboratorio, mostramos todos los prod
 
 <br>
 
+<div id='id2' />
+
 # Laboratorio 2: vulnerabilidad de inyección SQL que permite omitir el inicio de sesión (bypass)
 
 En este segundo laboratorio, nos dice que tenemos un panel login vulnerable a SQLi, y nos dice que para resolverlo debemos hacer un bypass del usuario **administrator**, esto quiere decir que debemos encontrar una manera de acceder como el usuario **administrator** sin conocer su contraseña.
@@ -146,6 +172,8 @@ Al hacer esto ya habremos completado el nivel y dejándonos un aviso de que hemo
 ![fin](/assets/images/SQLiPortswigger/lab2/final.png)
 
 <br>
+
+<div id='id3' />
 
 # Laboratorio 3: Ataque UNION de inyección SQL, determinando el número de columnas devueltas por la consulta
 
@@ -197,6 +225,8 @@ Por lo que al hacer esto estaremos mezclando los valores de dichas columnas junt
 
 <br>
 
+<div id='id4' />
+
 # Laboratorio 4: Ataque UNION de inyección SQL, encontrando una columna que contiene texto
 
 Buscar una columna que interpreta cadenas de texto, nos puede servir para después inyectar nuestras consultas directamente, pero primero necesitamos encontrar que columnas devueltas aceptan texto.
@@ -242,6 +272,8 @@ Y como vemos esta vez nos ha interpretado, ya que esta columna es de valor strin
 ![fin](/assets/images/SQLiPortswigger/lab4/final.png)
 
 <br>
+
+<div id='id5' />
 
 # Laboratorio 5: Ataque UNION de inyección SQL, recuperación de datos de otras tablas
 
@@ -312,6 +344,8 @@ Como vemos hemos sacado los datos de dichas columnas dentro de esa tabla, esto f
 Como vemos hemos completado con éxito este laboratorio, pero como sabemos en un entorno real esto es más extenso, ya que nadie nos dirá el nombre de las bases de datos, tablas y columnas, y tendremos que hacerlo por nuestra cuenta.
 
 <br>
+
+<div id='id6' />
 
 # Laboratorio 6: ataque SQL inyection UNION, recuperando múltiples valores en una sola columna
 
@@ -399,6 +433,8 @@ Y hemos completado este laboratorio.
 
 <br>
 
+<div id='id7' />
+
 # Laboratorio 7: Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en Oracle
 
 En este laboratorio, ahora nos dice que hagamos un ataque de inyección SQL, para consultar el tipo y versión de base de datos, pero en este caso el tipo de base de datos será Oracle, por lo que la sintaxis será diferente, pero la lógica sigue siendo la misma.
@@ -439,6 +475,8 @@ Como podemos ver, hasta abajo esta la respuesta de nuestra inyección, y como el
 
 <br>
 
+<div id='id8' />
+
 # Laboratorio 8: Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en MySQL y Microsoft
 
 Este laboratorio es similar al anterior, la única diferencia es que debemos hacerlo en la versión de base de datos Microsoft, también dice MySQL, ya que lo que haremos funciona exactamente igual que en MySQL.
@@ -466,6 +504,8 @@ Y en caso de que los parámetros sean correctos, que en este caso he comprobado 
 Podemos ver que hemos logrado inyectar nuestra consulta y saber la versión de esta base de datos, y hemos concluido con este laboratorio.
 
 <br>
+
+<div id='id9' />
 
 # Laboratorio 9: Ataque de inyección SQL, enumerando el contenido de la base de datos en bases de datos que no son de Oracle
 
@@ -565,6 +605,8 @@ Como podemos apreciar hemos dumpeado los datos de dichas columnas, y ya solo que
 
 <br>
 
+<div id='id10' />
+
 # Laboratorio 10: Ataque de inyección SQL, enumerando el contenido de la base de datos en Oracle
 
 Este laboratorio es similar al anterior, con la diferencia de que ahora enumeraremos datos de una base de datos que es Oracle.
@@ -648,6 +690,8 @@ Y usamos las credenciales de **administrator** para terminar este laboratorio:
 Y hemos terminado este laboratorio.
 
 <br>
+
+<div id='id11' />
 
 # Laboratorio 11: inyección SQL ciega con respuestas condicionales
 
@@ -833,6 +877,8 @@ Y podemos ver que no nos muestra el mensaje de bienvenida, por lo que la contras
 Esto es un poco cansado, probar letra por letra, y no solo pueden ser letras, ya que el laboratorio dice que igual puede contener números, por lo que es un texto alfanumérico, así que para facilitar esto vamos a crear un script en python que nos automaticé todo esto.
 
 <br>
+
+<div id='id1010' />
 
 # Creando un script en python para automatizar la enumeración de la inyección SQL ciega
 
@@ -1068,7 +1114,7 @@ Después ejecutaremos el script y descubriremos la contraseña poco a poco hasta
 
 <br>
 
-
+<div id='id12' />
 
 # Laboratorio 12: Inyección ciega de SQL con errores condicionales
 
@@ -1352,6 +1398,8 @@ Por lo que si ya entendimos la lógica podremos ejecutarlo y completar este labo
 
 <br>
 
+<div id='id13' />
+
 # Laboratorio 13: Inyección ciega de SQL con retrasos de tiempo
 
 Este siguiente laboratorio nos pide lo siguiente:
@@ -1399,6 +1447,8 @@ Así que al hacer esta consulta terminamos este laboratorio:
 Pero obviamente esto solo fue una introducción, lo siguiente está en el siguiente laboratorio.
 
 <br>
+
+<div id='id14' />
 
 # Laboratorio 14: Inyección SQL ciega con retardos de tiempo y recuperación de información
 
@@ -1561,9 +1611,11 @@ Al ejecutar este script obtendremos en unos minutos la password del usuario "adm
 
 <br>
 
+<div id='id17' />
+
 # Laboratorio 17: Inyección SQL con omisión de filtro a través de codificación XML
 
-![17](/assets/images/SQLiPortswigger/lab14/lab17.png)
+![17](/assets/images/SQLiPortswigger/lab17/lab17.png)
 
 En este laboratorio nos indica que la vulnerabilidad no es de las vistas anteriormente (basada en errores, basada en respuestas condicionales, basada en errores condicionales o basada en tiempo), sino que es otro modo.
 
