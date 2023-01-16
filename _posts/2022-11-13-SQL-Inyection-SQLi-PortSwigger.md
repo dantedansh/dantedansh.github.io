@@ -1571,7 +1571,7 @@ Nos dice que existe una vulnerabilidad SQLi en la función de verificar existenc
 
 Cuando vamos a la página y buscamos algo que haga esa función nos encontramos con esto:
 
-![function](/assets/images/SQLiPortswigger/lab14/funcion.png)
+![function](/assets/images/SQLiPortswigger/lab17/funcion.png)
 
 Al abrir un producto nos encontramos esta siguiente función la cual nos indica cuantos productos de ese tipo quedan.
 
@@ -1579,11 +1579,11 @@ Al abrir un producto nos encontramos esta siguiente función la cual nos indica 
 
 Como sabemos que aquí está la vulnerabilidad vamos a interceptar la petición al darle click al botón que dice "Check stock", y recibiremos la siguiente petición:
 
-![xml](/assets/images/SQLiPortswigger/lab14/xml.png)
+![xml](/assets/images/SQLiPortswigger/lab17/xml.png)
 
 Como vemos nos interceptó la petición del botón de verificar existencias, y vemos que nos devuelve una pequeña instrucción XML al final de la petición:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 	<stockCheck>
 		<productId>
@@ -1597,7 +1597,7 @@ Como vemos nos interceptó la petición del botón de verificar existencias, y v
 
 Intentaremos inyectar la consulta donde está la etiqueta `<productId>`, ya que tal vez se comunique con una base de datos para obtener ese resultado, así que agregamos la consulta:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 	<stockCheck>
 		<productId>
@@ -1611,7 +1611,7 @@ Intentaremos inyectar la consulta donde está la etiqueta `<productId>`, ya que 
 
 Y al tramitar esta petición apreciamos lo siguiente en la respuesta:
 
-![attack](/assets/images/SQLiPortswigger/lab14/attack.png)
+![attack](/assets/images/SQLiPortswigger/lab17/attack.png)
 
 Apreciamos que nos detectó que estamos intentando ejecutar nuestras consultas y nos da un mensaje del firewall que protege el sistema.
 
@@ -1619,7 +1619,7 @@ Apreciamos que nos detectó que estamos intentando ejecutar nuestras consultas y
 
 Una manera para evadir esto es ir a "Extensions>Bapp Store" dentro de BurpSuite, y buscaremos una extension llamada Hackvector, y nos la instalamos:
 
-![hv](/assets/images/SQLiPortswigger/lab14/hackvector.png)
+![hv](/assets/images/SQLiPortswigger/lab17/hackvector.png)
 
 Una vez instalada, volveremos a el repeater de nuestra peticion y seleccionaremos nuestra consulta inyectada, osea "UNION SELECT NULL -- -" dando click derecho:
 
@@ -1629,7 +1629,7 @@ Y una vez lo hagamos se nos transformara y daremos en tramitar peticion:
 
 Nos agregara la etiqueta `<@hex_entities>` a el codigo:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 	<stockCheck>
 		<productId>
@@ -1646,11 +1646,11 @@ Nos agregara la etiqueta `<@hex_entities>` a el codigo:
 
 Vemos que nos agregó esas etiquetas, ahora tramitaremos la petición y veremos:
 
-![res](/assets/images/SQLiPortswigger/lab14/response.png)
+![res](/assets/images/SQLiPortswigger/lab17/response.png)
 
 Vemos que no nos muestra nada, por lo que puede que la inyección no vaya en esta etiqueta, así que otra que puede estar comunicándose con una base de datos sería `<storeId` por lo que lo cambiaremos ahí:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <stockCheck>
 	<productId>
@@ -1667,11 +1667,11 @@ Vemos que no nos muestra nada, por lo que puede que la inyección no vaya en est
 
 Y ahora en este caso podemos apreciar que ya nos responde la petición inyectada:
 
-![null](/assets/images/SQLiPortswigger/lab14/null.png)
+![null](/assets/images/SQLiPortswigger/lab17/null.png)
 
 Vemos que nos dice NULL, por lo que sabemos que esta columna puede ser de tipo carácter, así que trataremos de dumpear datos, por ejemplo las bases de datos:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 	<stockCheck>
 		<productId>
@@ -1687,11 +1687,11 @@ Vemos que nos dice NULL, por lo que sabemos que esta columna puede ser de tipo c
 
 Y vemos que nos responde:
 
-![dump](/assets/images/SQLiPortswigger/lab14/dump.png)
+![dump](/assets/images/SQLiPortswigger/lab17/dump.png)
 
 Podemos apreciar que nos devolvió las bases de datos, por lo que es vulnerable, como ya nos dieron el usuario y la tabla con sus columnas simplemente enumeraremos la password para terminar este último laboratorio:
 
-```XML
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 	<stockCheck>
 		<productId>
@@ -1707,7 +1707,7 @@ Podemos apreciar que nos devolvió las bases de datos, por lo que es vulnerable,
 
 Y nos dumpeara la contraseña del usuario administrator:
 
-![password](/assets/images/SQLiPortswigger/lab14/password.png)
+![password](/assets/images/SQLiPortswigger/lab17/password.png)
 
 Y podremos terminar el último laboratorio.
 
