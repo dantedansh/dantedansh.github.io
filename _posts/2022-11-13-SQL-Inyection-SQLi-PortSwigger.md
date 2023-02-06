@@ -20,22 +20,22 @@ tags:
 
 **Índice de contenido**
 
-- [Laboratorio 1](#id1)
-- [Laboratorio 2](#id2)
-- [Laboratorio 3](#id3)
-- [Laboratorio 4](#id4)
-- [Laboratorio 5](#id5)
-- [Laboratorio 6](#id6)
-- [Laboratorio 7](#id7)
-- [Laboratorio 8](#id8)
-- [Laboratorio 9](#id9)
-- [Laboratorio 10](#id10)
-- [Laboratorio 11](#id11)
+- [Vulnerabilidad de inyección SQL en la cláusula WHERE que permite la recuperación de datos ocultos](#id1)
+- [Vulnerabilidad de inyección SQL que permite omitir el inicio de sesión (bypass)](#id2)
+- [Ataque UNION de inyección SQL, determinando el número de columnas devueltas por la consulta](#id3)
+- [Ataque UNION de inyección SQL, encontrando una columna que contiene texto](#id4)
+- [Ataque UNION de inyección SQL, recuperación de datos de otras tablas](#id5)
+- [Ataque SQL inyection UNION, recuperando múltiples valores en una sola columna](#id6)
+- [Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en Oracle](#id7)
+- [Ataque de inyección SQL, consultando el tipo y la versión de la base de datos en MySQL y Microsoft](#id8)
+- [Ataque de inyección SQL, enumerando el contenido de la base de datos en bases de datos que no son de Oracle](#id9)
+- [Ataque de inyección SQL, enumerando el contenido de la base de datos en Oracle](#id10)
+- [Inyección SQL ciega con respuestas condicionales](#id11)
 - [Creando un script para dumpear datos](#id1010)
-- [Laboratorio 12](#id12)
-- [Laboratorio 13](#id13)
-- [Laboratorio 14](#id14)
-- [Laboratorio 17](#id17)
+- [Inyección ciega de SQL con errores condicionales](#id12)
+- [Inyección ciega de SQL con retrasos de tiempo](#id13)
+- [Inyección SQL ciega con retardos de tiempo y recuperación de información](#id14)
+- [Inyección SQL con omisión de filtro a través de codificación XML](#id17)
 
 
 <div id='id1' />
