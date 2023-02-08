@@ -24,17 +24,17 @@ Cuando hayamos montado el sistema de practica DVWA, podremos acceder y ver un me
 
 El nivel facil de inyección SQL normal se ve así:
 
-![Inicio](/assets/images/DVWA-SQLi/inicio.png)
+![Inicio](/assets/images/DVWA-SQLi/SQLi-easy/inicio.png)
 
 Vemos que tiene un apartado para ingresar datos, probaremos poner algun valor, en este caso el valor 1:
 
-![1](/assets/images/DVWA-SQLi/id1.png)
+![1](/assets/images/DVWA-SQLi/SQLi-easy/id1.png)
 
 Podemos apreciar que nos muestra que existe un usuario con el id 1, en este caso ese usuario es admin.
 
 probamos más números y nos dimos cuenta que existe hasta el usuario 5.
 
-![5](/assets/images/DVWA-SQLi/id5.png)
+![5](/assets/images/DVWA-SQLi/SQLi-easy/id5.png)
 
 Vemos que este último usuario tiene de nombre Bob Smith.
 
@@ -42,7 +42,7 @@ Vemos que este último usuario tiene de nombre Bob Smith.
 
 Y cuando no existe un usuario, por ejemplo 6:
 
-![6](/assets/images/DVWA-SQLi/id6.png)
+![6](/assets/images/DVWA-SQLi/SQLi-easy/id6.png)
 
 Simplemente no nos muestra nada en caso de que el id de usuario no exista.
 
@@ -52,7 +52,7 @@ Ahora probaremos romper la consulta, como sabemos lo haremos con una comilla sim
 
 De esta forma, y al tramitar este dato nos arroja el siguiente error:
 
-![error](/assets/images/DVWA-SQLi/error.png)
+![error](/assets/images/DVWA-SQLi/SQLi-easy/error.png)
 
 Lo cual nos comienza a surgir ideas de que es vulnerable a SQLi, ya que nos marco error directo de la base de datos.
 
@@ -62,7 +62,7 @@ Ahora intentaremos inyectar esta consulta:
 
 Y vemos que nos devuelve lo siguiente:
 
-![users](/assets/images/DVWA-SQLi/allusers.png)
+![users](/assets/images/DVWA-SQLi/SQLi-easy/allusers.png)
 
 Podemos apreciar que nos interpreto nuestra consulta, nos escapo del campo User ID, y inyecto nuestra consulta que en este caso es OR 1=1, lo que hará que veamos todos los usuarios ya que estamos comentando el resto de la consulta existente evitando limits o algo similar.
 
@@ -76,11 +76,11 @@ Por lo que intuimos que se devuelven 2 columnas, y esto lo verificaremos con **O
 
 Y vemos esta respuesta:
 
-![order2](/assets/images/DVWA-SQLi/orderby2.png)
+![order2](/assets/images/DVWA-SQLi/SQLi-easy/orderby2.png)
 
 Vemos que nos responde con algo, y sabemos que son 2 columnas las que se devuelven ya que de lo contrario si ponemos un valor mayor que 2 nos dará este error:
 
-![order3](/assets/images/DVWA-SQLi/orderby3.png)
+![order3](/assets/images/DVWA-SQLi/SQLi-easy/orderby3.png)
 
 Así que ya sabemos que son 2 columnas devueltas, ahora averiguaremos que tipo de dato esta devolviendo, como en la respuesta vimos sabemos que esta devolviendo strings, osea texto, por lo que haremos esta consulta para verificarlo:
 
@@ -88,7 +88,7 @@ Así que ya sabemos que son 2 columnas devueltas, ahora averiguaremos que tipo d
 
 Y como sospechabamos, si eran datos de texto los que devolvia estas columnas:
 
-![strings](/assets/images/DVWA-SQLi/strings.png)
+![strings](/assets/images/DVWA-SQLi/SQLi-easy/strings.png)
 
 Podemos ver que se agregan las etiquetas 'texto1' y 'texto2' en lugar de sus valores por defecto.
 
@@ -100,7 +100,7 @@ Ahora intentaremos enumerar los nombres de bases de datos existentes, por lo que
 
 Y podemos ver que nos enumera las bases de datos existentes:
 
-![db](/assets/images/DVWA-SQLi/databases.png)
+![db](/assets/images/DVWA-SQLi/SQLi-easy/databases.png)
 
 Y vemos que nos enumero 2 bases de datos:
 
@@ -113,7 +113,7 @@ Así que enumeraremos las tablas existentes dentro de esa base de datos:
 
 `1' UNION SELECT table_name,NULL FROM information_schema.tables WHERE table_schema = 'dvwa' -- -`
 
-![tables](/assets/images/DVWA-SQLi/tables.png)
+![tables](/assets/images/DVWA-SQLi/SQLi-easy/tables.png)
 
 Vemos que nos enumero 2 tablas:
 
@@ -126,7 +126,7 @@ Así que enumeraremos las columnas de la tabla **users**, con esta nueva consult
 
 Esta vez usamos la funcion GROUP_CONCAT() para que nos sea mas facil ver las columnas sin que se muestre tanto texto, así que nos respondio esto:
 
-![columns](/assets/images/DVWA-SQLi/columns.png)
+![columns](/assets/images/DVWA-SQLi/SQLi-easy/columns.png)
 
 Vemos que nos enumero las columnas de la tabla **users** y estas columnas son:
 
@@ -143,7 +143,7 @@ Vemos muchas columnas, pero las que nos llaman la atención son **user** y **pas
 
 `1' UNION SELECT GROUP_CONCAT(user,':',password),NULL FROM dvwa.users -- -`
 
-![data](/assets/images/DVWA-SQLi/data.png)
+![data](/assets/images/DVWA-SQLi/SQLi-easy/data.png)
 
 Podemos ver que nos enumero el usuario y password, agregando el caracter : para separar ambas cosas.
 
@@ -159,7 +159,7 @@ Pero vemos que las contraseñas estan hasheadas, por lo que intentaremos crackea
 
 En el sitio [CrackStation](https://crackstation.net) podemos crackear hashes basicos, como este es un nivel facil, los hashes no deben ser complejos así que podemos tirar de esta web, y crackearlos:
 
-![hashcrack](/assets/images/DVWA-SQLi/hashcrack.png)
+![hashcrack](/assets/images/DVWA-SQLi/SQLi-easy/hashcrack.png)
 
 Y como vemos nos ha crackeado todas las contraseñas de cada usuario:
 
@@ -170,3 +170,148 @@ Y como vemos nos ha crackeado todas las contraseñas de cada usuario:
 - password
 
 Así que hemos completado el nivel facil de este laboratorio.
+
+<br>
+
+# Inyección SQL - Nivel intermedio
+
+Una vez seleccionado el nivel intermedio de dificultad vamos a el apartado de SQLi, y veremos lo siguiente:
+
+![medium](/assets/images/DVWA-SQLi/SQLi-medium/medium.png)
+
+Ahora vemos que ha cambiado, ya no es un campo donde ingreses datos, si no que ahora es para seleccionar ya el dato.
+
+Esto nos limita probar si es vulnerable a inyecciones SQL, ya que no nos deja ingresar texto directamente, pero lo que podemos hacer es optar por BurpSuite, e interceptar la peticion, así que eso haremos.
+
+![peticion1](/assets/images/DVWA-SQLi/SQLi-medium/peticion.png)
+
+Como podemos ver, hemos intereceptado la peticion y esta la hemos pasado a el repeater de burpsuite, y vemos que por el metodo POST se da este valor a el parametro id al seleccionar algún valor:
+
+`id=1&Submit=Submit`
+
+Y en la parte derecha vemos la respuesta.
+
+Así que desde aquí intentaremos romper primeramente la consulta, quedando el valor id así:
+
+`id=1&Submit=Submit`
+
+Y vemos que nos responde esto:
+
+![error](/assets/images/DVWA-SQLi/SQLi-medium/error.png)
+
+El error de MariaDB SQL, por lo que ya podemos darnos la idea de que es vulnerable.
+
+Así que ahora podremos intentar inyectar consultas, como sabemos primero contamos el numero de columnas devueltas, así que usaremos ORDER BY:
+
+
+`id=1 ORDER BY 2 -- -`
+
+Como vemos en esta consulta ya no se usa la comilla para escapar de la consulta por defecto, ya que por detras ya no se esta indicando eso de '%UserID%' para obtener lo que el usuario puso en ese lugar de texto, y esto es porque ahora ya solo lo seleccionamos directamente de la lista que nos despliega.
+
+Así que al tramitar la peticion con ese parametro modificado veremos que nos responde lo siguiente:
+
+![order2](/assets/images/DVWA-SQLi/SQLi-medium/orderby2.png)
+
+Podemos apreciar que no nos lanza ningun error, por lo que esta interpretando nuestras consultas, probaremos indicandole en lugar de 2 un 3, para probar que responde:
+
+`id=1 ORDER BY 3 -- -`
+
+![order3](/assets/images/DVWA-SQLi/SQLi-medium/orderby3.png)
+
+Podemos apreciar que nos marca un error, por lo que quiere decir que hay 2 columnas que se estan devolviendo y no 3.
+
+<br>
+
+Ahora toca averiguar cuales son las bases de datos existentes, por lo que haremos uso del metodo que ya conocemos:
+
+`id=1 UNION SELECT GROUP_CONCAT(schema_name),NULL FROM information_schema.schemata -- -`
+
+Y vemos que nos responde las bases de datos:
+
+![databases](/assets/images/DVWA-SQLi/SQLi-medium/databases.png)
+
+Y estas bases de datos son:
+
+- information_schema
+- dvwa
+
+<br>
+
+Como sabemos nos llama la atención la de nombre dvwa, por lo que crearemos una consulta para enumerar sus tablas:
+
+`id=1 UNION SELECT table_name,NULL FROM information_schema.tables WHERE table_schema = 'dvwa' -- -`
+
+Este metodo es que que usamos en este tipo de inyecciones SQL basadas en errores, pero en este caso vemos la siguiente respuesta:
+
+![err](/assets/images/DVWA-SQLi/SQLi-medium/err.png)
+
+Podemos apreciar que nos marca error, cosa que antes en el nivel facil no pasaba, la consulta esta bien, pero lo que sucede es que en este nivel intermedio nos dice lo siguiente:
+
+*"El nivel medio utiliza una forma de protección de inyección SQL, con la función de "mysql_real_escape_string()". Sin embargo, debido a que la consulta SQL no tiene comillas alrededor del parámetro, esto no protegerá completamente la consulta para que no se modifique"*
+
+Así que como el administrador de la base de datos intento protegerla de inyecciones sql, lo que hace esa funcion llamada mysql_real_escape_string(), es evitar que podamos ingresar caracteres como comillas, o comillas dobles, pero como no esta bien protegida podemos hacer bypass usando codificacion hexadecimal.
+
+<br>
+
+Lo que haremos es cambiar el texto de dvwa por ese texto pero codificado en hexadecimal, lo haremos con un traductor o como quieras, y nos quedara así:
+
+64,76,77,61
+
+Simplemente eliminamos las comillas quedandonos con 64767761, y le agregamos un 0x para decirle que es valor hexadecimal, quedando la consulta así:
+
+`id=1 UNION SELECT GROUP_CONCAT(table_name),NULL FROM information_schema.tables WHERE table_schema = 0x64767761 -- -`
+
+Y ya nos responde las tablas de la base de datos dvwa:
+
+![tab](/assets/images/DVWA-SQLi/SQLi-medium/tables.png)
+
+Vemos que nos dumpeo las tablas:
+
+- users
+- guestbook
+
+<br>
+
+Ahora enumeraremos las columnas de la tabla users, ya que es la que nos llama la atención.
+
+`id=1 UNION SELECT GROUP_CONCAT(column_name),NULL FROM information_schema.columns WHERE table_schema = 0x64767761 AND table_name = 0x7573657273 -- -`
+
+Y vemos que nos responde:
+
+![columns](/assets/images/DVWA-SQLi/SQLi-medium/columns.png)
+
+Nos da las siguientes columnas:
+
+- user_id
+- first_name
+- last_name
+- user
+- password
+- avatar
+- last
+- login
+- failed
+- login
+
+Y por ultimo sacaremos los datos de las columnas user y password, ya que son las que nos llaman la atención:
+
+`id=1 UNION SELECT GROUP_CONCAT(user,0x3a,password),NULL FROM dvwa.users -- -`
+
+> Aquí no usamos hexadecimal ya que no hay necesidad de usar comillas, solo en el caracter de ":" para separar el user de la password, pero fuera de eso no se usa ya que ya sabemos donde esta lo que nos interesa.
+
+Y así veremos los usuarios y contraseñas que hemos dumpeado:
+
+![dump](/assets/images/DVWA-SQLi/SQLi-medium/dump.png)
+
+- admin:5f4dcc3b5aa765d61d8327deb882cf99
+- gordonb:e99a18c428cb38d5f260853678922e03
+- 1337:8d3533d75ae2c3966d7e0d4fcc69216b
+- pablo:0d107d09f5bbe40cade3de5c71e9e9b7
+- smithy:5f4dcc3b5aa765d61d8327deb882cf99
+
+Y ya habremos terminado con este nivel intermedio.
+
+<br>
+
+# Inyección SQL - Nivel dificil
+
