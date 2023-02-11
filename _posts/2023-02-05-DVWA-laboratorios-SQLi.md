@@ -414,7 +414,7 @@ Y por último dumpearemos los datos de las columnas que nos interesan, en este c
 
 `id=1' UNION SELECT GROUP_CONCAT(user,'0x3a',password), NULL FROM dvwa.users -- -`
 
-![i6](/assets/images/DVWA-SQLi/SQLi-hard/intercep6.png)
+![i6](/assets/images/DVWA-SQLi/SQLi-hard/intercept6.png)
 
 Esta consulta nos responderá:
 
@@ -449,3 +449,4 @@ Nos responde el mensaje "User ID exists in the database.", y en caso de que el v
 Pero al parecer no nos está devolviendo ninguna columna, ya que no vemos algo más allá de eso, pero tenemos en cuenta que ya hay 2 posibilidades de respuesta, el exist y missing, algo como un verdadero y falso, ahora trataremos de buscar si es vulnerable a inyecciones SQL.
 
 Primero interceptaremos una petición:
+
