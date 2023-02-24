@@ -692,7 +692,7 @@ Decimos que el valor de la longitud de la segunda tabla nos lo compare con el va
 
 Y vemos que nos responde:
 
-![=5](/assets/images/DVWA-SQLi/SQLiBlind-easy/=5XD.png)
+![=5](/assets/images/DVWA-SQLi/SQLiBlind-easy/>=5XD.png)
 
 Podemos apreciar que nos da el valor true, por lo que quitamos el operador de mayor, y ejecutamos esto, pero nos devolvió un estado false, por lo que intentamos con una cantidad más alta, en este caso 10:
 
