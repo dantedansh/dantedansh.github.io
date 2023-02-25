@@ -1218,3 +1218,61 @@ Y con esto hemos terminado el nivel Medio.
 
 # Inyección SQL Blind (ciega) - Nivel Dificíl
 
+En este último nivel, al acceder al laboratorio vemos lo siguiente:
+
+![hard](/assets/images/DVWA-SQLi/SQLiBlind-hard/hard.png)
+
+Podemos apreciar que esta vez no hay algun formulario, o algo para elegir el id, pero podemos ver que nos dice que si damos click nos abrira otra ventana y desde ahí podremos agregar el id.
+
+Así que al dar click veremos lo siguiente:
+
+![cookie](/assets/images/DVWA-SQLi/SQLiBlind-hard/cookieid.png)
+
+Vemos que nos abre la ventana para poder cambiar nuestro ID.
+
+Agregaremos un valor, en este caso 1:
+
+![idset](/assets/images/DVWA-SQLi/SQLiBlind-hard/idset.png)
+
+Y podemos apreciar que nos ha agregado la cookie en este caso del ID 1, y en la ventana principal podemos ver que nos devuelve el mensaje True: "User ID exists in the database.".
+
+Ahora pondremos un valor inexistente como el 10, para comprobar que haya 2 estados de respuesta:
+
+![missing](/assets/images/DVWA-SQLi/SQLiBlind-hard/missing.png)
+
+Podemos apreciar que nos da el mensaje False: "User ID is MISSING from the database.".
+
+<br>
+
+Así que una vez le hayamos dado un ID, que nos quedaremos con el 1 nuevamente, una vez establecido el ID 1, lo que haremos será interceptar la petición principal, viendo lo siguiente:
+
+![peticion](/assets/images/DVWA-SQLi/SQLiBlind-hard/peticion.png)
+
+Podemos apreciar que en el valor de la cookie hay un valor llamado "id", el cual contiene el ID 1 que asignamos anteriormente en la segunda ventana.
+
+Ahora intentaremos inyectar nuestra primera consulta en el campo de id:
+
+`1' AND (1=1) -- -`
+
+> Recuerda que en este caso se usa la comilla simple para escapar de la consulta por defecto, e inyectar las nuestras, y la comilla que se recorre la comentamos.
+
+Vemos que esto nos responde:
+
+![true](/assets/images/DVWA-SQLi/SQLiBlind-hard/true.png)
+
+Podemos apreciar que nos devuelve el mensaje del valor True.
+
+Para saber si nos esta interpretando correctamente las consultas, como ya hemos hecho le daremos un valor que nos devuelva un mesaje de False:
+
+`1' AND (2=1) -- -`
+
+![false](/assets/images/DVWA-SQLi/SQLiBlind-hard/false.png)
+
+Y podemos ver que nos responde el mensaje que indica un False.
+
+Por lo que ya sabemos que es vulnerable, y procederemos a enumerar el nombre de la base de datos con la siguiente consulta:
+
+`1' AND (SELECT SUBSTRING(database(),1,1))='a' -- -`
+
+Y esta consulta la adaptaremos a nuestro script ya conocido.
+
