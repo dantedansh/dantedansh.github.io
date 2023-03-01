@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Introducción a Inyecciónes SQL - SQLi
-excerpt: "Explicación de como se detectan y explotan vulnerabilidades de tipo SQLi."
+excerpt: "Explicación de que son, como se detectan y como se explotan las vulnerabilidades de tipo SQLi."
 date: 2022-08-03
 classes: wide
 header:

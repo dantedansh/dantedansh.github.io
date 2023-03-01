@@ -14,9 +14,21 @@ tags:
   - mysql
   - SQLi
   - DVWA
+  - SQLiBlind
 ---
 
 <br>
+
+**Indice de contenido**
+
+- [Inyeccion SQL - Easy](#id1)
+- [Inyeccion SQL - Medium](#id2)
+- [Inyeccion SQL - High](#id3)
+- [Inyeccion SQL Blind - Easy](#id4)
+- [Inyeccion SQL Blind - Easy](#id5)
+- [Inyeccion SQL Blind - Easy](#id6)
+
+<div id='id1' />
 
 # Inyección SQL - Nivel fácil
 
@@ -173,6 +185,8 @@ Así que hemos completado el nivel fácil de este laboratorio.
 
 <br>
 
+<div id='id2' />
+
 # Inyección SQL - Nivel intermedio
 
 Una vez seleccionado el nivel intermedio de dificultad vamos al apartado de SQLi, y veremos lo siguiente:
@@ -313,6 +327,8 @@ Y ya habremos terminado con este nivel intermedio.
 
 <br>
 
+<div id='id3' />
+
 # Inyección SQL - Nivel dificil
 
 En el nivel difícil podemos apreciar que en la sección de inyección SQL ya no nos aparece algún lugar donde meter los datos o seleccionarlos como lo hicimos anteriormente:
@@ -433,6 +449,8 @@ Y tenemos todos los usuarios y password dumpeados:
 En este punto pasaremos a los niveles de las inyecciones SQL Blid.
 
 <br>
+
+<div id='id4' />
 
 # Inyección SQL Blind (ciega) - Nivel Fácil
 
@@ -910,21 +928,23 @@ Y ya hemos terminado el nivel Fácil de inyección SQL Blind.
 
 <br>
 
+<div id='id5' />
+
 # Inyección SQL Blind (ciega) - Nivel Intermedio
 
 En este nivel vemos lo siguiente:
 
 ![lista](/assets/images/DVWA-SQLi/SQLiBlind-medium/lista.png)
 
-Podemos apreciar que ahora no hay un recuadro para ingresar texto pero si una lista del cual podemos seleccionar algo y posteriormente tramitar la petición con el dato elegido.
+Podemos apreciar que ahora no hay un recuadro para ingresar texto, pero si una lista del cual podemos seleccionar algo y posteriormente tramitar la petición con el dato elegido.
 
-Podemos ver que se tramita por el metodo POST y no GET, por lo que tendremos que interceptar la petición con BurpSuite para poder ver como se tramita la petición:
+Podemos ver que se tramita por el método POST y no GET, por lo que tendremos que interceptar la petición con BurpSuite para poder ver como se tramita la petición:
 
 ![peticion](/assets/images/DVWA-SQLi/SQLiBlind-medium/peticion.png)
 
 Podemos apreciar que nos muestra el id con el valor 1, y nos responde que existe dicho usuario con id con el mensaje que tomaremos como True "User ID exists in the database.".
 
-Como sabemos en este caso solo existen 5 id validos, por lo que pondremos uno mayor por ejemplo 10 y sabemos que nos responderá el valor False "User ID is MISSING from the database.":
+Como sabemos en este caso solo existen 5 id válidos, por lo que pondremos uno mayor por ejemplo 10 y sabemos que nos responderá el valor False "User ID is MISSING from the database.":
 
 ![id10](/assets/images/DVWA-SQLi/SQLiBlind-medium/id10.png)
 
@@ -934,7 +954,7 @@ Ahora con un ID que nos devuelva verdadero en este caso 1, haremos lo siguiente:
 
 `id=1 AND (1=1) -- -`
 
-Lo que hicimos aquí primero fue agregar el parametro AND, sin la comilla ya que no estamos obteniendo el valor directamente que lo escribimos en un cuadro de texto, solamente lo seleccionamos por lo que por detras no hay alguna comilla que obtenga ese valor de un cuadro de texto ya que no lo hay por lo que se pasa directamente, y le inyectamos un valor verdadero, en este caso decirle que si 1 es igual a 1.
+Lo que hicimos aquí primero fue agregar el parámetro AND, sin la comilla, ya que no estamos obteniendo el valor directamente que lo escribimos en un cuadro de texto, solamente lo seleccionamos por lo que por detrás no hay alguna comilla que obtenga ese valor de un cuadro de texto, ya que no lo hay por lo que se pasa directamente, y le inyectamos un valor verdadero, en este caso decirle que si 1 es igual a 1.
 
 Y lo tramitamos desde BurpSuite como sabemos Url-encodeado, y veremos que nos responde lo siguiente:
 
@@ -942,49 +962,49 @@ Y lo tramitamos desde BurpSuite como sabemos Url-encodeado, y veremos que nos re
 
 Vemos que nos responde el valor True: "User ID exists in the database."
 
-Ahora averiguaremos si nos esta interpretando la consulta, ya que haremos la misma petición pero esta vez en la consulta inyectada agregaremos algo que nos debería de dar false:
+Ahora averiguaremos si nos está interpretando la consulta, ya que haremos la misma petición, pero esta vez en la consulta inyectada agregaremos algo que nos debería de dar false:
 
 `id=1 AND (2=1) -- -`
 
-y podemos ver que nos responde con el mensaje False:
+Y podemos ver que nos responde con el mensaje False:
 
 ![false](/assets/images/DVWA-SQLi/SQLiBlind-medium/false.png)
 
-Podemos apreciar que tiene logica, por lo que sabemos que nos esta interpretando nuestras consultas inyectadas, como el valor del AND es false nos respondio: "User ID is MISSING from the database.".
+Podemos apreciar que tiene lógica, por lo que sabemos que nos está interpretando nuestras consultas inyectadas, como el valor del AND es false nos respondió: "User ID is MISSING from the database.".
 
 <br>
 
 Una vez identificada la vulnerabilidad procederemos a hacer el proceso que ya sabemos, como es ciega primero trataremos de enumerar el nombre de la base de datos actual.
 
-A partir de aquí ya no mostraremos sobre saber la longitud de cada cosa ya que nos gasta tiempo en algo que ya sabemos hacer y no es necesario volver a explicar.
+A partir de aquí ya no mostraremos sobre saber la longitud de cada cosa, ya que nos gasta tiempo en algo que ya sabemos hacer y no es necesario volver a explicar.
 
-Así que directamente iremos a enumerar el nombre de la base de datos en uso, para ello usamos una consulta para jugar con cada posicion del nombre de la base de datos, e ir descubriendo cada caracter, para ello usaremos una consulta como esta:
+Así que directamente iremos a enumerar el nombre de la base de datos en uso, para ello usamos una consulta para jugar con cada posición del nombre de la base de datos, e ir descubriendo cada carácter, para ello usaremos una consulta como esta:
 
 `1 AND (SELECT SUBSTRING(database(),1,1))='a' -- -`
 
-Esta consulta nos debería de funcionar, pero al tratar de ponerla desde BurpSuite vemos que ningun valor nos esta interpretando la consulta, y después de intentar varias maneras seguia sin funcionar.
+Esta consulta nos debería de funcionar, pero al tratar de ponerla desde BurpSuite vemos que ningún valor nos está interpretando la consulta, y después de intentar varias maneras seguía sin funcionar.
 
-Por lo que tal vez por detras se este usando la función: mysql_real_escape_string().
+Por lo que tal vez por detrás se esté usando la función: mysql_real_escape_string().
 
-Y descubrimos que esta función como en un anterior nivel descubrimos que hacía que nos invalidara caracteres como comillas dobles,simples, y algunos otros simbolos que son para evitar inyecciónes SQL ya que para una inyección se ocupan esos caracteres.
+Y descubrimos que esta función como en un anterior nivel descubrimos que hacía que nos invalidara caracteres como comillas dobles, simples, y algunos otros símbolos que son para evitar inyecciones SQL, ya que para una inyección se ocupan esos caracteres.
 
-Pero como en el nivel medio en las instrucciónes nos dice que esta mal adaptada la funcion, por lo que podemos escapar de ella convirtiendo lo que esta dentro de las comillas a hexadecimal.
+Pero como en el nivel medio en las instrucciones nos dice que está mal adaptada la función, por lo que podemos escapar de ella convirtiendo lo que está dentro de las comillas a hexadecimal.
 
-quedando la consulta anterior a algo así:
+Quedando la consulta anterior a algo así:
 
 `1 AND (SELECT SUBSTRING(database(),1,1))=0x61 -- -`
 
 El valor 61 es la letra "a" en hexadecimal.
 
-por lo que al intentar de esta forma descubrimos que el caracter "d", era el primer valor del nombre de la base de datos:
+Por lo que al intentar de esta forma descubrimos que el carácter "d", era el primer valor del nombre de la base de datos:
 
 `1 AND (SELECT SUBSTRING(database(),1,1))=0x64 -- -`
 
 ![64](/assets/images/DVWA-SQLi/SQLiBlind-medium/64.png)
 
-Ahora como ya nos dimos cuenta de que nos esta interpretando correctamente la consulta, simplemente queda automatizar el resto de caracteres usando un script.
+Ahora como ya nos dimos cuenta de que nos está interpretando correctamente la consulta, simplemente queda automatizar el resto de caracteres usando un script.
 
-Usamos el script que hemos usado en todo el post pero obviamente cambiando ciertos parametros quedando así:
+Usamos el script que hemos usado en todo el post pero obviamente cambiando ciertos parámetros quedando así:
 
 ```py
 #!/usr/bin/python3
@@ -1045,7 +1065,7 @@ if __name__ == '__main__':
     makeRequest()
 ```
 
-En este codigo vemos que han cambiado varias cosas a comparación de los anteriores, en el caso de esta inyección no fue por el metodo GET, que se podía explotar por medio de la url y simplemente modificar ese valor para adaptarlo al script, pero como no fue por el metodo GET, si no por el POST, algunas cosas son distintas.
+En este código vemos que han cambiado varias cosas a comparación de los anteriores, en el caso de esta inyección no fue por el método GET, que se podía explotar por medio de la url y simplemente modificar ese valor para adaptarlo al script, pero como no fue por el método GET, sino por el POST, algunas cosas son distintas.
 
 Primero tenemos los valores de las cookies:
 
@@ -1056,17 +1076,17 @@ cookies = {
 }
 ```
 
-Vemos que agregamos las llaves **PHPSESSID** y **security**, con sus valores, sabemos que son cookies ya que al interceptar la petición nos dice Cookies: seguido de esos valores.
+Vemos que agregamos las llaves **PHPSESSID** y **security**, con sus valores, sabemos que son cookies, ya que al interceptar la petición nos dice Cookies: seguido de esos valores.
 
-El siguiente valor agregado es la cabezera:
+El siguiente valor agregado es la cabecera:
 
 ```py
 header = {'Content-Type': "application/x-www-form-urlencoded"}
 ```
 
-Podemos apreciar que el valor es el que nos da burp, que significa que esta petición estan codificados en formato url-encode, esto quiere decir que los parametros y valores se concatenan mediante el simbolo "&", y los espacios son reemplazados por un "+" o "%20" entre otros valores que se modifican automaticamente.
+Podemos apreciar que el valor es el que nos da burp, que significa que esta petición están codificados en formato url-encode, esto quiere decir que los parámetros y valores se concatenan mediante el símbolo "&", y los espacios son reemplazados por un "+" o "%20" entre otros valores que se modifican automáticamente.
 
-Para este caso que se usan valores alfanumericos podemos usar ese content-type, pero en caso de que los datos tramitados sean binarios se puede usar otro tipo de content-type como "multipart/form-data" entre otros.
+Para este caso que se usan valores alfanuméricos podemos usar ese content-type, pero en caso de que los datos tramitados sean binarios se puede usar otro tipo de content-type como "multipart/form-data" entre otros.
 
 Después dentro de los for anidados que ya conocemos su función vemos que agregamos esto:
 
@@ -1074,11 +1094,11 @@ Después dentro de los for anidados que ya conocemos su función vemos que agreg
 hexadecimal = hex(ord(character))
 ```
 
-Lo que hace la función ord() es tomar el valor  ASCII del valor que le pasas, en este caso tomara el valor ASCII de la variable "character", para después ese resultado lo tome la función hex() y convierta dicho valor a formato hexadecimal, en resumen estas funciones hacen que te convieran un valor a ese valor en hexadecimal.
+Lo que hace la función ord() es tomar el valor ASCII del valor que le pasas, en este caso tomara el valor ASCII de la variable "character", para después ese resultado lo tome la función hex() y convierta dicho valor a formato hexadecimal, en resumen estas funciones hacen que te conviertan un valor a ese valor en hexadecimal.
 
-> Hacemos esto ya que como recordamos debemos bypassear la funcion que nos prohibe usar comillas.
+> Hacemos esto ya que como recordamos debemos bypassear la función que nos prohíbe usar comillas.
 
-Lo que sigue es asignar la data que esta pidiendo el formulario de la web, como podemos apreciar:
+Lo que sigue es asignar la data que está pidiendo el formulario de la web, como podemos apreciar:
 
 ```py
 data_post = {
@@ -1087,19 +1107,19 @@ data_post = {
 }
 ```
 
-Le estamos pasando la llave **id**, con el valor que en este caso es la inyección. Seguido de los valores que se iran reemplazando con python.
+Le estamos pasando la llave **id**, con el valor que en este caso es la inyección. Seguido de los valores que se irán reemplazando con python.
 
 Y la siguiente llave es **Submit**, la cual tiene el valor que vemos en el "diccionario".
 
 > En este caso ya no ponemos nuestro url-encodeado manual ya que esto lo hará python automaticamente y poder evitar errores.
 
-Ya por ultimo tramitamos la petición actual con sus valores actuales:
+Ya por último tramitamos la petición actual con sus valores actuales:
 
 ```py
 r = requests.post(main_url, data=data_post, cookies=cookies, headers=header)
 ```
 
-En este caso hacemos la petición por el metodo POST, pasamos la url a la que se hará la petición, la data que son los valores llave con su valor de los formularios, y por ultimo pasamos las cookies y la cabecera.
+En este caso hacemos la petición por el método POST, pasamos la url a la que se hará la petición, la data que son los valores llave con su valor de los formularios, y por último pasamos las cookies y la cabecera.
 
 <br>
 
@@ -1126,7 +1146,7 @@ data_post = {
     'Submit': "Submit"
     }
 ```
-Podemos apreciar que esta unica linea fue la que cambio del script, y al ejecutarlo veremos el nombre de la primera tabla:
+Podemos apreciar que esta única línea fue la que cambio del script, y al ejecutarlo veremos el nombre de la primera tabla:
 
 ![table](/assets/images/DVWA-SQLi/SQLiBlind-medium/tablename.png)
 
@@ -1216,13 +1236,15 @@ Y con esto hemos terminado el nivel Medio.
 
 <br>
 
+<div id='id6' />
+
 # Inyección SQL Blind (ciega) - Nivel Dificíl
 
 En este último nivel, al acceder al laboratorio vemos lo siguiente:
 
 ![hard](/assets/images/DVWA-SQLi/SQLiBlind-hard/hard.png)
 
-Podemos apreciar que esta vez no hay algun formulario, o algo para elegir el id, pero podemos ver que nos dice que si damos click nos abrira otra ventana y desde ahí podremos agregar el id.
+Podemos apreciar que esta vez no hay algún formulario, o algo para elegir el id, pero podemos ver que nos dice que si damos click nos abrirá otra ventana y desde ahí podremos agregar el id.
 
 Así que al dar click veremos lo siguiente:
 
@@ -1262,7 +1284,7 @@ Vemos que esto nos responde:
 
 Podemos apreciar que nos devuelve el mensaje del valor True.
 
-Para saber si nos esta interpretando correctamente las consultas, como ya hemos hecho le daremos un valor que nos devuelva un mesaje de False:
+Para saber si nos está interpretando correctamente las consultas, como ya hemos hecho le daremos un valor que nos devuelva un mensaje de False:
 
 `1' AND (2=1) -- -`
 
@@ -1329,7 +1351,7 @@ if __name__ == '__main__':
 
 ```
 
-Lo que hicimos fue eliminar los diccionarios que solo ocupabamos en peticiones POST, pero esta al ser GET, y la vulnerabilidad esta en las cookies cambiamos esos valores así:
+Lo que hicimos fue eliminar los diccionarios que solo ocupábamos en peticiones POST, pero esta al ser GET, y la vulnerabilidad está en las cookies cambiamos esos valores así:
 
 ```py
 
@@ -1341,15 +1363,15 @@ cookies = {
 
 ```
 
-Podemos apreciar que hemos agregado la consulta adaptada a python para fuzzear las posiciones, seguido de los demas valores de la cookie.
+Podemos apreciar que hemos agregado la consulta adaptada a python para fuzzear las posiciones, seguido de los demás valores de la cookie.
 
-Y en esta linea tramitamos y guardamos el resultado de la petición por el metodo GET, usando las cookies que asignamos.
+Y en esta línea tramitamos y guardamos el resultado de la petición por el método GET, usando las cookies que asignamos.
 
 ```py
 r = requests.get(main_url, cookies=cookies)
 ```
 
-En este nivel no es necesario usar lo de hexadecimal ya que al parecer no se esta usando ese filtro.
+En este nivel no es necesario usar lo de hexadecimal, ya que al parecer no se está usando ese filtro.
 
 Al ejecutar el script veremos el nombre de la base de datos:
 
@@ -1458,4 +1480,4 @@ Y vemos que nos responde:
 
 ![password](/assets/images/DVWA-SQLi/SQLiBlind-hard/password.png)
 
-Y ya tendremos la password del usuario admin y hemos acabado con todos los niveles de DVWA.
+Y ya tendremos la password del usuario admin y hemos acabado con todos los niveles SQLi y SQL Blind de DVWA.
