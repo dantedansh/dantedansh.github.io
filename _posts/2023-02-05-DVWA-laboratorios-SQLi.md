@@ -25,8 +25,8 @@ tags:
 - [Inyeccion SQL - Medium](#id2)
 - [Inyeccion SQL - High](#id3)
 - [Inyeccion SQL Blind - Easy](#id4)
-- [Inyeccion SQL Blind - Easy](#id5)
-- [Inyeccion SQL Blind - Easy](#id6)
+- [Inyeccion SQL Blind - Medium](#id5)
+- [Inyeccion SQL Blind - High](#id6)
 
 <div id='id1' />
 
