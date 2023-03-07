@@ -19,7 +19,7 @@ tags:
 
 # ¿Qué es XML?
 
-![XMLdraw](/assets/images/DVWA-SQLi/SQLi-easy/XMLdraw.png)
+![XMLdraw](/assets/images/XXE/XMLdraw.png)
 
 El Lenguaje de marcado extensible nos permite definir y guardar datos de forma compartible, y los datos que se transmiten son fácil de leer y facilita la transmisión de datos.
 
@@ -27,5 +27,5 @@ El Lenguaje de marcado extensible nos permite definir y guardar datos de forma c
 
 El XML tramita los datos en una estructura de arbol, similar a HTML, y los principales valores que se pasan son Etiquetas y Datos:
 
-![Datags](/assets/images/DVWA-SQLi/SQLi-easy/datags.png)
+![Datags](/assets/images/XXE/datags.png)
 
