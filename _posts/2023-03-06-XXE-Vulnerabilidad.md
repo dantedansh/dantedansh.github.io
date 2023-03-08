@@ -81,3 +81,130 @@ Y podemos ver abajo que estamos haciendo referencia a la entidad llamada **name*
 Y esta entidad anterior nos debería dar un resultado así: nombre-Dan id-1.
 
 > Vemos que el valor de la etiqueta nombre ha cambiado ya que hemos creado una entidad y la hemos usado en las etiquetas nombre para hacer referencia al valor de dicha entidad.
+
+# Montando el laboratorio con docker
+
+Usaremos un laboratorio para practicar esta vulnerabilidad, primero nos clonaremos este repositorio:
+
+https://github.com/jbarone/xxelab
+
+Y después de clonar el repositorio lo que haremos es seguir estos pasos:
+
+![instructions](/assets/images/XXE/instructions.png)
+
+Y una vez tengamos el docker corriendo, accederemos al localhost por el puerto 5000, y veremos lo siguiente:
+
+![sigin](/assets/images/XXE/sigin.png)
+
+# Continuando con el ejemplo de entidad Genérica
+
+Podemos apreciar que vemos un panel de registro, así que pondremos datos y vamos a interceptar la petición para ver que encontramos:
+
+![tree](/assets/images/XXE/tree.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<root>
+		<name>Dansh</name>
+		<tel>1254623</tel>
+		<email>dansh@test.com</email>
+		<password>Passw0rd123321</password>
+	</root>
+```
+
+Podemos apreciar que toma los datos en el formato de estructura XML, podemos ver las etiquetas de los valores y sus valores dentro de ellas.
+
+Dejaremos pasar la peticion para ver que nos responde el servidor:
+
+![response](/assets/images/XXE/response.png)
+
+Y podemos ver que nos da el mensaje:
+
+**Sorry, dansh@test.com is already registered!**
+
+Por lo que podemos pensar que esta devolviendo la etiqueta de **email**, así que en base a eso intentaremos lo siguiente.
+
+Vamos a insertar un DTD (Document Type Definition) en la estructura XML interceptada, y dentro del DTD haremos una entidad, quedando la estructura así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY test "Hola"> ]>
+	<root>
+		<name>Dansh</name>
+		<tel>1254623</tel>
+		<email>&test;</email>
+		<password>Passw0rd123321</password>
+	</root>
+```
+
+Lo que hicimos primero fue agregar el DTD, y declarar una entidad llamada **test** con el valor de "Hola".
+
+Después en la etiqueta de **email**, referenciamos a dicha entidad anteriormente declarada, y esto lo hacemos desde estas etiquetas ya que como comprobamos antes desde esta etiqueta es donde recibmos una respuesta.
+
+Ahora si tramitamos esta petición veremos lo siguiente:
+
+![hola](/assets/images/XXE/hola.png)
+
+Podemos apreciar que nos esta dando el valor de nuestra entidad **test** por lo que sabemos que nos esta interpretando el valor de la entidad.
+
+<br>
+
+# Continuando con el ejemplo de entidad Externa
+
+Así que ahora que sabemos que esto funciona, haremos lo siguiente:
+
+En vez de que la entidad contenga un valor asignado que no sirve de mucho, lo que haremos es leer algún archivo interno de la maquina que ejecuta el servidor web.
+
+Para ello la estructura de la petición interceptada ahora la hicimos así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY test SYSTEM "file:///etc/passwd"> ]>
+	<root>
+		<name>Dansh</name>
+		<tel>1254623</tel>
+		<email>&test;</email>
+		<password>Passw0rd123321</password>
+	</root>
+```
+
+Lo que ahora hicimos fue agregar el **SYSTEM** para que nos permita acceder a un servidor tercero del cual poder cargar datos, esto nos permitira agregar url y hacer lo que hay en esa url, pero como las url también aceptan wrapper que son llamadas al sistema para hacer cierta función, en este caso usamos el wrapper "file://", el cual nos permite leer archivos internos de la maquina que ejecuta el servidor web, queremos leer el archivo /etc/passwd, por lo que se lo indicamos, y en teoria esto debería mostrarnos el contenido de ese archivo en la respuesta de el servidor que veremos reflejado en la etiqueta **email**.
+
+Así que al tramitar esta petición veremos lo siguiente:
+
+![passwd](/assets/images/XXE/passwd.png)
+
+Y vemos que nos ha leído el contenido de dicho archivo.
+
+<br>
+
+Existen varios wrappers por si alguno no te funciona debido a alguna restricción etc, por ejemplo, con este wrapper hace lo mismo que el anterior pero te muestra todo en base64:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY test SYSTEM "php://filter/convert.base64-encode/resource=/etc/passwd"> ]>
+	<root>
+		<name>Dansh</name>
+		<tel>1254623</tel>
+		<email>&test;</email>
+		<password>Passw0rd123321</password>
+	</root>
+```
+
+Vemos que hemos usado el wrapper **php://filter/convert.base64-encode/resource=** y pasarle el archivo que queremos devolver en formato base64.
+
+Y esto nos responderá algo así:
+
+![base64](/assets/images/XXE/base64.png)
+
+Y podemos apreciar que nos ha convertido el archivo /etc/passwd en base64.
+
+Y podemos verificar que es este archivo ya que al decodificarlo con algun decoder nos damos cuenta que es el archivo:
+
+![decoder](/assets/images/XXE/decoder.png)
+
+Y podemos apreciar que si es el archivo ya decodificado.
+
+> BurpSuite contiene su propio decoder de valores como base64, hexadecimal, etc.
+
+2210
