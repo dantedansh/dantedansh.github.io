@@ -207,4 +207,8 @@ Y podemos apreciar que si es el archivo ya decodificado.
 
 > BurpSuite contiene su propio decoder de valores como base64, hexadecimal, etc.
 
-2210
+<br>
+
+# XXE + SSRF
+
+26:18
