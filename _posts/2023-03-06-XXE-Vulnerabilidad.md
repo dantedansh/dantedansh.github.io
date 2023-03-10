@@ -17,6 +17,16 @@ tags:
 
 <br>
 
+**Índice de contenido**
+- [¿Qué es XML?](#id1)
+- [Ejemplo de entidad Genérica](#id2)
+- [Montando el laboratorio con docker](#id3)
+- [Continuando con el ejemplo de entidad Genérica](#id4)
+- [Entidad Externa](#id5)
+
+
+<div id='id1' />
+
 # ¿Qué es XML?
 
 ![XMLdraw](/assets/images/XXE/XMLdraw.png)
@@ -25,7 +35,7 @@ El Lenguaje de marcado extensible nos permite definir y guardar datos de forma c
 
 <br>
 
-El XML tramita los datos en una estructura de arbol, similar a HTML, y los principales valores que se pasan son Etiquetas y Datos:
+El XML tramita los datos en una estructura de árbol, similar a HTML, y los principales valores que se pasan son Etiquetas y Datos:
 
 ![Datags](/assets/images/XXE/datags.png)
 
@@ -39,17 +49,19 @@ Y aquí podemos ver un ejemplo de como viaja la petición y se interpreta:
 
 Ahora necesitamos saber que son las entidades, que son una forma de representar elementos de datos sin necesidad de hacer referencia a esos datos, esto se hace dentro de un documento XML.
 
-principalmente usaremos 3 tipos de entidades:
+Principalmente usaremos 3 tipos de entidades:
 
 ![entidades](/assets/images/XXE/entidades.png)
 
-Vemos la definicion de cada una de ellas, y aunque no te quede muy claro, ahora veremos ejemplos.
+Vemos la definición de cada una de ellas, y aunque no te quede muy claro, ahora veremos ejemplos.
 
 <br>
 
+<div id='id2' />
+
 # Ejemplo de entidad Genérica
 
-Primero veremos la siguiente estructura de arbol XML:
+Primero veremos la siguiente estructura de árbol XML:
 
 ```xml
 
@@ -59,11 +71,11 @@ Primero veremos la siguiente estructura de arbol XML:
 
 ```
 
-Podemos ver que es una estructura XML basica pero nos servira para el ejemplo, en este caso esta estructura contiene las etiquetas **nombre** y **id**, con sus valores dentro definidos.
+Podemos ver que es una estructura XML básica, pero nos servirá para el ejemplo, en este caso esta estructura contiene las etiquetas **nombre** y **id**, con sus valores dentro definidos.
 
 Esta entidad nos debería dar el resultado en pantalla que diga: nombre-Dansh id-1.
 
-Ahora lo que vamos a hacer será agregar nuestra propia entidad, y la haremos agregando esta linea a el codigo quedando así:
+Ahora lo que vamos a hacer será agregar nuestra propia entidad, y la haremos agregando esta línea al código quedando así:
 
 ```xml
 
@@ -74,13 +86,15 @@ Ahora lo que vamos a hacer será agregar nuestra propia entidad, y la haremos ag
 
 ```
 
-Como podemos ver, hemos agregado en la segunda linea eso que se muestra, lo que estamos haciendo es crear una entidad llamada **name** con el valor de "Dan".
+Como podemos ver, hemos agregado en la segunda línea eso que se muestra, lo que estamos haciendo es crear una entidad llamada **name** con el valor de "Dan".
 
-Y podemos ver abajo que estamos haciendo referencia a la entidad llamada **name**, la cual tomara el valor y lo pondra dentro de las etiquetas de donde ha sido llamada.
+Y podemos ver abajo que estamos haciendo referencia a la entidad llamada **name**, la cual tomara el valor y lo pondrá dentro de las etiquetas de donde ha sido llamada.
 
 Y esta entidad anterior nos debería dar un resultado así: nombre-Dan id-1.
 
-> Vemos que el valor de la etiqueta nombre ha cambiado ya que hemos creado una entidad y la hemos usado en las etiquetas nombre para hacer referencia al valor de dicha entidad.
+> Vemos que el valor de la etiqueta nombre ha cambiado, ya que hemos creado una entidad y la hemos usado en las etiquetas nombre para hacer referencia al valor de dicha entidad.
+
+<div id='id3' />
 
 # Montando el laboratorio con docker
 
@@ -95,6 +109,8 @@ Y después de clonar el repositorio lo que haremos es seguir estos pasos:
 Y una vez tengamos el docker corriendo, accederemos al localhost por el puerto 5000, y veremos lo siguiente:
 
 ![sigin](/assets/images/XXE/sigin.png)
+
+<div id='id4' />
 
 # Continuando con el ejemplo de entidad Genérica
 
@@ -114,7 +130,7 @@ Podemos apreciar que vemos un panel de registro, así que pondremos datos y vamo
 
 Podemos apreciar que toma los datos en el formato de estructura XML, podemos ver las etiquetas de los valores y sus valores dentro de ellas.
 
-Dejaremos pasar la peticion para ver que nos responde el servidor:
+Dejaremos pasar la petición para ver que nos responde el servidor:
 
 ![response](/assets/images/XXE/response.png)
 
@@ -139,21 +155,23 @@ Vamos a insertar un DTD (Document Type Definition) en la estructura XML intercep
 
 Lo que hicimos primero fue agregar el DTD, y declarar una entidad llamada **test** con el valor de "Hola".
 
-Después en la etiqueta de **email**, referenciamos a dicha entidad anteriormente declarada, y esto lo hacemos desde estas etiquetas ya que como comprobamos antes desde esta etiqueta es donde recibmos una respuesta.
+Después en la etiqueta de **email**, referenciamos a dicha entidad anteriormente declarada, y esto lo hacemos desde estas etiquetas, ya que como comprobamos antes desde esta etiqueta es donde recibimos una respuesta.
 
 Ahora si tramitamos esta petición veremos lo siguiente:
 
 ![hola](/assets/images/XXE/hola.png)
 
-Podemos apreciar que nos esta dando el valor de nuestra entidad **test** por lo que sabemos que nos esta interpretando el valor de la entidad.
+Podemos apreciar que nos está dando el valor de nuestra entidad **test** por lo que sabemos que nos está interpretando el valor de la entidad.
 
 <br>
 
-# Continuando con el ejemplo de entidad Externa
+<div id='id5' />
+
+# Entidad Externa
 
 Así que ahora que sabemos que esto funciona, haremos lo siguiente:
 
-En vez de que la entidad contenga un valor asignado que no sirve de mucho, lo que haremos es leer algún archivo interno de la maquina que ejecuta el servidor web.
+En vez de que la entidad contenga un valor asignado que no sirve de mucho, lo que haremos es leer algún archivo interno de la máquina que ejecuta el servidor web.
 
 Para ello la estructura de la petición interceptada ahora la hicimos así:
 
@@ -168,7 +186,7 @@ Para ello la estructura de la petición interceptada ahora la hicimos así:
 	</root>
 ```
 
-Lo que ahora hicimos fue agregar el **SYSTEM** para que nos permita acceder a un servidor tercero del cual poder cargar datos, esto nos permitira agregar url y hacer lo que hay en esa url, pero como las url también aceptan wrapper que son llamadas al sistema para hacer cierta función, en este caso usamos el wrapper "file://", el cual nos permite leer archivos internos de la maquina que ejecuta el servidor web, queremos leer el archivo /etc/passwd, por lo que se lo indicamos, y en teoria esto debería mostrarnos el contenido de ese archivo en la respuesta de el servidor que veremos reflejado en la etiqueta **email**.
+Lo que ahora hicimos fue agregar el **SYSTEM** para que nos permita acceder a un servidor tercero del cual poder cargar datos, esto nos permitirá agregar url y hacer lo que hay en esa url, pero como las url también aceptan wrapper que son llamadas al sistema para hacer cierta función, en este caso usamos el wrapper "file://", el cual nos permite leer archivos internos de la máquina que ejecuta el servidor web, queremos leer el archivo /etc/passwd, por lo que se lo indicamos, y en teoría esto debería mostrarnos el contenido de ese archivo en la respuesta del servidor que veremos reflejado en la etiqueta **email**.
 
 Así que al tramitar esta petición veremos lo siguiente:
 
@@ -178,7 +196,7 @@ Y vemos que nos ha leído el contenido de dicho archivo.
 
 <br>
 
-Existen varios wrappers por si alguno no te funciona debido a alguna restricción etc, por ejemplo, con este wrapper hace lo mismo que el anterior pero te muestra todo en base64:
+Existen varios wrappers por si alguno no te funciona debido a alguna restricción etc. por ejemplo, con este wrapper hace lo mismo que el anterior, pero te muestra todo en base64:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -199,7 +217,7 @@ Y esto nos responderá algo así:
 
 Y podemos apreciar que nos ha convertido el archivo /etc/passwd en base64.
 
-Y podemos verificar que es este archivo ya que al decodificarlo con algun decoder nos damos cuenta que es el archivo:
+Y podemos verificar que es este archivo, ya que al decodificarlo con algún decoder nos damos cuenta de que es el archivo:
 
 ![decoder](/assets/images/XXE/decoder.png)
 
@@ -207,8 +225,4 @@ Y podemos apreciar que si es el archivo ya decodificado.
 
 > BurpSuite contiene su propio decoder de valores como base64, hexadecimal, etc.
 
-<br>
-
-# XXE + SSRF
-
-26:18
+Este post fue una introducción a XXE, ahora continuaremos en este tema en el siguiente post: [XXE (inyección de entidad externa - Laboratorios de PortSwigger)](https://dantedansh.github.io/XXE-laboratoriosPortSwigger/)
