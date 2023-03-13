@@ -107,3 +107,54 @@ Al tramitar la petición veremos lo siguiente:
 Podemos apreciar que nos ha dado el archivo /etc/passwd, y hemos terminado con este primer laboratorio:
 
 ![end](/assets/images/LabsXXE/lab1/end.png)
+
+<br>
+
+# Laboratorio 2: Explotación de XXE para realizar ataques SSRF
+
+![xml](/assets/images/LabsXXE/lab2/lab2.png)
+
+
+En este laboratiro haremos uso del XXE para hacer ataques SSRF, que enseguida veremos que es.
+
+El SSRF(Server-Side Request forgery) es un ataque y lo que hace es por ejemplo, tenemos acceso a un servidor web el cual tiene integrada una función la cual te descarga lo que le pongas en la entrada de esa función, pero en caso de que en la red interna del servidor existan otros equipos conectados a la misma red, podriamos descargas datos importantes de alguna maquina que este en la red del servidor web.
+
+Veamos un ejemplo:
+
+![Diagrama](/assets/images/LabsXXE/lab2/diagrama.png)
+
+Como podemos ver en el ejemplo del diagrama, nuestra maquina atacante tiene conexón con el servidor web, pero no con las maquinas internas de ese servidor web, entonces lo que hace el SSRF es conectarse a el servidor web, y desde el servidor web hacer peticiones maliciosas con el fin de obtener información importante, lo que hacemos es atacar a las maquinas internas desde el servidor web, y de esta forma si tendremos acceso a esas maquinas internas.
+
+Lo que haremos en este nivel será como dice, haremos un SSRF aprovechandonos de un XXE.
+
+Nos dice que del lado del servidor hay un EC2 lo cual en pocas palabras es una especie de servidor en la nube, como estan en la misma red nos dice que debemos recuperar una clave secreta usando una funcion que tiene el servidor web principal, el cual es recuperar metadatos, y esto lo veremos ahora.
+
+También nos dice que la vulnerabilidad XXE se ejecuta desde la función **"check stock"**.
+
+Así que primero iniciaremos el laboratorio en el apartado vulnerable:
+
+![vuln](/assets/images/LabsXXE/lab2/vuln.png)
+
+Daremos en check stock e interceptaremos la petición para ver que nos muestra:
+
+![xml](/assets/images/LabsXXE/lab2/xml.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			1
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Podemos ver la siguiente estructura XML, por lo que intentaremos inyectar nuestra entidad en el DTD, y ver si es vulnerable:
+
+![xxe](/assets/images/LabsXXE/lab2/xxe.png)
+
+Podemos apreciar que nos muestra el contenido del servidor, por lo que es vulnerable, así que ahora lo que haremos es el objetivo de este laboratorio, descubrir la clave secreta que esta dentro de un servidor aislado de nuestra maquina atacante pero al cual en teoría podemos acceder haciendo las consultas desde el servidor web, y como ese servidor web esta en la misma red que el servidor aislado, podremos tener conexión.
+
+Ahora lo que haremos será 
