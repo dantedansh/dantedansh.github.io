@@ -833,3 +833,75 @@ Y como podemos ver, hemos obtenido el archivo /etc/passwd, completando así este
 
 <br>
 
+# Laboratorio 8: explotación de XXE a través de la carga de archivos de imagen
+
+En el siguiente laboratorio nos pide lo siguiente:
+
+![lab8](/assets/images/LabsXXE/lab8/lab8.png)
+
+Nos dice que podemos subir avatares, osea, imagenes el formato SVG, y también nos dice que usa Batik, que es una biblioteca de java que nos sirve para renderizar graficos SVG, en el lenguaje de marcado XML, para transformarlos a imagen.
+
+Y que debemos obtener el archivo **/etc/hostname** através de esto.
+
+<br>
+
+Parece confuso, pero iremos paso a paso, primero ingresaremos a el laboratorio:
+
+![enter](/assets/images/LabsXXE/lab8/enter.png)
+
+Podemos apreciar que al entrar nos aparecen diferentes post, en este caso accederemos al primero y daremos donde dice view post.
+
+Al entrar nos llevará a una página donde veremos un post, y al final veremos esto:
+
+![comments](/assets/images/LabsXXE/lab8/comments.png)
+
+Vemos esta sección de comentarios, donde podemos subir nuestro propio comentario.
+
+Iremos de nuevo a la página de [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings), y veremos una sección que dice:
+
+![payloads](/assets/images/LabsXXE/lab8/payloads.png)
+
+Vemos que nos muestra diferentes payloads con lo que podemos hacer lo que queremos, en este caso probaremos el classic, el cual su estructura se ve así:
+
+```xml
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE test [ <!ENTITY xxe SYSTEM "file:///etc/hostname" > ]>
+<svg width="128px" height="128px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+   <text font-size="16" x="0" y="16">&xxe;</text>
+</svg>
+```
+
+Y esta estructura XML lo que hará es que
+
+<br>
+
+Esta estructura será colocada dentro de un archivo con formato .SVG, el cual crearemos a continuación y meteremos estos datos:
+
+![code](/assets/images/LabsXXE/lab8/code.png)
+
+Y ahora guardamos, y en la sección de comentarios subiremos nuestra imagen, y antes de publicar nuestro comentario nos pondremos en escucha desde el intercept de BurpSuite, y al dar a enviar comentario recibiremos la siguiente peticion:
+
+![red](/assets/images/LabsXXE/lab8/redirect.png)
+
+Podemos apreciar que hemos interceptado el archivo .SVG, y vemos la estructura xml que hemos inyectado, en caso de error debemos unificar la estructura XML que vemos.
+
+En este caso no nos dio error, y nos mando un estado 302, lo cual es un redirect, que arriba en burpsuite damos a **Follow redirection** para que nos lleve a donde nos redirige la web.
+
+![submit](/assets/images/LabsXXE/lab8/submit.png)
+
+Podemos apreciar en la respuesta que nuestro comentario se ha subido correctamente en la web.
+
+Ahora si volvemos a el post veremos nuestro comentario:
+
+![comentario](/assets/images/LabsXXE/lab8/comentario.png)
+
+Y podemos apreciar que tiene una imagen en el avatar, como es SVG y le hemos dicho que nos muestre el archivo **/etc/hostname** veremos ese valor en esa imagen, para apreciarla mejor damos click derecho a la imagen y damos en abrir imagen en una pestaña nueva, y podremos apreciar que la imagen que nos creo es lo que hemos dicho que nos lo muestre:
+
+![hostname](/assets/images/LabsXXE/lab8/hostname.png)
+
+Podemos apreciar el nombre de host! y con esto lo ponemos como flag y terminamos este laboratorio:
+
+![fin](/assets/images/LabsXXE/lab8/fin.png)
+
+<br>
+
