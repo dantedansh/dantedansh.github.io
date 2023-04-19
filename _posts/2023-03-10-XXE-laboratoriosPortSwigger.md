@@ -691,6 +691,8 @@ Así que ahora lo que se nos viene a la mente es probar con un DTD externo, para
 
 ![collaborator](/assets/images/LabsXXE/lab6/collaborator.png)
 
+> En este caso solo lo usamos para saber si hay conexión pero no es necesario usar collaborator.
+
 Damos a **"Copy to clipboard"**, para obtener nuestro servidor tercero temporal y desde aquí ver lo que va sucediendo.
 
 Una vez tengamos la url copiada, creremos el DTD externo:
@@ -776,6 +778,58 @@ Y podemos ver que al enviar la petición abajo ya nos muestra el archivo **/etc/
 
 Lo que paso fue que hicimos una petición desde la web del laboratorio y como el laboratorio interpreto esas instrucciones que le indicamos de una url externa, interpreto esas instrucciones XML maliciosas en su propio servidor por lo que en la respuesta de error vemos através del wrapper file el archivo que nos interesa.
 
-![passwd](/assets/images/LabsXXE/lab6/passwd.png)
+![end](/assets/images/LabsXXE/lab6/end.png)
 
 Y con esto hemos terminado este laboratorio.
+
+# Laboratorio 7: Explotación de XInclude para recuperar archivos
+
+En este laboratorio nos piden lo siguiente:
+
+![lab7](/assets/images/LabsXXE/lab7/lab7.png)
+
+Podemos ver que nos dice que en esto, no podemos inyectar nuestro DTD clasico ya que no tenemos control sobre todo el documento XML.
+
+Y que como alternativa usemos Xinclude para poder recuperar el archivo **/etc/passwd**.
+
+Xinclude lo que hace es interpretar el documento que se le pasa como XML, y no le podemos pasar /etc/passwd ya que no es un XML, pero si podemos hacer otra cosa, que es aregar un atributo especial para que nos deje hacer lo que queremos.
+
+<br>
+
+Pero primero empecemos desde el inicio, primero al interceptar la petición de la función de comprobar existencias veremos lo siguiente:
+
+![peticion](/assets/images/LabsXXE/lab7/peticion.png)
+
+Como podemos observar, esta vez no hay ninguna estructura XML que se este ejecutando, así que intentaremos lo siguiente, iremos a esta web [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings)
+
+Y nos llevará a un repositorio de github donde swisskyrepo ha reunido multiples payloads para diferentes ataques.
+
+En este caso entraremosa a la carpeta de XXE, y vamos a la seccion que dice **xinclude attacks** y veremos lo siguiente:
+
+![xi](/assets/images/LabsXXE/lab7/xinclude.png)
+
+Veremos la siguiente estructura XML:
+
+```xml
+<foo xmlns:xi="http://www.w3.org/2001/XInclude">
+<xi:include parse="text" href="file:///etc/passwd"/></foo>
+```
+
+Lo que hace es que en la primera linea estamos definiendo el elemento principal, que se declara con foo, y lo que hace el atributo **xmln:xi** es establecer el espacio de nombres. (se necesita una base para que funcione en este caso usamos esta).
+
+Y la siguiente linea estamos incluyendo el archivo de tipo **text** que se define el valor del archivo que recibiremos con **parse**, y ese archivo lo recibiremos de **href**, donde seguido le pasamos el archivo que nos interesa, y por último cerramos el foo.
+
+> Este XXE funciona ya que estamos usando un valor que la web devuelve su valor, pero en caso de que sea un valor estatico obviamente no funcionará.
+
+<br>
+
+Una vez entendimos esta estructura, lo que haremos será agregarla a nuestra petición en lugar del ID del producto, quedandonos así:
+
+![passwd](/assets/images/LabsXXE/lab7/passwd.png)
+
+Y como podemos ver, hemos obtenido el archivo /etc/passwd, completando así este laboratorio:
+
+![end](/assets/images/LabsXXE/lab7/end.png)
+
+<br>
+
