@@ -871,7 +871,7 @@ Vemos que nos muestra diferentes payloads con lo que podemos hacer lo que querem
 </svg>
 ```
 
-Y esta estructura XML lo que hará es que
+Y esta estructura XML lo que hará es que primero declaramos una entidad llamada xxe, la cual contiene el valor del archivo **/etc/hostname**, y después se agrega la imagen en formato svg seguido de que llamaremos a nuestra entidad para que nos muestre el resultado dentro de ese formato.
 
 <br>
 
