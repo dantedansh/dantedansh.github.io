@@ -905,3 +905,68 @@ Podemos apreciar el nombre de host! y con esto lo ponemos como flag y terminamos
 
 <br>
 
+# Laboratorio 9: Explotación de XXE para recuperar datos mediante la reutilización de una DTD local
+
+En este último laboratorio veremos que nos pide lo siguiente:
+
+![lab9](/assets/images/LabsXXE/lab9/lab9.png)
+
+Dice que la vulnerabilidad se encuentra en la función de comprobar existencias, dice que nos analiza el resultado, nos interpreta todo pero no muestra ninguna respuesta, y lo que debemos hacer es recuperar el contenido del archivo **/etc/passwd**, y para lograr esto debemos hacer referencia a un archivo DTD y usando ese DTD redefiniremos una entidad que haga lo que deseamos.
+
+Existe una lista con varios DTD posibles que pueden existir internamente y podemos ver la lista aqui:
+
+[DTD list](https://raw.githubusercontent.com/GoSecure/dtd-finder/master/list/dtd_files.txt)
+
+<br>
+
+Ahora interceptaremos una petición del apartado vulnerable, y ahora lo que haremos ahora será intentar llamar una entidad con un contenido inexistente para ver que nos responde:
+
+![not](/assets/images/LabsXXE/lab9/inexistente.png)
+
+Podemos apreciar que en la resupesta nos da el siguiente mensaje:
+**"XML parser exited with error: java.io.FileNotFoundException: /etc/inexistente (No such file or directory)"**, nos da el mensaje de que no existe el archivo o directorio, así que ahora con la lista que tenemos de los DTD, lo que haremos será un ataque de diccionario para intentar descubrir si existen algunos DTD, lo haremos enviando la petición a el intruder y en la pestaña de positions daremos a clear, y después seleccionaremos el apartado donde queremos que se haga el ataque de diccionario:
+
+![add](/assets/images/LabsXXE/lab9/add.png)
+
+Después daremos a add, en este caso es la parte del archivo que lee el wrapper, que lo que haremos será ir probando la lista de DTD para probar por cada una, una vez asignemos la parte del ataque lo que haremos será ir a la pestaña de payloads, y en ese apartado pegaremos la lista que conseguimos:
+
+![paste](/assets/images/LabsXXE/lab9/paste.png)
+
+Y por último desactivamos la Url-encode automatica:
+
+![disable](/assets/images/LabsXXE/lab9/disable.png)
+
+Y ahora que desactivemos esto para evitar que el archivo se url-encodee, lo que haremos es dar en start attack, y esperaremos a que cargue:
+
+![resultado](/assets/images/LabsXXE/lab9/resultado.png)
+
+Podemos apreciar que hay 5 DTD posibles que nos han respondido una respuesta diferente a 400 que significa el error.
+
+Vemos que hay 4 respuestas que nos dan 200, y buscando en linea maneras de explotar estos DTD para inyectar nuestras entidades encontramos lo siguiente:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE message [
+    <!ENTITY % local_dtd SYSTEM "file:///usr/share/xml/fontconfig/fonts.dtd">
+
+    <!ENTITY % expr 'aaa)>
+        <!ENTITY &#x25; file SYSTEM "file:///etc/passwd">
+        <!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///abcxyz/&#x25;file;&#x27;>">
+        &#x25;eval;
+        &#x25;error;
+        <!ELEMENT aa (bb'>
+
+    %local_dtd;
+]>
+```
+
+Encontramos este exploit de un DTD llamado fonts.dtd, que nos aparecia como existente en la lista que hicimos, por lo que debe funcionar, y lo que hace esto es primero crea la entidad **file** que contiene el contenido del archivo **/etc/passwd**, después se crea una entidad llamada **eval** y dentro de esta entidad se define otra entidad llamada **error**, que lo que hará esta entidad será escribir un archivo de respuesta de error en la ruta **abcxyz** la cual no existe y provocara el error, por último llamamos a las entiades, y como en medio del error llamamos a la entidad **file**, y estos errores de estan devolviendo, entonces logicamente obtendremos la respuesta del archivo /etc/passwd en el mensaje de error, completando así nuestro objetivo.
+
+
+Y por último al tramitar la petición veremos que nos responde el archivo **/etc/passwd**:
+
+![passwd](/assets/images/LabsXXE/lab9/passwd.png)
+
+Y ya habremos resuelto este último laboratorio:
+
+![end](/assets/images/LabsXXE/lab9/end.png)
