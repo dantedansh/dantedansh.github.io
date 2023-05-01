@@ -120,3 +120,73 @@ Por lo que simplemente haremos la peticion anterior de nuevo, pero esta vez agre
 Y al tramitar esta petición habremos terminado el laboratorio:
 
 ![end](/assets/images/LabsSSRF/lab1/end.png)
+
+<br>
+
+# Laboratorio 2: SSRF básico contra otro sistema back-end
+
+En este siguiente laboratorio veremos que nos piden realizar lo siguiente:
+
+![lab2](/assets/images/LabsSSRF/lab2/lab2.png)
+
+Nos dice que dentro de la red interna del servidor victima, hay otros equipos dentro de esa red interna pero que debemos encontrar el que tiene el puerto 8080 abierto y acceder a el y una vez accedamos debemos eliminar el usuario de carlos.
+
+Por ejemplo:
+
+![ips](/assets/images/LabsSSRF/lab2/ips.png)
+
+Como podemos ver en la imagen, vemos que en la red interna(marcada en verde), esta en un rango donde varias maquinas tienen conexión entre si, por lo que como nos dice el reto, debemos conectarnos a un host diferente aparte del localhost, por lo que para averiguar que otro host tiene el puerto 8080 abierto(en este caso), haremos lo siguiente.
+
+<br>
+
+Primero interceptaremos la petición para ver como se tramita lo que nos interesa, como ya sabemos, la vulerabilidad esta en la función de comprobar existencias de un producto, por lo cual interceptaremos una peticion sobre eso:
+
+![decode](/assets/images/LabsSSRF/lab2/decode.png)
+
+Y ahora vemos lo siguiente que como sabemos lo tenemos que url-decodear como se ve en la imagen (usando ctrl + shift + u), y veremos la siguiente linea:
+
+`stockApi=http://192.168.0.1:8080/product/stock/check?productId=1&storeId=1`
+
+Así que apreciamos que se esta conectando a una ip, la cual es **192.168.0.1**, pero en este caso debemos descubrir que otro host en la red tiene el puerto 8080 abierto, sabemos que en cada red pueden existir 255 hosts, por lo que usando BurpSuite haremos un ataque para ir descubriendo que ip nos responde un mensaje de estado true.
+
+<br>
+
+Para esto mandaremos la peticion a el intruder:
+
+![intruder](/assets/images/LabsSSRF/lab2/intruder.png)
+
+Una vez tengamos la peticion en el intruder y le hayamos modificado lo de la ruta, ahora agregaremos donde irá el payload, que obviamente será en el ultimo valor de la ip, y al seleccionar ese apartado daremos a add y nos quedará así:
+
+![add](/assets/images/LabsSSRF/lab2/add.png)
+
+Como sabemos que existe la ruta /admin en este servidor, entonces es probable que exista en los otros host, por lo que nuestro payload del intruder quedará así.
+
+Así que nuestro payload quedaría como en la imagen.
+
+Ahora vamos a la pestaña de payloads para cargar el ataque que queremos hacer:
+
+![payload](/assets/images/LabsSSRF/lab2/payload.png)
+
+Configuramos el payload de tipo numerico, que empieze desde el numero 1 hasta el 254, y que avance de 1 en 1.
+
+Así que una vez configurado, daremos en start attack y después de un rato veremos que al filtrar por estado de respuesta vemos que recibimos una en estado true(200):
+
+![doscientos](/assets/images/LabsSSRF/lab2/doscientos.png)
+
+Podemos apreciar que recibimos esta respuesta, la cual es el panel del admin, y el host que nos respondio fue el 42.
+
+Así que en la respuesta de esta petición buscaremos por la palabra delete, y encontaremos la API que nos permite eliminar usuarios:
+
+![delete](/assets/images/LabsSSRF/lab2/delete.png)
+
+Y vemos que el contenido para eliminar el usuario carlos es:
+
+`http://192.168.0.42:8080/admin/delete?username=carlos`
+
+Así que simplemenete agregaremos esta url a la petición original que esta en el intercept:
+
+![intruder2](/assets/images/LabsSSRF/lab2/intruder2.png)
+
+Quedandonos así, como si estuviesemos dandole al boton de eliminar usuario de carlos, pero esta vez es por medio de las peticiones, así que al tramitarla veremos que habremos terminado este laboratorio:
+
+![final](/assets/images/LabsSSRF/lab2/final.png)
