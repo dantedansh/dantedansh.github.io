@@ -5,7 +5,7 @@ excerpt: "En este post, explicaremos ¿Que es? y como se realiza un ataque SSRF,
 date: 2023-04-25
 classes: wide
 header:
-  teaser: /assets/images/LabsSSRF/
+  teaser: /assets/images/LabsSSRF/banner.jpg
   teaser_home_page: true
 #  icon: /assets/images/hackthebox.webp
 categories:
@@ -155,11 +155,11 @@ Para esto mandaremos la peticion a el intruder:
 
 ![intruder](/assets/images/LabsSSRF/lab2/intruder.png)
 
+Como sabemos que existe la ruta /admin en este servidor, entonces es probable que exista en los otros host, por lo que nuestro payload del intruder quedará así.
+
 Una vez tengamos la peticion en el intruder y le hayamos modificado lo de la ruta, ahora agregaremos donde irá el payload, que obviamente será en el ultimo valor de la ip, y al seleccionar ese apartado daremos a add y nos quedará así:
 
 ![add](/assets/images/LabsSSRF/lab2/add.png)
-
-Como sabemos que existe la ruta /admin en este servidor, entonces es probable que exista en los otros host, por lo que nuestro payload del intruder quedará así.
 
 Así que nuestro payload quedaría como en la imagen.
 
@@ -167,7 +167,7 @@ Ahora vamos a la pestaña de payloads para cargar el ataque que queremos hacer:
 
 ![payload](/assets/images/LabsSSRF/lab2/payload.png)
 
-Configuramos el payload de tipo numerico, que empieze desde el numero 1 hasta el 254, y que avance de 1 en 1.
+Configuramos el payload de tipo numerico, que empieze desde el numero 1 hasta el 254 (el total de hosts), y que avance de 1 en 1.
 
 Así que una vez configurado, daremos en start attack y después de un rato veremos que al filtrar por estado de respuesta vemos que recibimos una en estado true(200):
 
