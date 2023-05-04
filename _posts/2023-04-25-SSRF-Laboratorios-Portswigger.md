@@ -190,3 +190,133 @@ Así que simplemenete agregaremos esta url a la petición original que esta en e
 Quedandonos así, como si estuviesemos dandole al boton de eliminar usuario de carlos, pero esta vez es por medio de las peticiones, así que al tramitarla veremos que habremos terminado este laboratorio:
 
 ![final](/assets/images/LabsSSRF/lab2/final.png)
+
+<br>
+
+# Laboratorio 3: SSRF con filtro de entrada basado en lista negra
+
+En el siguiente laboratorio, nos piden hacer lo siguiente:
+
+![lab3](/assets/images/LabsSSRF/lab3/lab3.png)
+
+Vemos que nos dice que debemos hacer algo similar a el laboratorio anterior, pero esta vez en desarrollador de la web ha implementado una función anti ataques SSRF, por lo que tendremos que encontrar una forma de burlar esta función.
+
+El objetivo es eliminar a el usuario carlos por medio de una url que nos dan como base **http://localhost/admin**, así que iniciemos.
+
+<br>
+
+Primero interceptaremos la petición que sabemos es vulnerable a SSRF:
+
+![peticion](/assets/images/LabsSSRF/lab3/peticion.png)
+
+Podemos ver la petición que la hemos decodificada el formato de url-encode.
+
+Si enviamos la petición así nos dará error:
+
+![error](/assets/images/LabsSSRF/lab3/error.png)
+
+Como vemos en la respuesta nos da error, ya que esta petición puede tramitarse pero el simbolo de "&" necesita estar url-encodeado, así que lo encodeamos y al tramitar de nuevo vemos que ahora si nos responde lo que debe:
+
+![peticion2](/assets/images/LabsSSRF/lab3/peticion2.png)
+
+Y vemos que nos funciona ya que el simbolo se url-encodea.
+
+Ahora lo que intentaremos hacer es lo que nos pide, dice que debemos conectarnos a el host local y acceder a la ruta /admin desde la siguiente url:
+
+`http://localhost/admin`
+
+Y la agregaremos a la petición para ver que nos responde:
+
+![blocked](/assets/images/LabsSSRF/lab3/blocked.png)
+
+Podemos apreciar que en la respuesta vemos el mensaje "External stock check blocked for security reasons", por lo que esto es la función de seguridad anti-SSRF que nos dice el laboratorio que esta implementado en este nivel.
+
+Así que una manera que pensamos de evadir esto es llamar a la ip en lugar del DNS de localhost quedando así:
+
+`http://127.0.0.1/admin`
+
+Y veremos que nos responde:
+
+![blocked2](/assets/images/LabsSSRF/lab3/blocked2.png)
+
+Podemos ver que de esta manera tampoco nos ha funcionado y nos sigue marcando el mensaje de seguridad.
+
+<br>
+
+Lo que intentaremos ahora será usar la ip pero esta vez en hexadecimal, el numero con el que empieza la ip (127) en hexadecimal es 0x7f y podemos darnos cuenta usando la función hex de python3:
+
+![hex](/assets/images/LabsSSRF/lab3/hex.png)
+
+Ahora como los valores que siguen de la ip de localhost son 001, simplemente las juntaremos formando en total el valor: "0x7f000001".
+
+Así que probaremos con este valor en la petición del repeater:
+
+![blocked3](/assets/images/LabsSSRF/lab3/blocked3.png)
+
+Y vemos que nos da error, y si intentamos quitando la ruta admin:
+
+![500](/assets/images/LabsSSRF/lab3/500.png)
+
+Apreciamos que esta vez nos da un error de estado 500.
+
+Por lo que esta manera tampoco nos ha funcionado.
+
+<br>
+
+Ahora probaremos de este modo, cuando en la ip hay numeros cero consecutivos por ejemplo: 127.0.0.1, se puede acortar a 127.1, ya que los 0 no se toman en cuenta, así que si hacemos esto en la petición veremos lo siguiente:
+
+![200](/assets/images/LabsSSRF/lab3/200.png)
+
+Vemos que esta vez nos ha dado un estado de respuesta 200, por lo que ya es buena señal ya que ahora nos esta dejando acceder a el contenido de localhost(la web principal) desde la misma peticion, pero ahora tendremos que acceder a la ruta /admin, y vemos que al agregar la ruta /admin vemos lo siguiente:
+
+`http://127.1/admin`
+
+![blocked4](/assets/images/LabsSSRF/lab3/blocked4.png)
+
+Así que nuevamente nos esta bloqueando acceder a esa ruta, pero vemos que si es /admin nos da el mensaje de seguridad, pero en caso de ponerle algo que no exista, por ejemplo pondremos la ruta /prueba:
+
+`http://127.1/prueba`
+
+![prueba](/assets/images/LabsSSRF/lab3/prueba.png)
+
+Y vemos que nos da un mensaje diferente al que nos da si ponemos /admin, por lo que nos damos cuenta que por detras debe haber algun filtro evitando que accedamos a la ruta /admin por medio del valor de nombre admin.
+
+Así que ahora intentaremos acceder a la ruta sin poner el nombre de la ruta exactamente como se ve.
+
+<br>
+
+Ahora lo que intentaremos será url-encodear la letra a de "admin", para esto seleccionamos la letra "a" de admin, y damos a click izquierdo>convert-selection>URL>url-encode-all-characters.
+
+Quedandonos así:
+
+`http://127.1/%61dmin`
+
+Y al tramitar la petición vemos que nos responde lo siguiente:
+
+![admin](/assets/images/LabsSSRF/lab3/admin.png)
+
+Vemos que nos da un error, así que tal vez nos este interpretando el simbolo de % como ese simbolo y no como parte de el url-encode, así que también url-encodearemos ese simbolo quedando así:
+
+`http://127.1/%2561dmin`
+
+Y ahora al tramitar la petición veremos lo siguiente:
+
+![delete](/assets/images/LabsSSRF/lab3/delete.png)
+
+Vemos que por fin hemos logrado acceder a /admin evadiendo el filtro de seguridad.
+
+<br>
+
+Ahora solo quedaría buscar la API de eliminar usuarios en el codigo de la petición:
+
+![api](/assets/images/LabsSSRF/lab3/api.png)
+
+Y ahora debemos poner esa funcion que hace en la url original del intercept:
+
+`http://127.1/%2561dmin/delete?username=carlos`
+
+![intercept](/assets/images/LabsSSRF/lab3/intercept.png)
+
+Y al tramitarla habremos terminado con este laboratorio:
+
+![final](/assets/images/LabsSSRF/lab3/intercept.png)
