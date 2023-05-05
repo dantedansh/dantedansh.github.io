@@ -209,7 +209,7 @@ Primero interceptaremos la petición que sabemos es vulnerable a SSRF:
 
 ![peticion](/assets/images/LabsSSRF/lab3/peticion.png)
 
-Podemos ver la petición que la hemos decodificada el formato de url-encode.
+Podemos ver la petición que la hemos decodificado el formato de url-encode.
 
 Si enviamos la petición así nos dará error:
 
@@ -285,7 +285,7 @@ Así que ahora intentaremos acceder a la ruta sin poner el nombre de la ruta exa
 
 <br>
 
-Ahora lo que intentaremos será url-encodear la letra a de "admin", para esto seleccionamos la letra "a" de admin, y damos a click izquierdo>convert-selection>URL>url-encode-all-characters.
+Ahora lo que intentaremos será url-encodear la letra "a" de "admin", para esto seleccionamos la letra "a" de admin, y damos a click izquierdo>convert-selection>URL>url-encode-all-characters.
 
 Quedandonos así:
 
@@ -319,4 +319,118 @@ Y ahora debemos poner esa funcion que hace en la url original del intercept:
 
 Y al tramitarla habremos terminado con este laboratorio:
 
-![final](/assets/images/LabsSSRF/lab3/intercept.png)
+![final](/assets/images/LabsSSRF/lab3/final.png)
+
+<br>
+
+# Laboratorio 4: SSRF con omisión de filtro a través de vulnerabilidad de redirección abierta
+
+En este laboratorio, podemos ver que nos pide hacer lo siguiente:
+
+![lab4](/assets/images/LabsSSRF/lab4/lab4.png)
+
+Nos dice que existe una función de verificar existencias, que obtiene los datos que muestra de un sistema de red interno.
+
+También nos dice que devemos cambiar la URL de verificar existencias y reemplazarla por:
+
+`http://192.168.0.12:8080/admin`
+
+Que es un servidor interno el cual por el puerto 8080 corre un panel de administrador para eliminar usuarios, en este caso debemos eliminar el usuario carlos.
+
+Y nos dice que la función de verificar existencias ya no nos permite ingresar URL como lo habiamos hecho en el laboratorio pasado, si no que ahora tendremos que buscar una redirección abierta, esto significa que debe ser una redirección a una parte de la web a la que nos deje acceder para modificar esa redirección por la que deseamos, que en este caso será http://192.168.0.12:8080/admin.
+
+<br>
+
+Entramos a el laboratorio, a un producto para ver la función de verificar existencias que sabemos, es vulnerable.
+
+![funcion](/assets/images/LabsSSRF/lab4/funcion.png)
+
+Como recordamos, esta es la función de verificar existencias similar a las de todos los laboratorios anteriores.
+
+Así que al interceptar una petición de esa función veremos lo siguiente:
+
+![encodeado](/assets/images/LabsSSRF/lab4/encodeado.png)
+
+Como hemos visto esta url-encodeado, y seleccionamos la parte que nos interesa y la url-decodeamos con: ctrl+shift+u, una vez decodificada la url, se verá algo así:
+
+![decodeado](/assets/images/LabsSSRF/lab4/decodeado.png)
+
+`stockApi=/product/stock/check?productId=1&storeId=1`
+
+Podemos apreciar que esta vez no esta llamando a algun servidor interno, si no que ahora esta llamando a una ruta de el servidor mismo.
+
+la ruta es /product/stock/check, la cual esta ultima tiene un parametro del ID del producto.
+
+Pero lo que nos llama la atención es que ya no se esta tramitando por medio de una url.
+
+Así que para verificar si aún puede tramitar la petición por medio de una url dada, probaremos con la url de localhost:
+
+`stockApi=http://localhost/`
+
+Y vemos que nos dice lo siguiente en la respuesta:
+
+![400](/assets/images/LabsSSRF/lab4/400.png)
+
+Por lo que podemos ver en la respuesta, no nos acepta la url, y no es que haya un firewall bloqueando el acceso a localhost, simplemente en este apartado no admite las URL.
+
+Por lo que intentaremos buscar dar por otro lado, investigando entre diferentes apartados de la web, descubrimos lo siguiente:
+
+![next](/assets/images/LabsSSRF/lab4/next.png)
+
+Un apartado que nos redirecciona a el siguiente articulo, y esto nos interesa esto ya que es diferente la petición a las que intente en otros lugares de la web.
+
+Y esta petición al interceptarla nos muestra lo siguiente:
+
+![redirect](/assets/images/LabsSSRF/lab4/redirect.png)
+
+Podemos que al tramitar esa petición desde el repeater nos da un estado de respuesta 302, el cual significa que nos esta redirigiendo a algun lugar dentro de la página en este caso.
+
+Y esto nos damos cuenta ya que en la parte de arriba de la petición vemos que nos esta tramitando la petición por el metodo GET, con el siguiente contenido:
+
+`/product/nextProduct?currentProductId=1&path=/product?productId=2`
+
+Vemos que esta accediendo a una ruta, similar a la primera petición que vimos, pero en este caso vemos un parametro extra el cual es **path**, y esta recibiendo una ruta de redirección.
+
+Así que tal vez ese parametro admita URL, y nos permita hacer lo que queriamos en un principio.
+
+Y para enterarnos si admite formato de URL, haremos lo siguiente:
+
+Copiaremos la ruta que sabemos que existe, gracias a la petición de la redirección, la ruta es:
+
+`/product/nextProduct?currentProductId=1&path=http://localhost`
+
+Y vemos que en el parametro del path, hemos agregado la url de localhost, para así averiguar si nos responderá algo.
+
+Después esta URL que hemos hecho, la pondremos en la petición primera que tuvimos, ya que esta petición erá la que ejecutaba algo que le dabamos, lo interpretaba en el apartado de verificar existencias, así que veremos lo que pasa, tenemos nuestra petición así:
+
+![intruder](/assets/images/LabsSSRF/lab4/intruder.png)
+
+`/product/nextProduct?currentProductId=1%26path=http://localhost`
+
+> Como sabemos el simbolo de & debe ir en url-encode para evitar errores.
+
+<br>
+
+Y al tramitar esta petición, veremos en el navegador lo siguiente:
+
+![funcion2](/assets/images/LabsSSRF/lab4/funcion2.png)
+
+Vemos que en la parte de verificar existencias se ha interpretado la petición que hemos tramitado, por lo que es vulnerable, así que ahora en vez de llamar a la misma página, llamaremos a la web del servidor que esta en la red interna por el puerto 8080 que nos da el mismo laboratorio como reto, quedando así la petición:
+
+`/product/nextProduct?currentProductId=1%26path=http://192.168.0.12:8080/admin`
+
+![panel](/assets/images/LabsSSRF/lab4/panel.png)
+
+Como vemos hemos mandado la petición principal a el repeater, y hemos visto que nos ha mostrado el panel de admin, el cual en el codigo de esa respuesta encontramos como ya sabemos lo de la API de eliminar usuario:
+
+![delete](/assets/images/LabsSSRF/lab4/delete.png)
+
+Por último agregaremos lo de esa API a la petición original, quedandonos así:
+
+`/product/nextProduct?currentProductId=1%26path=http://192.168.0.12:8080/admin/delete?username=carlos`
+
+![api](/assets/images/LabsSSRF/lab4/api.png)
+
+Y al tramitar la petición vemos que habremos terminado de resolver este laboratorio:
+
+![end](/assets/images/LabsSSRF/lab4/end.png)
