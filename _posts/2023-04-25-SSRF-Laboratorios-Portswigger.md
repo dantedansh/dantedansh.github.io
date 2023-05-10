@@ -383,7 +383,7 @@ Y esta petición al interceptarla nos muestra lo siguiente:
 
 ![redirect](/assets/images/LabsSSRF/lab4/redirect.png)
 
-Podemos que al tramitar esa petición desde el repeater nos da un estado de respuesta 302, el cual significa que nos esta redirigiendo a algun lugar dentro de la página en este caso.
+Podemos ver que al tramitar esa petición desde el repeater nos da un estado de respuesta 302, el cual significa que nos esta redirigiendo a algun lugar dentro de la página en este caso.
 
 Y esto nos damos cuenta ya que en la parte de arriba de la petición vemos que nos esta tramitando la petición por el metodo GET, con el siguiente contenido:
 
@@ -431,6 +431,73 @@ Por último agregaremos lo de esa API a la petición original, quedandonos así:
 
 ![api](/assets/images/LabsSSRF/lab4/api.png)
 
-Y al tramitar la petición vemos que habremos terminado de resolver este laboratorio:
+Y al tramitar la petición se habrá eliminado al usuario carlos, y vemos que habremos terminado de resolver este laboratorio:
 
 ![end](/assets/images/LabsSSRF/lab4/end.png)
+
+<br>
+
+# Laboratorio 5: SSRF blind con detección fuera de banda(out of band)
+
+En este laboratorio nos piden lo siguiente:
+
+![lab5](/assets/images/LabsSSRF/lab5/lab5.png)
+
+Vemos que nos dice que debemos esta página web utiliza un software de analisis, y este software lo que hace es tomar te la cabezera de la petición la parte de referencia, cuando abrimos algún producto.
+
+Este tipo de peticiónes contienen en su cabecera inforamción útil para estos programas de analisis, lo que hace es como leímos, toma la URL de la referencia de la petición, esta referencia se refiere a de que lugar viene esta petición, por ejemplo si viene de algúna otra web donde hayan puesto el enlace a este producto en la referencia aparecera esa otra web de donde viene, y esto es util para el software y sacar analisis para saber de donde es que vienen sus vistas etc.
+
+Pero nosotros usaremos esto para hacer algo.
+
+Al abrir el laboratorio veremos la tienda común:
+
+![tienda](/assets/images/LabsSSRF/lab5/tienda.png)
+
+Y como recordamos nos decia que al abrir un producto sucede lo de la función de analisis, que lo que hace esa funcion es como dije tomar la URL y hacerle una petición a esa url referenciada.
+
+Así que al interceptar la petición al abrir algún producto de la tienda veremos lo siguiente:
+
+![referer](/assets/images/LabsSSRF/lab5/referer.png)
+
+`Referer: https://0a96003804c1326a834e92c900a40009.web-security-academy.net/`
+
+Podemos apreciar que nos esta haciendo referencia en este caso a la misma web en el header de la petición.
+
+Así que sabemos que lo que hace la función que esta en el servidor web es ejecutar una petición hacia la URL que se encuentra en la referencia.
+
+<br>
+
+Así que para saber si es vulerabla a ataques SSRF, que nos permitiria en caso de funcionar, poder ejecutar recursos dentro del mismo sistema que como usuarios normales no tenemos acceso pero si lo hacemos desde su mismo servidor si que tendremos.
+
+Así que modificaremos la URL y pondremos la del servidor tercero de BurpCollaborator, que como sabemos debemos dar en Burp>BurpCollaboratorClient.
+
+![collaborator](/assets/images/LabsSSRF/lab5/collaborator.png)
+
+Y una vez hecho esto, lo que haremos ahora será darle en Copy to clipboard para copiar el enlace del servidor temporal tercero de burpcollaborator.
+
+<br>
+
+Una vez tengamos la URL copiada, lo que haremos será pegar la URL en la cabecera donde dice referer en la petición:
+
+![burp](/assets/images/LabsSSRF/lab5/burp.png)
+
+`Referer: http://8y7er84x9d6yix39f09sdsnbv21tpi.burpcollaborator.net`
+
+Quedandonos como se ve en la imagen anterior.
+
+<br>
+
+Ahora simplemente tramitaremos esa petición, y atraves de la respuesta del BurpCollaborator veremos lo siguiente al darle en pollnow:
+
+![response](/assets/images/LabsSSRF/lab5/response.png)
+
+Y como podemos ver, hemos tenido comunicación desde la parte de referencia hacia nosotros donde le indicamos que hiciera la petición, por lo que habremos terminado este laboratorio.
+
+Este solo fue para mostrarnos y explicarnos la manera en que se comunica a la URL dada en la referencia de la cabecera de la petición.
+
+Pero para hacer algo importante lo veremos en el laboratorio siguiente, así que habremos terminado este:
+
+![end](/assets/images/LabsSSRF/lab5/end.png)
+
+<br>
+
