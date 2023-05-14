@@ -443,9 +443,9 @@ En este laboratorio nos piden lo siguiente:
 
 ![lab5](/assets/images/LabsSSRF/lab5/lab5.png)
 
-Vemos que nos dice que debemos esta página web utiliza un software de analisis, y este software lo que hace es tomar te la cabezera de la petición la parte de referencia, cuando abrimos algún producto.
+Vemos que nos dice que esta página web utiliza un software de analisis, y este software lo que hace es tomar de la cabezera de la petición la parte de referencia cuando abrimos algún producto.
 
-Este tipo de peticiónes contienen en su cabecera inforamción útil para estos programas de analisis, lo que hace es como leímos, toma la URL de la referencia de la petición, esta referencia se refiere a de que lugar viene esta petición, por ejemplo si viene de algúna otra web donde hayan puesto el enlace a este producto en la referencia aparecera esa otra web de donde viene, y esto es util para el software y sacar analisis para saber de donde es que vienen sus vistas etc.
+Este tipo de peticiónes contienen en su cabecera inforamción útil para estos programas de analisis, lo que hace es que primero toma la URL de la referencia de la petición, esta referencia sirve para saber de que lugar viene esta petición, por ejemplo si viene de algúna otra web donde hayan puesto el enlace a este producto, en la referencia aparecera esa otra web de donde viene, y esto es util para el software y sacar analisis para saber de donde es que vienen sus vistas etc, y para esto se le hace una petición al URL que este en el apartado de referencia de la petición.
 
 Pero nosotros usaremos esto para hacer algo.
 
@@ -453,7 +453,7 @@ Al abrir el laboratorio veremos la tienda común:
 
 ![tienda](/assets/images/LabsSSRF/lab5/tienda.png)
 
-Y como recordamos nos decia que al abrir un producto sucede lo de la función de analisis, que lo que hace esa funcion es como dije tomar la URL y hacerle una petición a esa url referenciada.
+Y como recordamos nos decia que al abrir un producto se ejecuta lo de la función de analisis, que lo que hace esa funcion es como dije anteriormente, tomar la URL y hacerle una petición a esa url referenciada.
 
 Así que al interceptar la petición al abrir algún producto de la tienda veremos lo siguiente:
 
@@ -463,7 +463,7 @@ Así que al interceptar la petición al abrir algún producto de la tienda verem
 
 Podemos apreciar que nos esta haciendo referencia en este caso a la misma web en el header de la petición.
 
-Así que sabemos que lo que hace la función que esta en el servidor web es ejecutar una petición hacia la URL que se encuentra en la referencia.
+Así que sabemos que lo que hace la función que esta en el servidor web es ejecutar una petición hacia la URL que se encuentra en la referencia de la petición.
 
 <br>
 
@@ -477,7 +477,7 @@ Y una vez hecho esto, lo que haremos ahora será darle en Copy to clipboard para
 
 <br>
 
-Una vez tengamos la URL copiada, lo que haremos será pegar la URL en la cabecera donde dice referer en la petición:
+Una vez tengamos la URL copiada, lo que haremos será pegar la URL del servidor de burpcollaborator en la cabecera donde dice referer en la petición:
 
 ![burp](/assets/images/LabsSSRF/lab5/burp.png)
 
@@ -498,6 +498,126 @@ Este solo fue para mostrarnos y explicarnos la manera en que se comunica a la UR
 Pero para hacer algo importante lo veremos en el laboratorio siguiente, así que habremos terminado este:
 
 ![end](/assets/images/LabsSSRF/lab5/end.png)
+
+<br>
+
+# Laboratorio 6: SSRF con filtro de entrada basado en lista blanca
+
+En este laboratorio nos piden lo siguiente:
+
+![lab6](/assets/images/LabsSSRF/lab6/lab6.png)
+
+Nos dice que este laboratorio contiene una tienda con productos y que en los productos está una función de verificar existencias la cual nos dice que esa es la parte vulnerable, dice que debemos cambiar la URL que viene en la petición de verificar existencias y reemplazarla por **http://localhost/admin** y que eliminemos el usuario carlos, también nos dice que existe una función anti-SSRF que deberemos burlar y por último eliminar al usuario carlos.
+
+Así que comencemos por interceptar la petición de verificar existencias:
+
+![peticion](/assets/images/LabsSSRF/lab6/peticion.png)
+
+Vemos que hemos url-decodeado la petición y la enviamos al repeater, recuerda url-encodear el simbolo de & para evitar errores.
+
+Y en la respuesta vemos que nos responde todo bien.
+
+<br>
+
+Así que lo primero que intentaremos será reemplazar la URL por defecto por la que nos dice el nivel que debemos reemplazar:
+
+![error](/assets/images/LabsSSRF/lab6/error.png)
+
+Podemos apreciar que nos lanza el mensaje siguiente: **"External stock check host must be stock.weliketoshop.net"**, y nos dice que no podemos usar algo en la URL que no sea del dns **stock.weliketoshop.net**, así que esto es a lo que se refería el nivel con la función anti-SSRF.
+
+<br>
+
+Así que en este punto es donde debemos bypassear este filtro.
+
+Para seguir debemos saber lo siguiente, cuando quieres loguearte en una página web es posible hacerlo desde la misma URL, modificando la petición.
+
+Así que nuestra petición quedará algo así al aplicar el login:
+
+`stockApi=http://user:password@stock.weliketoshop.net:8080/product/stock/check?productId=1%26storeId=1`
+
+Vemos que hemos agregado los valores **user:password**, y el @ es para indicarle que será del host que le sigue.
+
+Y al tramitar la petición:
+
+![userpass](/assets/images/LabsSSRF/lab6/userpass.png)
+
+Vemos en la respuesta que nos responde un estado de respuesta correcto.
+
+Por lo que es señal de que tenemos posibilidad de login.
+
+<br>
+
+Ahora vemos que quitando el apartado de password nos sigue dando una respuesta correcta:
+
+`stockApi=http://user@stock.weliketoshop.net:8080/product/stock/check?productId=1%26storeId=1`
+
+![user](/assets/images/LabsSSRF/lab6/user.png)
+
+Algo curioso que notamos es que en cada consulta nos devuelve un valor diferente en el contenido de la petición.
+
+> Este metodo de login desde la URL puede ser util si tenemos credenciales conseguidas por algun otro lado, tal vez desde algún LFI, etc.
+
+<br>
+
+Ahora como sabemos que es posible lo de login, haremos lo siguiente:
+
+`stockApi=http://localhost#@stock.weliketoshop.net:8080`
+
+Lo que estamos haciendo aquí es acceder al dominio localhost, y después usando el simbolo de #, lo que nos permite es identificar un fragmento de la web para que nos lleve a la parte de la web donde esta ese fragmento.
+
+Por ejemplo si hay una web con muchos textos pero solo queremos encontrar alguno, entonces usamos el # y pasarle el fragmento identificador y esto automaticamente nos llevara a la sección donde se encuentra esos datos.
+
+<br>
+
+Pero en este caso estamos usandolo en la URL que queremos que nos lleve, así que como es vulnerable, esto nos llevará a la página localhost en la sección del dominio `stock.weliketoshop.net:8080`, pero esta vez nos estará llevando a ese lugar y no solo traer un valor para mostrarlo como lo hace por defecto.
+
+Obviamente antes de tramitar esta petición debemos URL-encodear el simbolo # para evitar errores de sintaxis:
+
+`stockApi=http://localhost%23@stock.weliketoshop.net:8080`
+
+![error1](/assets/images/LabsSSRF/lab6/error1.png)
+
+Vemos que en la respuesta nos da un error pero como recordamos puede ser porque la web interpreta el % como porcentaje y no como parte del url-encode, así que url-encodearemos el porcentaje quedando así:
+
+`stockApi=http://localhost%2523@stock.weliketoshop.net:8080`
+
+Y vemos que esta vez ya nos responde con un estado de respuesta 200:
+
+![200](/assets/images/LabsSSRF/lab6/200.png)
+
+Y en el render de la web podemos ver que nos ha llevado a el panel que nos permite administrar la web:
+
+![admin](/assets/images/LabsSSRF/lab6/admin.png)
+
+Y accedimos aquí ya que era vulerable a SSRF y estamos accediendo a un lugar al que no deberiamos pero como es vulnerable lo estamos haciendo, ya que como recordamos desde la URL nos hicimos la petición hacia este dominio del cual solo deberiamos tener una respuesta pero como es vulnerable accedemos a todo el contenido incluyendo el panel admin.
+
+Así que resumiendo, usamos la vulnerabilidad SSRF, que esta en la URL de verificar existencias, la cual nos permitio viajar al dominio del que como sabemos solo obtendriamos datos especificos pero logramos acceder a todo el dominio gracias al # que nos redirige por completo a todo el contenido ya que nos esta llevando gracias a que es vulnerable y estamos dandole el dominio como identificador en lugar de alguna palabra clave.
+
+<br>
+
+Ahora debemos saber a donde nos lleva el boton que dice **admin panel**, para ello buscaremos en el codigo de la petición la palabra clave "admin panel", y veremos lo siguiente:
+
+![panel](/assets/images/LabsSSRF/lab6/panel.png)
+
+Podemos ver que nos lleva a la ruta /admin, así que iremos ahí agregandosela a la petición:
+
+`stockApi=http://localhost%2523@stock.weliketoshop.net:8080/admin`
+
+![users](/assets/images/LabsSSRF/lab6/users.png)
+
+Vemos que nos lleva a el panel para administrar los usuarios, por lo que en el codigo de esta petición buscaremos al usuario carlos que es el objetivo:
+
+![carlos](/assets/images/LabsSSRF/lab6/carlos.png)
+
+Y vemos que para eliminar este usuario debemos acceder a la URL /delete?username=carlos, quedandonos nuestra petición así:
+
+`stockApi=http://localhost%2523@stock.weliketoshop.net:8080/admin/delete?username=carlos`
+
+Y al tramitar la petición veremos lo siguiente:
+
+![fin](/assets/images/LabsSSRF/lab6/fin.png)
+
+Vemos que hemos logrado eliminar el usuario carlos y hemos terminado el laboratorio.
 
 <br>
 
