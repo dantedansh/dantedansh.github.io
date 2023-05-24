@@ -118,4 +118,55 @@ Y con esto habremos completado este laboratorio:
 
 <br>
 
-# laboratorio 3: 
+# laboratorio 3: DOM XSS in document.write sink using source location.search
+
+![lab3](/assets/images/XSS/lab3/lab3.png)
+
+En este laboratorio vemos que dice que contiene una vulnearbilidad XSS en la función de busqueda.
+
+Nos dice que por detras existe la función **document.write** la cual encontramos aquí viendo la fuente de la web:
+
+![documentwrite](/assets/images/XSS/lab3/documentwrite.png)
+
+Y vemos que encontramos la siguiente función buscando por "document.write":
+
+```js
+
+function trackSearch(query) {
+	document.write('<img src="/resources/images/tracker.gif?searchTerms='+query+'">');
+}
+var query = (new URLSearchParams(window.location.search)).get('search');
+if(query) {
+	trackSearch(query);
+}
+```
+
+Y viendo el código vemos que se usa **document.write** para mostrar resultados en la página.
+
+Y en la función principal de este ejemplo llamada **trackSearch**, recibe un parametro llamado **query**, y vemos que en la linea de:
+
+`document.write('<img src="/resources/images/tracker.gif?searchTerms='+query+'">');`
+
+Solamente lo esta concatenando en la parte de **document.write**, sin filtros, ni nada para evitar un ataque XSS, simplemente se está pasando concatenado en el recurso cargado que en este caso es una imagen .gif y seguido de eso se esta concatenando de marena erronea, ya que el parametro pasado que es **query** contiene los datos que le hemos pasado como busqueda en la función de busqueda de la web.
+
+Y esto es un error, ya que como no se esta sanitizando la entrada de datos, y simplemente se estan concatenando directamente en la consulta, entonces podriamos inyectar código javascript, y como estamos viendo como funciona esto, será facil evadir el valor de las comillas y escapar para que nos interprete nuestro código javascript.
+
+<br>
+
+Para ello vemos que al final donde se esta concatenando el valor query, esta encerrado entre comillas simples, y anterior a eso hay unas comillas dobles, y anterior a eso estamos dentro de un `<img src` el cual debemos cerrar para posteriormente agregar nuestro código.
+
+Así que para salir de las comillas simples y dobles y también para cerrar el `<img src` haremos lo siguiente, pondremos esto en la función de busqueda de la web:
+
+`'"><script>alert(1)</script>`
+
+> Lo que estamos haciendo es cerrar el contenido de la primera comilla simple por detras, así que ahora cerramos las siguientes comillas dobles poniendo **"** y por ultimo con **>** cerramos el <img scr>, seguido de nuestro script invocando a la función de alerta ya que el objetivo de este nivel es hacer esto.
+
+Una vez hagamos la busqueda de esto, por detras habremos escapado de las comillas y del img src, lo que ocacionara que nuestro código sea interpretado por el servidor mostrandonos lo deseado:
+
+![alert](/assets/images/XSS/lab3/alert.png)
+
+Podemos apreciar el mensaje de alerta, y podemos ver que hemos completado este laboratorio:
+
+![end](/assets/images/XSS/lab3/end.png)
+
+> Debajo de la busqueda podemos ver **">** que son los valores que quedaron fuera ya que cerramos nosotros los anteriores quedando esos recorriendose hasta el final, y aparecen ahí ya que ahí es donde debía mostrarse la imagen.gif de la cual abusamos para que funcione nuestro XSS-DOM-based.
