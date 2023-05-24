@@ -46,3 +46,76 @@ Ahora que ya entendimos un poco sobre lo que es el DOM, seguiremos explicando el
 
 # Laboratorio 1: XSS reflejado en contexto HTML sin nada codificado
 
+Vemos que en este primer laboratorio nos piden hacer lo siguiente:
+
+![lab1](/assets/images/XSS/lab1/lab1.png)
+
+Dice que este laboratorio contiene un XSS simple reflejado(reflected), en la función de busqueda.
+
+Y que para terminar este laboratorio debemos llamar a la función de alert que ejecuta javascript.
+
+<br>
+
+Lo primero que haremos al entrar al laboratorio es ver la función de busqueda:
+
+![search](/assets/images/XSS/lab1/search.png)
+
+Podemos ver que esta la función de busqueda, buscaremos cualquier cosa, por ejemplo "Hola":
+
+![hola](/assets/images/XSS/lab1/hola.png)
+
+Vemos que no ha encontrado resultados, pero es no nos interesa, lo que nos interesa es que sabemos que la vulnerabilidad se encuentra en este apartado de la web, y que los datos que estamos ingresando como usuario se ven reflejados en la respuesta, buscamos "Hola" y en la respuesta nos dice: 0 search results for "Hola", por lo que estamos viendo lo que ingresamos en la respuesta, y si es vulnerable a este XSS simple refjeado, entonces al meter código en la busqueda en lugar de alguna busqueda nos debería interpretar ese codigo.
+
+Como el reto de este laboratorio es desplegar un mensaje de alerta es lo que agregaremos como código inyectado:
+
+`<script>alert(1)</script>`
+
+> De esta forma en javascript llamamos a la función de alerta para que nos muestre un mensaje en pantalla de la web.
+
+![script](/assets/images/XSS/lab1/script.png)
+
+Así que al buscar esto, el servidor interpretara nuestro código javascript inyectado ya que por detras no se esta securizando la entrada de datos por lo que pueden pasar cosas como estas y que el servidor logre interpretar lo que queremos.
+
+Así que al darle en "search", se enviará la petición y veremos que nos ha respondido la alerta:
+
+![alert](/assets/images/XSS/lab1/alert.png)
+
+Vemos el mensaje de alerta lo cual indica que esto es vulnerable y habremos terminado con este laboratorio ya que el objetivo era esto, algo simple.
+
+![end](/assets/images/XSS/lab1/end.png)
+
+<br>
+
+# Laboratorio 2: XSS almacenado en contexto HTML sin nada codificado
+
+![lab2](/assets/images/XSS/lab1/lab2.png)
+
+Este laboratorio nos dice que existe una vulnerabilidad XSS almacenada(stored) en la sección de comentarios, así que al abrir algún producto del laboratorio vemos la siguiente sección de comentarios:
+
+![comentarios](/assets/images/XSS/lab2/comentarios.png)
+
+Como podemos ver, tenemos la posibilidad de dejar comentarios en esta página web, y como estos comentarios se almacenan en los servidores para que todos los usuarios puedan verlos, entonces en caso de que podamos acontecer un XSS aquí en un comentario entonces no solo lo veriamos nosotros, si no que también todos los que entren a esta sección de la web.
+
+Así que intentaremos dejar un comentario llamando a la función alert de javascript:
+
+`<script>alert(1)</script>`
+
+![script](/assets/images/XSS/lab2/script.png)
+
+Y ahora posteamos el comentario:
+
+![posted](/assets/images/XSS/lab2/posted.png)
+
+Y ahora cualquier persona que entre a este apartado de la web le saldrá la siguiente alerta:
+
+![alert](/assets/images/XSS/lab2/alert.png)
+
+Ya que el comentario que pusimos contiene el código javascript lo cual hace que cada que entren esta función se ejecute mostrandonos el mensaje ya que se guardo dentro de la base de datos y el servidor mismo lo interpreta y nos lo muestra.
+
+Y con esto habremos completado este laboratorio:
+
+![end](/assets/images/XSS/lab2/end.png)
+
+<br>
+
+# laboratorio 3: 
