@@ -88,7 +88,7 @@ Vemos el mensaje de alerta lo cual indica que esto es vulnerable y habremos term
 
 # Laboratorio 2: XSS almacenado en contexto HTML sin nada codificado
 
-![lab2](/assets/images/XSS/lab1/lab2.png)
+![lab2](/assets/images/XSS/lab2/lab2.png)
 
 Este laboratorio nos dice que existe una vulnerabilidad XSS almacenada(stored) en la sección de comentarios, así que al abrir algún producto del laboratorio vemos la siguiente sección de comentarios:
 
