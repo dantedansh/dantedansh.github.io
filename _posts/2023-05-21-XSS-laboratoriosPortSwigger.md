@@ -170,3 +170,62 @@ Podemos apreciar el mensaje de alerta, y podemos ver que hemos completado este l
 ![end](/assets/images/XSS/lab3/end.png)
 
 > Debajo de la busqueda podemos ver **">** que son los valores que quedaron fuera ya que cerramos nosotros los anteriores quedando esos recorriendose hasta el final, y aparecen ahí ya que ahí es donde debía mostrarse la imagen.gif de la cual abusamos para que funcione nuestro XSS-DOM-based.
+
+<br>
+
+# Laboratorio 4: DOM XSS in innerHTML sink using source location.search
+
+En este cuarto laboratorio de XSS basado en DOM, vemos que nos dice lo siguiente:
+
+![lab4](/assets/images/XSS/lab4/lab4.png)
+
+Nos dice que tiene una vulnerablidad XSS Dom-Based, en la función de busqueda, y que usemos una asignación de HTML interna que cambia el contenido HTML de un elemento div usando los datos que obtenemos de **location.search**, y que para terminar este laboratorio debemos mostrar una alerta como anteriormente lo hemos estado haciendo.
+
+![location](/assets/images/XSS/lab4/location.png)
+
+Filtrando en el código de la web por **location.search**, encontramos un código parecido al del laboratorio anterior, este código que encontramos es este:
+
+```js
+function doSearchQuery(query) {
+	document.getElementById('searchMessage').innerHTML = query;
+}
+var query = (new URLSearchParams(window.location.search)).get('search');
+if(query) {
+	doSearchQuery(query);
+}
+```
+
+Primero vemos que se esta usando **document.getElementById**, lo que hace esto es que se utiliza para obtener una referencia a un elemento dentro del DOM mediante su identificador unico, donde en este caso el identificador unico que es lo que esta dentro, es **searchMessage**, y buscando en el código de la web este id, encontramos lo siguiente:
+
+![search](/assets/images/XSS/lab4/search.png)
+
+Vemos la linea:
+
+`<span id="searchMessage">Prueba</span>`
+
+Y descubrimos que este identificador único hace referencia a nuestro texto de entrada en la función de busqueda, ya que buscamos "Prueba" y vemos que se guarda en ese id.
+
+Entonces sabemos que el valor de **SearchMessage** del código hace referencia a ese lugar.
+
+Y como abajo vemos que se llama a esa función y gracias a eso podemos ver lo que ingresamos como datos en la respuesta de la web.
+
+Entonces haremos lo siguiente:
+
+![onerror](/assets/images/XSS/lab4/onerror.png)
+
+`<img src=noexist onerror=alert(1)>`
+
+Lo que estamos haciendo con esta linea es que la web tome nuestros datos de entrada, y como esta usando **innerHTML**, nos leera nuestro código inyectado y lo interpreatara, gracias a que no se esta sanitizando la entrada de los datos en el código de la web.
+
+Y lo que hace esa linea es cargar una imagen que no existe, forzando que se redirija al caso de error de la derecha lo cual lo que hará es ejecutar una alerta que le hemos dicho que haga.
+
+Y como estamos forzando que esto sucedea, al buscar esto veremos que nos responde lo siguiente:
+
+![alert](/assets/images/XSS/lab4/alert.png)
+
+Y habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab4/end.png)
+
+<br>
+
