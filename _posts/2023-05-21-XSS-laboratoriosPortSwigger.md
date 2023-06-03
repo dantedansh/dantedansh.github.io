@@ -229,3 +229,70 @@ Y habremos terminado este laboratorio:
 
 <br>
 
+# Laboratorio 5: DOM XSS in jQuery anchor href attribute sink using location.search source
+
+En este laboratorio nos dan las siguientes instrucciones:
+
+![lab5](/assets/images/XSS/lab5/lab5.png)
+
+Nos dice que este laboratorio contiene un XSS Basado en DOM, el cual se encuentra en la página de feedback, también nos dice que debemos utilizar la función selectora $ de la biblioteca de Jquery, esto para encontrar un elemento ancla(anchor) y cambiar su atributo href, utilizando datos de location.search.
+
+La función selectora $, es una función que esta integrada en la biblioteca de Jquery, y esto lo que nos permite hacer es seleccionar elementos HTML y nos sirve para manipular el DOM.
+
+Y lo que nos dice de encontrar un elemento ancla y cambiar su atributo href, se refiere a que debemos encontrar ese atributo href al que menciona el $ de jquery que debemos encontrar en el código de la web, y revisar de que forma podriamos manipular los datos de entrada.
+
+<br>
+
+Primero al ir a la sección de **Submit feedback** como nos dice el laboratorio vemos lo siguiente:
+
+![feedback](/assets/images/XSS/lab5/feedback.png)
+
+Así que analizando un poco el código de la web encontramos lo siguiente:
+
+![back](/assets/images/XSS/lab5/back.png)
+
+`<a id="backLink" href="/post">Back</a>`
+
+Lo que hace esta linea de HTML, crea un enlace con el texto **Back**, que al darle click te redirijira a la ruta **/post** de la web, y este enlace tiene un identificador unico ID, el cual tiene como valor **backLink** para acceder a el.
+
+Y más abajo de esto encontramos lo siguiente:
+
+![function](/assets/images/XSS/lab5/function.png)
+
+```js
+$(function() {
+  $('#backLink').attr("href", (new URLSearchParams(window.location.search)).get('returnPath'));
+});
+```
+
+Y lo que esta sucediendo aqui es que con jquery, se esta seleccionando un elemento el cual tiene un identificdor unico ID con el valor de **backLink**, el cual ya habiamos visto antes, y vemos que se esta tomando el valor del parametro **returnPath**, y después esto se envia al atributo **href** del enlace, el cual es **backLink** y sabemos que este enlace te lleva a:
+
+`<a id="backLink" href="/post">Back</a>`
+
+Así que si como atacantes podemos tener acceso a la entrada del parametro **returnPath** podriamos ingresar código malicioso y si no esta sanitizado entonces se interpretaria nuestro código malicioso.
+
+<br>
+
+Hagamos una prueba, como podemos ver, en la página en la que estamos de **Submit feedback**, si miramos bien en la URL, tenemos acceso a dicho parametro, ya que la petición se tramita por el metodo **GET**, por lo que tenemos acceso a dicho parametro como podemos observar en la URL:
+
+![url](/assets/images/XSS/lab5/url.png)
+
+`feedback?returnPath=/post`
+
+Podemos apreciar que en este caso por defecto esta /post, lo cual nos llevaría al post anterior, pero como nosotros podemos manipular esta entrada de datos, intentaremos inyectar nuestro código malicioso, el cual es mostrar una alert de una cookie como nos pide el objetivo del laboratorio, así que la ingresaremos:
+
+`feedback?returnPath=javascript:alert(document.cookie)`
+
+![code](/assets/images/XSS/lab5/codemalicious.png)
+
+Lo que estamos haciendo aqui es ingresar codigo que se interprete usando javascript, y lo que hace es mostrarnos una alerta con el valor de la cookie.
+
+Y ahora si revisamos el código de la web:
+
+![value](/assets/images/XSS/lab5/value.png)
+
+Podemos apreciar que el valor que estaba por defecto el cual era **/post** se ha reemplazado por nuestro código malicioso y también se ha interpretado, así que ahora cada que demos click en el boton de **"Back"** nos mostrara la alerta con la cookie, y esto es ya que hemos modificado el valor al cual hacia referencia la entrada por defecto, cambiandola por nuestro código malicioso y todo gracias a que tuvimos acceso de entrada de datos a dicho parametro.
+
+Y habremos terminado el laboratorio:
+
+![end](/assets/images/XSS/lab5/end.png)
