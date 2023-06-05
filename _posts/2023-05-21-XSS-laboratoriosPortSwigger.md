@@ -296,3 +296,134 @@ Podemos apreciar que el valor que estaba por defecto el cual era **/post** se ha
 Y habremos terminado el laboratorio:
 
 ![end](/assets/images/XSS/lab5/end.png)
+
+<br>
+
+# Laboratorio 6: DOM XSS in jQuery selector sink using a hashchange event
+
+En este laboratorio nos dice lo siguiente:
+
+![lab6](/assets/images/XSS/lab6/lab6.png)
+
+Nos dice que este laboratorio tiene una vulnerabilidad XSS basada en DOM, la cual se encuentra en la página de inicio.
+
+También nos dice que usa la función selectora $() de Jquery para desplazarnos automaticamente a una publicación asignada, y el valor de la publicación asignada se le asigna a través de la propiedad **location.hash**.
+
+Para entender mejor veamos lo siguiente.
+
+<br>
+
+Primero analizaremos el código de la web, y buscando por **hashchange** encontramos lo siguiente:
+
+![home](/assets/images/XSS/lab6/home.png)
+
+```js
+$(window).on('hashchange', function(){
+  var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');
+  if (post) post.get(0).scrollIntoView();
+});
+```
+
+Lo que hace este código es la función que hace que nos podamos desplazar automaticamente a una publicación usando el #, por ejemplo, si en alguna pagina web con multiples secciones por ejemplo, indice,manual,etc. si queremos ir a manual automaticamente debemos agregar el simbolo de #, al final de la url, quedando algo así:
+
+`https://prueba.com/#Manual`
+
+Esto nos situara automaticamente en la página que tenga el elemento "Manual", y nos llevara a esa sección ya que previamente se ha configurado una función como la del codigo javascript y para saber como funciona este código de js.
+
+A continuación, detallo el funcionamiento del código:
+
+Lo que hace ese código a detalle, es que primero selecciona los elementos que se encuentra entre las etiquetas **<h2>** de HTML utilizando el selector de CSS, **section.blog-list h2**, que con esto obtenemos todos los titulos de los post en la web, así que por el momento selecciona todos los titulos para despues hacer una comparacion y ver cual coincide con nuestra busqueda en el #.
+
+Y podemos apreciar que en efecto los titulos de los post se guardan entre estas etiquetas:
+
+![h2](/assets/images/XSS/lab6/h2.png)
+
+Vemos en el código de la web que todos los titulos estan guardados entre las etiquetas **<h2>**, por lo que por eso guardamos todos los elementos que esten dentro de estas etiquetas en la página web de inicio.
+
+
+Una vez tenga estos titulos guardados, lo que hace es usar la función **decodeURIComponent()**, la cual dentro de ella tiene los siguientes parametos:
+
+`decodeURIComponent(window.location.hash.slice(1))`
+
+Primeramente, lo que hace **window.location.hash**, es que filtra el valor que pusimos como parametro de busqueda pero este se devuelve con todo y el #.
+
+Por ejemplo, si la URL completa con nuestra busqueda de **"Carros"** es:
+
+`https://prueba.com/#Carros`
+
+Entonces la función anterior, debería devolver:
+
+`#Carros`
+
+Pero como la función aún no termina y vemos otro valor el cual es: **slice(1)**, entonces lo que hace esto es eliminar el primer caractér, el cual es el #, quedandonos solo el valor:
+
+`Carros`
+
+Y ahora con este valor que pasamos decodificado, se usa la función **:contains()** que lo que hace es seleccionar nuestro elemento anteriormente guardado, y después este elemento se compara con los que tomamos de la lista **section.blog-list** en un principio.
+
+Y por último, en caso de que nuestro elemento ingresado coincida con alguno de la lista, entonces nos lleva ahí usando la función **scrollIntoView()**.
+
+Así que en resumen, lo que hace este código de javascript, es que como dije antes, nos permite ir a alguna sección de la página web, utlilizando el valor de la URL y haciendo modificaciones en el DOM podemos lograr esto.
+
+<br>
+
+Pero por otro lado, este código no es del todo seguro:pues en el código anterior, recide un pequeño detalle, que podría convertirse en algo peligroso.
+
+Y me refiero a que al momento de recibir la entrada del usuario, no se esta aplicando ningun filtro de seguridad, así que veamos a lo que me refiero:
+
+En el código vemos la siguiente linea:
+
+`var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');`
+
+Como recordamos, la función **decodeURIComponent()** en este caso la usamos para filtrar el valor de busqueda pasado por medo de la URL, y lo obtenemos sin el # como ya lo sabemos.
+
+Pero como no se esta realizando ningun tipo de filtro de seguridad, para evitar que el código malicioso se interprete, entonces un atacante podría meter código directamente como si fuese una busqueda de alguna sección en la página web, pero en verdad es código malicioso que como no hay filtros, entonces se interpretará ejecutando la acción deseada del atacante.
+
+Por ejemplo:
+
+`https://prueba.com/#<script>alert('Vulnerable')</script>`
+
+Lo que sucederá es que como no hay filtros como había dicho anteriormente, entonces esto se ejecutará en nuestro navegador usando como base la página web.
+
+> Por esto es importante saber sanitizar código, sobre todo en las entradas de datos.
+
+Así que con esto, estamos más cerca de lograr el objetivo de este laboratorio, el cual es crear una URL para que al enviarsela a la victima, se le ejecute la función **print()** de javascript.
+
+Así que sabiendo esto, haremos la siguiente URL maliciosa:
+
+`<iframe src="https://prueba.com/#" onload="this.src+='<img src=x onerror=print()>'"></iframe>`
+
+La función que tiene la etiqueta **iframe** es que primero carga la web que esta en su src, que en este caso es la URL del laboratorio, pero como sabemos que lo anterior es vulnerable a XSS gracias a la función de javascript no sanitizada, entonces agregamos el # para inyectar nuestro código, y este código es el siguiente.
+
+Cuando ya se termine de cargar la URL del iframe, entonces lo que sucederá es que el evento **onload** se ejecutará, y esto lo que hace es que agrega dinamicamente la linea:
+
+`<img src=x onerror=print()>`
+
+Al final de la URL en el src del iframe, sabemos que esta pequeña linea lo que hace es cargar una imagen inexistente para después forzar un error y ejecutar en este caso la función print().
+
+Así que una vez el iframe se cargo, pasará de ser:
+
+`https://prueba.com/#`
+
+A ser:
+
+`https://prueba.com/#<img src=x onerror=print()>`
+
+De esta forma como hay un cambio, entonces como hubo un cambio, el iframe lo detecta, cargandonos la nueva URL y aqui es donde se acontece la vulnerabilidad ya que al hacer esto, ya nos estaría interpretando nuestro código malicioso.
+
+Se hace en forma de una linea de código ya que así nos lo pide el laboratorio, pero en un caso real sería algo así:
+
+`https://test.com/#onload="this.src+='<img src=x onerror=print()>'"`
+
+Ya que al enviar a alguien esta URL, le interpretará el código inyectado, aconteciendo la vulnerabilidad de su lado, de esta forma se puede llegar a robar cookies de sesion, o más cosas del estilo.
+
+Así que al enviar este código final al atacante:
+
+![exploit](/assets/images/XSS/lab6/exploit.png)
+
+Podemos ver que al dar en enviar exploit a la victima, hemos resuelto el laboratorio:
+
+![fin](/assets/images/XSS/lab6/fin.png)
+
+<br>
+
