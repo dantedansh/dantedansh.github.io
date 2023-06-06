@@ -427,3 +427,67 @@ Podemos ver que al dar en enviar exploit a la victima, hemos resuelto el laborat
 
 <br>
 
+# Laboratorio 7: Reflected XSS into attribute with angle brackets HTML-encoded
+
+En este siguiente laboratorio, vemos que nos dice lo siguiente:
+
+![lab7](/assets/images/XSS/lab7/lab7.png)
+
+Dice que este laboratorio tiene una vulnerabilidad XSS Reflected(Reflejada), en la función de busqueda de la web, y nos dice que para completar este laboratorio debemos inyectar un atributo al código y llamar a la función alert().
+
+Al entrar a la web, y buscar algo nos carga lo siguiente:
+
+![prueba](/assets/images/XSS/lab7/prueba.png)
+
+Vemos que es un buscador normal, y no vemos nada extraño, por lo que abriremos la herramienta para inspeccionar el código de la web, y para encontrar donde esta la vulnerabilidad, podemos intuir que el XSS recide en la entrada de datos, por lo que filtraremos por nuestra palabra que buscamos para ver que se esta haciendo con ese valor dado, en este caso filtramos por **"Prueba"** ya que fue lo que buscamos.
+
+Y encontramos lo siguiente:
+
+![html](/assets/images/XSS/lab7/html.png)
+
+`<input type="text" placeholder="Search the blog..." name="search" value="Prueba">`
+
+Podemos apreciar que en esta linea, cuando se recibe el valor de nuestra busqueda que en este caso se almacena en **value**, y vemos que no esta muy bien creada esta parte, ya que de no estar sanitizada la entrada de datos, podriamos llegar a inyectar código javascript y que el servidor lo interprete.
+
+Para ello, intentaremos escapar de las comillas dobles, e intentar inyectar nuestro código, que en este caso, nos piden mostrar un alert através de un atributo.
+
+Si vemos bien en la linea de código, vemos que la sintaxis es un atributo, seguido de su valor: type es "text", placeholder es "Search the blog...", name es "search", y por último value es al que tenemos entrada.
+
+siguiendo esta sintaxis, entonces debemos agregar un atributo que nos permita ver reflejado el código javascript que estará dentro de el.
+
+<br>
+
+Para ello podemos usar el atributo **onmouseover**, que en pocas palabras lo que hace este atributo es que al momento que el cursor pase encima de donde se esta usando, se muestre lo que le indiquemos automaticamente al pasar el cursor por encima de ese elemento, que en este caso es en el elemento HTML de entrada que recibe el buscador web.
+
+Ahora con lo anterior en cuenta, entonces ya sabemos lo que hará al meter el siguiente valor en la función de busqueda:
+
+![mouse](/assets/images/XSS/lab7/mouse.png)
+
+`Prueba"onmouseover="alert(1)`
+
+Lo que estamos haciendo en esto, es que primero, estamos poniendo el valor que recibira el atributo **value**, que en este caso es "Prueba", pero seguido de eso usamos unas comillas dobles, y esto es para poder cerrar el atributo **value**, y procedemos a escribir el nuevo atributo que como sabemos es **onmouseover** del cual ya sabemos su función, dandole como valor la función alert() de javascript, pero notamos que después de poner el = hay otras comillas dobles.
+
+Y esto es para que tome la sintaxis de los atributos anteriores, y al final no pusimos otras comillas dobles, ya que como sabemos, al momento de poner las primeras que usamos para cerrar el atributo **value**, estas comillas dobles por detras se arrastraron hacia el final, y aqui no ponemos nada ya que por detras ya hay unas comillas dobles que nos cerrararan el valor del atributo inyectado.
+
+Así que en teoria por detras debería verse así:
+
+`<input type="text" placeholder="Search the blog..." name="search" value="Prueba" onmouseover="alert(1)">`
+
+> Aunque no hayamos dado un espacio para separar un atributo del otro no importa ya que automaticamente se agregan evitando errores.
+
+Así que al tramitar esta busqueda podemos ver lo siguiente:
+
+![alert](/assets/images/XSS/lab7/alert.png)
+
+Podemos apreciar que cada que pasemos el cursor por encima de la función de busqueda donde ahí recide el input del atributo **value**, entonces en esa parte podremos ver que se ejecuta el atributo **onmouseover** haciendo lo que le indicamos, que en este caso fue mostrar una alerta.
+
+Y Como anteriormente intuimos lo que pasaría por detras, en efecto fue así:
+
+![injection](/assets/images/XSS/lab7/injection.png)
+
+Y terminamos este laboratorio:
+
+![end](/assets/images/XSS/lab7/end.png)
+
+<br>
+
