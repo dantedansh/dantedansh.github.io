@@ -491,3 +491,62 @@ Y terminamos este laboratorio:
 
 <br>
 
+# Laboratorio 8: Stored XSS into anchor href attribute with double quotes HTML-encoded
+
+En este laboratorio nos piden lo siguiente:
+
+![lab8](/assets/images/XSS/lab8/lab8.png)
+
+Podemos leer que nos dice que este laboratorio contiene un XSS almacenado(stored), y que este XSS se encuentra en la sección de comentarios.
+
+Nos dice como objetivo que debemos hacer que al momento que al darle click al autor de un comentario, nos muestre una alerta.
+
+Así que primero al entrar a la sección de comentarios vemos lo siguiente:
+
+![comentarios](/assets/images/XSS/lab8/comentarios.png)
+
+Podemos apreciar algunos comentarios, y también un apartado donde podemos publicar el nuestro, primero ingresaremos un comentario normal, para después revisar su comportamiento en el código de la web:
+
+![comentar](/assets/images/XSS/lab8/comentar.png)
+
+He dejado un comentario con esos datos, y se ve así al postearlo:
+
+![prueba](/assets/images/XSS/lab8/prueba.png)
+
+Así que al momento de leer el código de la web, vemos lo siguiente:
+
+![codigo](/assets/images/XSS/lab8/codigo.png)
+
+Podemos apreciar que hay diferentes elementos, como una imagen del usuario que hizo el comentario, nuestra referencia a la web dada en el comentario, y también el comentario obviamente.
+
+<br>
+
+Lo que me llama la atención es que cuando se esta pasando el valor de la página web del usuario que comenta, es que se ve que en el input hay un **href**, el cual contiene el valor de la web dada por el comentario, pero al parecer la entrada de datos no esta sanitizada.
+
+Por lo que podriamos intentar inyectar código en lugar de proporcionar una web.
+
+Así que probaremos lo siguiente en un nuevo comentario:
+
+![comentario2](/assets/images/XSS/lab8/comentario2.png)
+
+Podemos ver que en lugar de una web, hemos indicado que se ejecute la función **alert()** usando javscript:
+
+`javascript:alert(1)`
+
+Así que al comentar esto, veremos el nuevo comentario:
+
+![nuevo](/assets/images/XSS/lab8/nuevo.png)
+
+Podemos ver que se agrego correctamente, y si esta parte de la web es vulnerable, entonces al darle click a nuestro nombre de autor marcado en morado, se supone que nos mostrará la alerta que inyectamos:
+
+![uno](/assets/images/XSS/lab8/uno.png)
+
+Y apreciamos que en efecto funciona nuestro XSS almacenado, ya que la entrada de datos en la parte de página web del autor no estaba bien sanitizada, por lo que al leer el código nuevamente, podemos apreciar lo siguiente:
+
+![dan](/assets/images/XSS/lab8/Dante.png)
+
+Vemos que se quedo almacenado el comentario junto a el XSS que creamos.
+
+Así que hemos terminado este laboratorio:
+
+![fin](/assets/images/XSS/lab8/fin.png)
