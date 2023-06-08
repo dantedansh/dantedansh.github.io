@@ -550,3 +550,52 @@ Vemos que se quedo almacenado el comentario junto a el XSS que creamos.
 Así que hemos terminado este laboratorio:
 
 ![fin](/assets/images/XSS/lab8/fin.png)
+
+<br>
+
+# Laboratorio 9: Reflected XSS into a JavaScript string with angle brackets HTML encoded
+
+En este laboratorio leemos lo siguiete:
+
+![lab9](/assets/images/XSS/lab9/lab9.png)
+
+Primero nos dice que este laboratorio con tiene una vulnerabilidad XSS Reflejada(reflected), y nos dice que la vulnerabilidad acontece en la función de busqueda al momento de ingresar datos en la busqueda.
+
+Al entrar al laboratorio y buscar algo notamos lo siguiente:
+
+![prueba](/assets/images/XSS/lab9/prueba.png)
+
+Notamos que al ingresar a la web tenemos una entrada de datos, la cual llenamos con algun valor como "Prueba" en el campo de busqueda.
+
+Así que al filtrar por esto en el código de la web, vemos lo siguiente:
+
+![javascript](/assets/images/XSS/lab9/javascript.png)
+
+```js
+var searchTerms = 'Prueba';
+document.write('<img src="/resources/images/tracker.gif?searchTerms='+encodeURIComponent(searchTerms)+'">');
+```
+
+Podemos ver que se esta recibiendo el valor ingresado en la web, y se esta guardando en la variable **searchTerms**, sin embargo, si miramos bien, cuando se esta usando el metodo document.write, vemos que se esta pasando la variable **searchTerms** directamente a dicho metodo, así que esta manera no es muy segura de evitar XSS, ya que al tener acceso a la entrada de datos, que es la variable searchTerms, podríamos encontrar una forma de escapar de esa variable, inyectando nuestro código y lograr que el servidor lo interprete.
+
+Para intentar escapar de esta variable, haremos uso de comillas simples, ya que como sabemos, la variable se esta guardando así:
+
+`var searchTerms = 'Prueba';`
+
+Y si nuestro valor en lugar de prueba es '-alert(1)-' entonces lo que estara pasando por detras es esto:
+
+`var searchTerms = ''-alert(1)-';`
+
+Vemos que la variable **searchTerms** obtuvo una cadena vacia, ya que la cerramos, y en su lugar inyectamos la alerta, y de esta forma estariamos escapando de la asignacion de variable, y como se esta pasando directamente a el metodo **document.write**, entonces esta vulnerabilidad se acontecera:
+
+![alert](/assets/images/XSS/lab9/alert.png)
+
+Vemos que ha funcionado, y al leer el código de la web:
+
+![code](/assets/images/XSS/lab9/code.png)
+
+Podemos apreciar que sucedio lo que esperabamos, logramos salir del valor de la variable para después meter nuestro propio código y que no forme parte del texto ingresado, así que habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab9/end.png)
+
+<br>
