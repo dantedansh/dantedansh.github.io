@@ -165,7 +165,7 @@ Así que para salir de las comillas simples y dobles y también para cerrar el `
 
 `'"><script>alert(1)</script>`
 
-> Lo que estamos haciendo es cerrar el contenido de la primera comilla simple por detras, así que ahora cerramos las siguientes comillas dobles poniendo **"** y por ultimo con **>** cerramos el <img scr>, seguido de nuestro script invocando a la función de alerta ya que el objetivo de este nivel es hacer esto.
+> Lo que estamos haciendo es cerrar el contenido de la primera comilla simple por detras, así que ahora cerramos las siguientes comillas dobles poniendo `"` y por ultimo con `>` cerramos el <img scr>, seguido de nuestro script invocando a la función de alerta ya que el objetivo de este nivel es hacer esto.
 
 Una vez hagamos la busqueda de esto, por detras habremos escapado de las comillas y del img src, lo que ocacionara que nuestro código sea interpretado por el servidor mostrandonos lo deseado:
 
@@ -175,7 +175,7 @@ Podemos apreciar el mensaje de alerta, y podemos ver que hemos completado este l
 
 ![end](/assets/images/XSS/lab3/end.png)
 
-> Debajo de la busqueda podemos ver **">** que son los valores que quedaron fuera ya que cerramos nosotros los anteriores quedando esos recorriendose hasta el final, y aparecen ahí ya que ahí es donde debía mostrarse la imagen.gif de la cual abusamos para que funcione nuestro XSS-DOM-based.
+> Debajo de la busqueda podemos ver `">` que son los valores que quedaron fuera ya que cerramos nosotros los anteriores quedando esos recorriendose hasta el final, y aparecen ahí ya que ahí es donde debía mostrarse la imagen.gif de la cual abusamos para que funcione nuestro XSS-DOM-based.
 
 <br>
 
@@ -346,13 +346,13 @@ Esto nos situara automaticamente en la página que tenga el elemento "Manual", y
 
 A continuación, detallo el funcionamiento del código:
 
-Lo que hace ese código a detalle, es que primero selecciona los elementos que se encuentra entre las etiquetas **<h2>** de HTML utilizando el selector de CSS, **section.blog-list h2**, que con esto obtenemos todos los titulos de los post en la web, así que por el momento selecciona todos los titulos para despues hacer una comparacion y ver cual coincide con nuestra busqueda en el #.
+Lo que hace ese código a detalle, es que primero selecciona los elementos que se encuentra entre las etiquetas `<h2>` de HTML utilizando el selector de CSS, **section.blog-list h2**, que con esto obtenemos todos los titulos de los post en la web, así que por el momento selecciona todos los titulos para despues hacer una comparacion y ver cual coincide con nuestra busqueda en el #.
 
 Y podemos apreciar que en efecto los titulos de los post se guardan entre estas etiquetas:
 
 ![h2](/assets/images/XSS/lab6/h2.png)
 
-Vemos en el código de la web que todos los titulos estan guardados entre las etiquetas **<h2>**, por lo que por eso guardamos todos los elementos que esten dentro de estas etiquetas en la página web de inicio.
+Vemos en el código de la web que todos los titulos estan guardados entre las etiquetas `<h2>`, por lo que por eso guardamos todos los elementos que esten dentro de estas etiquetas en la página web de inicio.
 
 
 Una vez tenga estos titulos guardados, lo que hace es usar la función **decodeURIComponent()**, la cual dentro de ella tiene los siguientes parametos:
@@ -686,13 +686,13 @@ Primero crea un arreglo llamado **stores**, el cual contiene los valores "London
 
 Después en la segunda linea del código se esta creando una variable llamada **store**, la cual hace que obtengamos el valor del parametro **storeId**, por ejemplo si el valor del parametro **storeId** es "London", entonces la variable **store** valdra "London".
 
-En la tercerea linea usamos **document.write()** para empezar a escribir datos en el código de la web actual, y lo primero que escribimos es la etiqueta **"<select name="storeId">"**.
+En la tercerea linea usamos **document.write()** para empezar a escribir datos en el código de la web actual, y lo primero que escribimos es la etiqueta `<select name="storeId">`.
 
-Esto lo que hará es que primero la etiqueta **"<select>"** sirve para crear un menú desplegable en el cual los usuarios pueden elegir una opción y estas opciones se deben definir, y lo que esta dentro de esta etiqueta que es el **name** con el valor **"storeId"**, lo que esta haciendo aqui es que crea un nombre de control, y con nombre de control se refiere a crear un parametro por el cual cuando el usuario eliga su opción, entonces ese parametro **storeId** tomara el valor del elemento seleccionado del menú desplegable, y dejamos la etiqueta **"<select>"** sin cerrar para ir agregando opciones que el usuario pueda elegir en el menú desplegable.
+Esto lo que hará es que primero la etiqueta `<select>` sirve para crear un menú desplegable en el cual los usuarios pueden elegir una opción y estas opciones se deben definir, y lo que esta dentro de esta etiqueta que es el **name** con el valor **"storeId"**, lo que esta haciendo aqui es que crea un nombre de control, y con nombre de control se refiere a crear un parametro por el cual cuando el usuario eliga su opción, entonces ese parametro **storeId** tomara el valor del elemento seleccionado del menú desplegable, y dejamos la etiqueta `<select>` sin cerrar para ir agregando opciones que el usuario pueda elegir en el menú desplegable.
 
 En la cuarta linea, estamos usando un if, para comprobar si el parametro **store** tiene contenido, y en caso de tenerlo, entra a el if.
 
-En la quinta linea se llama a otra función para escribir en el código de la web **document.write()**, y lo que escribimos es lo siguiente: `<option selected>'+store+'</option>` y lo que hace la etiqueta **<option>** es agregar una opción al menú desplegable, pero como estamos usando el atributo **selected** , esto quiere decir que el valor que le pasemos será el que se posicionara en primer lugar por defecto seleccionado en la web, y ese valor es **store**, el cual contiene el valor pasado por el parametro en la petición, y cerramos la opción con **</option>**.
+En la quinta linea se llama a otra función para escribir en el código de la web **document.write()**, y lo que escribimos es lo siguiente: `<option selected>'+store+'</option>` y lo que hace la etiqueta `<option>` es agregar una opción al menú desplegable, pero como estamos usando el atributo **selected** , esto quiere decir que el valor que le pasemos será el que se posicionara en primer lugar por defecto seleccionado en la web, y ese valor es **store**, el cual contiene el valor pasado por el parametro en la petición, y cerramos la opción con `</option>`.
 
 Y por último, lo que hace el resto del código es que crea un bucle for, el cual recorre cada valor del arreglo **stores**, y compara si el valor actual de **stores** es igual al valor pasado por el parametro **store**, y si es igual entonces se omite esta parte, pero en caso de que el valor actual de **stores** no sea igual al de **store** entonces este valor se agregará a la lista usando **document.write()** con el elemento actual a agregar, de esta manera evitamos duplicados en el menú desplegable.
 
@@ -744,9 +744,9 @@ Así que de esta forma, sabemos que podemos meter datos ahí, y en este caso en 
 
 `https://0a94008f046e446783b94d3b004b00d6.web-security-academy.net/product?productId=1&storeId="></select><img src=noexiste onerror=alert(1)>`
 
-De esta forma, primero usamos **">** para escapar del valor de nombre por defecto, de esta forma se cierra el texto y la etiqueta **<option>**.
+De esta forma, primero usamos `">` para escapar del valor de nombre por defecto, de esta forma se cierra el texto y la etiqueta `<option>`.
 
-Después usamos **</select>** para cerrar la etiqueta que permite crear un menú desplegable, y una vez cerrado y estamos libres de etiquetas, entonces solo queda provocar la invocacion del código usando **<img src=noexiste onerror=alert(1)>**que como ya sabemos, de esta forma podemos llamar a una imagen que no existe para pasar directo a la ejecución en caso de error y que se ejecute lo que deseamos, en este caso una alerta.
+Después usamos `</select>` para cerrar la etiqueta que permite crear un menú desplegable, y una vez cerrado y estamos libres de etiquetas, entonces solo queda provocar la invocacion del código usando `<img src=noexiste onerror=alert(1)>` que como ya sabemos, de esta forma podemos llamar a una imagen que no existe para pasar directo a la ejecución en caso de error y que se ejecute lo que deseamos, en este caso una alerta.
 
 Y al ejecutar esto:
 
@@ -762,7 +762,7 @@ Primero, podemos ver que en el código, después de que se paso de la función d
 
 Primero lo que sucedio como vemos en la linea que esta marcada en azul en la imagen anterior, es que usamos **">** para escapar de ese valor que como recordamos ahí se define el valor por defecto del menú desplegable dependiendo del valor que pongamos en el parametro **storeId** lo pondrá.
 
-Y como escapamos de eso, lo que hicimos fue usar **</select>**, que como ya sabemos fue para escapar del menú desplegable, y ahora que no estamos dentro de etiquetas lo que haremos es meter nuestro código que ya sabemos es **<img src=noexiste onerror=alert(1)>**.
+Y como escapamos de eso, lo que hicimos fue usar **</select>**, que como ya sabemos fue para escapar del menú desplegable, y ahora que no estamos dentro de etiquetas lo que haremos es meter nuestro código que ya sabemos es `<img src=noexiste onerror=alert(1)>`.
 
 > Si te confunde el formato tal vez sea porque esto se ordena automaticamente en este formato de código como se ve en la imagen pero la lógica no cambia ya que solo se ordena automaticamente.
 
@@ -771,3 +771,4 @@ Y habremos terminado este laboratorio:
 ![end](/assets/images/XSS/lab10/end.png)
 
 <br>
+
