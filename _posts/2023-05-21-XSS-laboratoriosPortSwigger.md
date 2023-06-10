@@ -68,7 +68,9 @@ Vemos que no ha encontrado resultados, pero es no nos interesa, lo que nos inter
 
 Como el reto de este laboratorio es desplegar un mensaje de alerta es lo que agregaremos como código inyectado:
 
-`<script>alert(1)</script>`
+```js
+<script>alert(1)</script>
+```
 
 > De esta forma en javascript llamamos a la función de alerta para que nos muestre un mensaje en pantalla de la web.
 
@@ -98,7 +100,9 @@ Como podemos ver, tenemos la posibilidad de dejar comentarios en esta página we
 
 Así que intentaremos dejar un comentario llamando a la función alert de javascript:
 
-`<script>alert(1)</script>`
+```js
+<script>alert(1)</script>
+```
 
 ![script](/assets/images/XSS/lab2/script.png)
 
@@ -145,7 +149,9 @@ Y viendo el código vemos que se usa **document.write** para mostrar resultados 
 
 Y en la función principal de este ejemplo llamada **trackSearch**, recibe un parametro llamado **query**, y vemos que en la linea de:
 
-`document.write('<img src="/resources/images/tracker.gif?searchTerms='+query+'">');`
+```js
+document.write('<img src="/resources/images/tracker.gif?searchTerms='+query+'">');
+```
 
 Solamente lo esta concatenando en la parte de **document.write**, sin filtros, ni nada para evitar un ataque XSS, simplemente se está pasando concatenado en el recurso cargado que en este caso es una imagen .gif y seguido de eso se esta concatenando de marena erronea, ya que el parametro pasado que es **query** contiene los datos que le hemos pasado como busqueda en la función de busqueda de la web.
 
@@ -201,7 +207,9 @@ Primero vemos que se esta usando **document.getElementById**, lo que hace esto e
 
 Vemos la linea:
 
-`<span id="searchMessage">Prueba</span>`
+```js
+<span id="searchMessage">Prueba</span>
+```
 
 Y descubrimos que este identificador único hace referencia a nuestro texto de entrada en la función de busqueda, ya que buscamos "Prueba" y vemos que se guarda en ese id.
 
@@ -213,7 +221,9 @@ Entonces haremos lo siguiente:
 
 ![onerror](/assets/images/XSS/lab4/onerror.png)
 
-`<img src=noexist onerror=alert(1)>`
+```js
+<img src=noexist onerror=alert(1)>
+```
 
 Lo que estamos haciendo con esta linea es que la web tome nuestros datos de entrada, y como esta usando **innerHTML**, nos leera nuestro código inyectado y lo interpreatara, gracias a que no se esta sanitizando la entrada de los datos en el código de la web.
 
@@ -251,7 +261,9 @@ Así que analizando un poco el código de la web encontramos lo siguiente:
 
 ![back](/assets/images/XSS/lab5/back.png)
 
-`<a id="backLink" href="/post">Back</a>`
+```js
+<a id="backLink" href="/post">Back</a>
+```
 
 Lo que hace esta linea de HTML, crea un enlace con el texto **Back**, que al darle click te redirijira a la ruta **/post** de la web, y este enlace tiene un identificador unico ID, el cual tiene como valor **backLink** para acceder a el.
 
@@ -267,7 +279,9 @@ $(function() {
 
 Y lo que esta sucediendo aqui es que con jquery, se esta seleccionando un elemento el cual tiene un identificdor unico ID con el valor de **backLink**, el cual ya habiamos visto antes, y vemos que se esta tomando el valor del parametro **returnPath**, y después esto se envia al atributo **href** del enlace, el cual es **backLink** y sabemos que este enlace te lleva a:
 
-`<a id="backLink" href="/post">Back</a>`
+```js
+<a id="backLink" href="/post">Back</a>
+```
 
 Así que si como atacantes podemos tener acceso a la entrada del parametro **returnPath** podriamos ingresar código malicioso y si no esta sanitizado entonces se interpretaria nuestro código malicioso.
 
@@ -343,7 +357,9 @@ Vemos en el código de la web que todos los titulos estan guardados entre las et
 
 Una vez tenga estos titulos guardados, lo que hace es usar la función **decodeURIComponent()**, la cual dentro de ella tiene los siguientes parametos:
 
-`decodeURIComponent(window.location.hash.slice(1))`
+```js
+decodeURIComponent(window.location.hash.slice(1))
+```
 
 Primeramente, lo que hace **window.location.hash**, es que filtra el valor que pusimos como parametro de busqueda pero este se devuelve con todo y el #.
 
@@ -373,7 +389,9 @@ Y me refiero a que al momento de recibir la entrada del usuario, no se esta apli
 
 En el código vemos la siguiente linea:
 
-`var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');`
+```js
+var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');
+```
 
 Como recordamos, la función **decodeURIComponent()** en este caso la usamos para filtrar el valor de busqueda pasado por medo de la URL, y lo obtenemos sin el # como ya lo sabemos.
 
@@ -397,7 +415,9 @@ La función que tiene la etiqueta **iframe** es que primero carga la web que est
 
 Cuando ya se termine de cargar la URL del iframe, entonces lo que sucederá es que el evento **onload** se ejecutará, y esto lo que hace es que agrega dinamicamente la linea:
 
-`<img src=x onerror=print()>`
+```js
+<img src=x onerror=print()>
+```
 
 Al final de la URL en el src del iframe, sabemos que esta pequeña linea lo que hace es cargar una imagen inexistente para después forzar un error y ejecutar en este caso la función print().
 
@@ -445,7 +465,9 @@ Y encontramos lo siguiente:
 
 ![html](/assets/images/XSS/lab7/html.png)
 
-`<input type="text" placeholder="Search the blog..." name="search" value="Prueba">`
+```js
+<input type="text" placeholder="Search the blog..." name="search" value="Prueba">
+```
 
 Podemos apreciar que en esta linea, cuando se recibe el valor de nuestra busqueda que en este caso se almacena en **value**, y vemos que no esta muy bien creada esta parte, ya que de no estar sanitizada la entrada de datos, podriamos llegar a inyectar código javascript y que el servidor lo interprete.
 
@@ -463,7 +485,9 @@ Ahora con lo anterior en cuenta, entonces ya sabemos lo que hará al meter el si
 
 ![mouse](/assets/images/XSS/lab7/mouse.png)
 
-`Prueba"onmouseover="alert(1)`
+```js
+Prueba"onmouseover="alert(1)
+```
 
 Lo que estamos haciendo en esto, es que primero, estamos poniendo el valor que recibira el atributo **value**, que en este caso es "Prueba", pero seguido de eso usamos unas comillas dobles, y esto es para poder cerrar el atributo **value**, y procedemos a escribir el nuevo atributo que como sabemos es **onmouseover** del cual ya sabemos su función, dandole como valor la función alert() de javascript, pero notamos que después de poner el = hay otras comillas dobles.
 
@@ -471,7 +495,9 @@ Y esto es para que tome la sintaxis de los atributos anteriores, y al final no p
 
 Así que en teoria por detras debería verse así:
 
-`<input type="text" placeholder="Search the blog..." name="search" value="Prueba" onmouseover="alert(1)">`
+```js
+<input type="text" placeholder="Search the blog..." name="search" value="Prueba" onmouseover="alert(1)">
+```
 
 > Aunque no hayamos dado un espacio para separar un atributo del otro no importa ya que automaticamente se agregan evitando errores.
 
@@ -531,7 +557,9 @@ Así que probaremos lo siguiente en un nuevo comentario:
 
 Podemos ver que en lugar de una web, hemos indicado que se ejecute la función **alert()** usando javscript:
 
-`javascript:alert(1)`
+```js
+javascript:alert(1)
+```
 
 Así que al comentar esto, veremos el nuevo comentario:
 
@@ -597,5 +625,149 @@ Vemos que ha funcionado, y al leer el código de la web:
 Podemos apreciar que sucedio lo que esperabamos, logramos salir del valor de la variable para después meter nuestro propio código y que no forme parte del texto ingresado, así que habremos terminado este laboratorio:
 
 ![end](/assets/images/XSS/lab9/end.png)
+
+<br>
+
+# Laboratorio 10: DOM XSS in document.write sink using source location.search inside a select element
+
+Nos dice que este laboratorio contiene una vulnerabilidad XSS en la función de verificar existencias de un producto.
+
+Nos dice también que utlilza la función **document.write** de javascript para escribir datos en la página.
+
+Y también que **document.write** maneja con datos que se sacan de **location.search** y saca valores de la petición que contiene parametros en la web, los cuales podemos manipular.
+
+Y como objetivo nos pide escapar del valor del parametro inyectando nuestro código javascript que en este caso es una alerta.
+
+<br>
+
+Así que primero vamos a la función de verificar existencias de un producto, y vemos lo siguiente:
+
+![funcion](/assets/images/XSS/lab10/funcion.png)
+
+
+Podemos apreciar que al darle a **Check Stock** nos muestra el resultado de la función, más no lo que hay por detras, así que para esto interceptaremos la petición al momento de darle a ese boton, y veremos los siguientes datos en la petición:
+
+
+![intercept](/assets/images/XSS/lab10/intercept.png)
+
+Podemos apreciar en la petición que esta vez es por metodo POST, por lo que no veremos directamente en la URL los parametros asignados, si no que ahora los vemos en la petición como vemos en la imagen, vemos que hasta abajo estan los parametros:
+
+`productId=1&storeId=London`
+
+Así que usando el inspector de elementos del navegador buscamos esos parametros y encontramos el primero que es **productId**:
+
+![pid](/assets/images/XSS/lab10/productid.png)
+
+Pero viendo su código no encontramos algo interesante, ya que no se usa para algo más ese parametro, ni se llama en alguna otra función así que pasaremos al siguiente.
+
+Y en el que encontramos algo interesante fue en el de **storeId**:
+
+![js](/assets/images/XSS/lab10/js.png)
+
+```js
+var stores = ["London","Paris","Milan"];
+var store = (new URLSearchParams(window.location.search)).get('storeId');
+document.write('<select name="storeId">');
+if(store) {
+  document.write('<option selected>'+store+'</option>');
+}
+for(var i=0;i<stores.length;i++) {
+  if(stores[i] === store) {
+      continue;
+  }
+  document.write('<option>'+stores[i]+'</option>');
+}
+document.write('</select>');
+```
+
+Lo que hace este código es lo siguiente:
+
+Primero crea un arreglo llamado **stores**, el cual contiene los valores "London", "Paris" y "Milan".
+
+Después en la segunda linea del código se esta creando una variable llamada **store**, la cual hace que obtengamos el valor del parametro **storeId**, por ejemplo si el valor del parametro **storeId** es "London", entonces la variable **store** valdra "London".
+
+En la tercerea linea usamos **document.write()** para empezar a escribir datos en el código de la web actual, y lo primero que escribimos es la etiqueta **"<select name="storeId">"**.
+
+Esto lo que hará es que primero la etiqueta **"<select>"** sirve para crear un menú desplegable en el cual los usuarios pueden elegir una opción y estas opciones se deben definir, y lo que esta dentro de esta etiqueta que es el **name** con el valor **"storeId"**, lo que esta haciendo aqui es que crea un nombre de control, y con nombre de control se refiere a crear un parametro por el cual cuando el usuario eliga su opción, entonces ese parametro **storeId** tomara el valor del elemento seleccionado del menú desplegable, y dejamos la etiqueta **"<select>"** sin cerrar para ir agregando opciones que el usuario pueda elegir en el menú desplegable.
+
+En la cuarta linea, estamos usando un if, para comprobar si el parametro **store** tiene contenido, y en caso de tenerlo, entra a el if.
+
+En la quinta linea se llama a otra función para escribir en el código de la web **document.write()**, y lo que escribimos es lo siguiente: `<option selected>'+store+'</option>` y lo que hace la etiqueta **<option>** es agregar una opción al menú desplegable, pero como estamos usando el atributo **selected** , esto quiere decir que el valor que le pasemos será el que se posicionara en primer lugar por defecto seleccionado en la web, y ese valor es **store**, el cual contiene el valor pasado por el parametro en la petición, y cerramos la opción con **</option>**.
+
+Y por último, lo que hace el resto del código es que crea un bucle for, el cual recorre cada valor del arreglo **stores**, y compara si el valor actual de **stores** es igual al valor pasado por el parametro **store**, y si es igual entonces se omite esta parte, pero en caso de que el valor actual de **stores** no sea igual al de **store** entonces este valor se agregará a la lista usando **document.write()** con el elemento actual a agregar, de esta manera evitamos duplicados en el menú desplegable.
+
+Y por último se cierra el menú desplegable.
+
+<br>
+
+Pero este código, no es tan seguro, ya que es vulnerable a XSS gracias a un **document.write()** mal configurado.
+
+En la siguiente linea del código:
+
+```js
+document.write('<option selected>'+store+'</option>');
+```
+
+Lo que sucede aquí, es que al momento de que se pasa el valor **store**, se está pasando directamente del parametro, sin antes validarlo para evitar ataques XSS, así que como no se esta sanitizando la entrada de dicho valor, entonces el atacante podría meter código malicioso, con la intencion de escapar de donde se esta agregado este valor, y agregar nuestro propio código malicioso.
+
+Como recordamos en el intercept, vimos que en la consulta se usan los 2 siguientes parametros:
+
+```js
+productId=1&storeId=London`
+```
+
+Como recordamos, al leer el código vemos que el parametro **storeId** es el potencial peligro, ya que tenemos acceso a la entrada de datos, y como recordamos que encontramos un error de sanitizacion en el código entonces podemos intentar lo siguiente.
+
+En el código de la web vemos lo siguiente:
+
+![list](/assets/images/XSS/lab10/list.png)
+
+Podemos ver que en esta parte se interpreto todo lo del script explicado anteriormente, pero podemos ver que en la linea:
+
+```js
+<select name="storeId">
+```
+
+Aquí es donde se usa el valor del parametro **storeId**, y lo que le hayamos pasado llegará aquí, así que nosotros en la URL agregaremos manualmente el valor del parametro **storeId**, para agregar manualmente el valor del **storeId** desde la URL, haremos lo siguiente:
+
+`https://0a94008f046e446783b94d3b004b00d6.web-security-academy.net/product?productId=1&storeId=Test`
+
+Vemos que usando el simbolo &, indicamos que hay otro parametro el cual es **storeId**, el cual le asignamos el valor **"Test"**.
+
+Y como recordamos en el código, lo que este en este parametro **storeId** será el valor que se pondrá como predeterminado, así que al tramitar esa URL vemos en la web lo siguiente:
+
+![test](/assets/images/XSS/lab10/test.png)
+
+Podemos apreciar que en la lista desplegable de abajo, el valor que indicamos en el parametro **storeId** es el que se puso por defecto, dejando a las demas opciones debajo de ellas por si el usuario quiere elegirlas.
+
+Así que de esta forma, sabemos que podemos meter datos ahí, y en este caso en lugar de meter un texto, meteremos código javascript malicioso:
+
+`https://0a94008f046e446783b94d3b004b00d6.web-security-academy.net/product?productId=1&storeId="></select><img src=noexiste onerror=alert(1)>`
+
+De esta forma, primero usamos **">** para escapar del valor de nombre por defecto, de esta forma se cierra el texto y la etiqueta **<option>**.
+
+Después usamos **</select>** para cerrar la etiqueta que permite crear un menú desplegable, y una vez cerrado y estamos libres de etiquetas, entonces solo queda provocar la invocacion del código usando **<img src=noexiste onerror=alert(1)>**que como ya sabemos, de esta forma podemos llamar a una imagen que no existe para pasar directo a la ejecución en caso de error y que se ejecute lo que deseamos, en este caso una alerta.
+
+Y al ejecutar esto:
+
+![alert](/assets/images/XSS/lab10/alert.png)
+
+Podemos ver que ha funcionado!
+
+Y podemos ver nuevamente en el código de la web para entender un poco mejor lo que sucedio:
+
+![code](/assets/images/XSS/lab10/code.png)
+
+Primero, podemos ver que en el código, después de que se paso de la función de javascript que explicamos, vemos que llega aqui nuestro valor que definimos en el parametro **storeId**, que en este caso fue la inyección de código anterior.
+
+Primero lo que sucedio como vemos en la linea que esta marcada en azul en la imagen anterior, es que usamos **">** para escapar de ese valor que como recordamos ahí se define el valor por defecto del menú desplegable dependiendo del valor que pongamos en el parametro **storeId** lo pondrá.
+
+Y como escapamos de eso, lo que hicimos fue usar **</select>**, que como ya sabemos fue para escapar del menú desplegable, y ahora que no estamos dentro de etiquetas lo que haremos es meter nuestro código que ya sabemos es **<img src=noexiste onerror=alert(1)>**.
+
+> Si te confunde el formato tal vez sea porque esto se ordena automaticamente en este formato de código como se ve en la imagen pero la lógica no cambia ya que solo se ordena automaticamente.
+
+Y habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab10/end.png)
 
 <br>
