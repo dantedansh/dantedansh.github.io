@@ -762,7 +762,7 @@ Primero, podemos ver que en el código, después de que se paso de la función d
 
 Primero lo que sucedio como vemos en la linea que esta marcada en azul en la imagen anterior, es que usamos **">** para escapar de ese valor que como recordamos ahí se define el valor por defecto del menú desplegable dependiendo del valor que pongamos en el parametro **storeId** lo pondrá.
 
-Y como escapamos de eso, lo que hicimos fue usar **</select>**, que como ya sabemos fue para escapar del menú desplegable, y ahora que no estamos dentro de etiquetas lo que haremos es meter nuestro código que ya sabemos es `<img src=noexiste onerror=alert(1)>`.
+Y como escapamos de eso, lo que hicimos fue usar `</select>`, que como ya sabemos fue para escapar del menú desplegable, y ahora que no estamos dentro de etiquetas lo que haremos es meter nuestro código que ya sabemos es `<img src=noexiste onerror=alert(1)>`.
 
 > Si te confunde el formato tal vez sea porque esto se ordena automaticamente en este formato de código como se ve en la imagen pero la lógica no cambia ya que solo se ordena automaticamente.
 
@@ -772,3 +772,52 @@ Y habremos terminado este laboratorio:
 
 <br>
 
+En este siguiente laboratorio, nos piden lo siguiente:
+
+![lab11](/assets/images/XSS/lab11/lab11.png)
+
+Nos dice que existe un XSS basado en DOM en una expresión de AngularJS dentro de la función de busqueda.
+
+AngularJS es un framework de javascript, que nos sirve para crear paginas web de una forma mas organizada y estructurada.
+
+Se invoca en el código haciendo uso del atributo **ng-app** que veremos más adelante en el código, esto nos permite empezar la aplicación angularJS en la web, esta app nos sirve para muchas cosas, entre ellas agregar comportamientos especificos a los elementos y manipular el DOM de una manera mas sencilla y dinamica.
+
+Para usar expresiones de javascript dentro de AngularJS se usan las llaves **{{}}** donde dentro va el código javascript, ya sea para hacer una funcion de la web o depende de lo que el desarrollador haya hecho en la web.
+
+Pero si se tiene entrada de datos dentro de **ng-app** puede ser peligroso, ya que podría interpretarse lo que se le inyecte si la entrada no esta bien sanitizada, pero esto lo veremos a continuación.
+
+Primero entraremos a la web y vemos lo siguiente:
+
+![blog](/assets/images/XSS/lab11/blog.png)
+
+sabemos que la vulnerabilildad XSS se encuentra en la función de busqueda, así que realizaremos una busqueda en este caso **"Prueba"** y veremos en el código de la web donde termina este dato ingresado:
+
+![prueba](/assets/images/XSS/lab11/prueba.png)
+
+Podemos apreciar que el valor de entrada, en este caso **"Prueba"** se encuentra dentro de unas etiquetas HTML `<h1>`, pero si vemos bien, en el inicio de esto se encuentra el atributo **ng-app**, que como recordamos, cuando se usaba esto, significaba el inicio de una app angularJS, que como sabemos esto nos sirve para hacer multiples funciones en la web.
+
+Podemos ver que el valor de entrada de datos se encuentra dentro de esta app, así que si la entrada no esta sanitizada, como estamos dentro de **ng-app** entonces podemos intentar meter datos que angularJS nos pueda interpretar.
+
+<br>
+
+Y sabemos esto, ya que al ver la entrada de datos:
+
+`<h1>0 search results for 'Prueba'</h1>`
+
+Podemos ver que el valor **"Prueba"** se toma directamente de la entrada de datos, sin sanitizar o filtrar la entrada de datos para evitar ataques, entonces esto es vulnerable a XSS basado en DOM.
+
+Así que una entrada para intentar inyectar una alerta, es lo siguiente:
+
+`{{$on.constructor('alert(1)')()}}`
+
+Lo que hace esto, es que primero usa **{{ }}** para indicar que lo que habra dentro sera ejecutado con angularJS, después usa **$on** para tener acceso a los eventos desde angular JS, y la propiedad a la que accederemos es al **.constructor**, que ahora teniendo la cadena **"alert(1)"** y los **()** extras del final sirve para que lo anterior se ejecute, entonces esto se pondrá dentro del constructor de  **$on**, ya que usamos el constructor anterior para lograr interpretar nuestro código inyectado, haciendo que al interpretarse nos ejecute la función alert(1). en pocas palabras creamos una instancia dentro de $on para que este nos lo interprete.
+
+Así que al meter el siguiente código veremos lo que la alerta se ejecuta:
+
+![alerta](/assets/images/XSS/lab11/alert.png)
+
+Así que nuestro código se inyecto correctamente, gracias a que la entrada de datos se encontraba dentro de la app de angularJS, y esta entrada no estaba sanitizada para evitar inyecciones de código.
+
+Así que habremos terminado con este laboratorio:
+
+![end](/assets/images/XSS/lab11/end.png)
