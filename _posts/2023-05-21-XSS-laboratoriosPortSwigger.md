@@ -978,7 +978,7 @@ if (this.readyState == 4 && this.status == 200) {
 ```
 > Esto sigue siendo parte de la la función search(path).
 
-Lo que hace en caso de que el estado de solicitud cambia, es que primero comprueba que **readyState** sea igual a 4.
+Lo que hace en caso de que el estado de solicitud cambie, es que primero comprueba que **readyState** sea igual a 4.
 Y esto porque?
 
 Esto es porque la propiedad **readyState** que sacamos de la referencia de **xhr** esta dentro de esa referencia, y para lo que nos sirve es para lo siguiente:
@@ -986,9 +986,13 @@ Esto es porque la propiedad **readyState** que sacamos de la referencia de **xhr
 **readyState** tiene diferentes valores:
 
 0 (UNSENT): La solicitud no ha sido inicializada.
+
 1 (OPENED): La solicitud ha sido configurada.
+
 2 (HEADERS_RECEIVED): Se han recibido los encabezados de respuesta.
+
 3 (LOADING): La respuesta está en proceso de carga (en transición).
+
 4 (DONE): La solicitud se ha completado y la respuesta está lista.
 
 Así que por eso verifica si es igual a 4, ya que quiere saber si la solicitud esta completa y la respuesta esta lista.
@@ -1065,21 +1069,19 @@ Así que ahora en lugar de meter esa entrada, meteremos un valor, pero como vemo
 
 En el código por detras vemos que hay comillas dobles encerrando la entrada de datos, por lo que intentaremos escapar de esto, para ello meteremos la siguiente entrada: 
 
-**Prueba"-alert(1)**
+`Prueba"-alert(1)`
 
-Que lo que hará esta entrada de datos es escapar de las comillas dobles que definen el valor de **searchTerm**, así que al meter este valor desde la función del buscador de la web y ver la respuesta actualizada veremos lo siguiente:
+Que lo que hará esta entrada de datos es escapar de las comillas dobles que definen el valor de **searchTerm**, Y el signo de menos es para separar los valores y como este no se url-encodea es el mejor para estos casos y evitar errores, así que al meter este valor desde la función del buscador de la web y ver la respuesta actualizada veremos lo siguiente:
 
 ![string](/assets/images/XSS/lab12/string.png)
 
 `{"results":[],"searchTerm":"Prueba\"-alert(1)"}`
 
-Podemos apreciar que aún no hemos escapado , ya que al ingresar unas comillas dobles, automaticamente se agrega una barra invertida `\` y como sabemos, en programación esto hace que un caracter no tenga una función especial y solo se pase como texto sin ejecutar algo.
+Podemos apreciar en la respuesta del objeto JSON, que aún no hemos escapado del valor **searchTerm**, ya que al ingresar unas comillas dobles, automaticamente se agrega una barra invertida `\` y como sabemos, en programación esto hace que un caracter no tenga una función especial y solo se pase como texto sin ejecutar algo, también notamos que se sigue tomando como texto y parte de la declaracion gracias a que en el códigod de la imagen se ve verde que esto es texto en la sintaxis.
 
 Entonces nosotros agregaremos una barra invertida para invalidar esa barra invertida y poder escapar, por lo que nuestra entrada quedaría así: 
 
-**Prueba\"-alert(1)**
-
-> El signo de menos es para separar los valores y como este no se url-encodea es el mejor para estos casos y evitar errores.
+`Prueba\"-alert(1)`
 
 Y al ver la respuesta:
 
@@ -1089,13 +1091,13 @@ Y al ver la respuesta:
 
 Como podemos ver, esto ha cambiado de color, ya que nos leyo la sintaxis y ya no es texto, vemos que la función alert inyectada ya no se ve como texto, si no que ya esta escapando del valor de **searchTerm** para agregar lo que indicamos y ya se toma como función.
 
-Pero esto no funciona ya que como vemos al final se recorrieron los valores **"}** por lo que hay que comentar esta parte para evitar errores de sintaxis.
+Pero esto no funciona ya que como vemos al final se recorrieron los valores **"}** hasta el final por lo que hay que comentar esta parte para evitar errores de sintaxis.
 
 Así que nuestro código inyectado final es:
 
 `{"results":[],"searchTerm":"Prueba\\"-alert(1)}//"}`
 
-Vemos que agregamos `}` al final de la función alert, y esto es para cerrar el valor que estamos manipulando, y tambien al final agregamos `//` esto es para comentar lo que hay después de nuestra función y evitar errores de sintaxis. así que por eso antes usamos el `}` ya que el que estaba por defecto termino comentado y lo cerramos manualmente nosotros al igual que las comillas dobles para escapar y cerrar el valor del texto.
+Vemos que agregamos `}` al final de la función alert, y esto es para cerrar el valor del objeto JSON que estamos manipulando, y tambien al final agregamos `//` esto es para comentar lo que hay después de nuestra función y evitar errores de sintaxis. así que por eso antes usamos el `}` ya que el que estaba por defecto termino comentado y lo cerramos manualmente nosotros al igual que las comillas dobles para escapar y cerrar el valor del texto.
 
 Una vez ejecutemos esto en la web:
 
@@ -1114,4 +1116,3 @@ Y en resumen, este ataque fue posible gracias a que **eval()** recibe este recur
 ![end](/assets/images/XSS/lab12/end.png)
 
 <br>
-
