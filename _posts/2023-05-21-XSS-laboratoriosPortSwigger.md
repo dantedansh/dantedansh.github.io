@@ -1,6 +1,6 @@
 ---
 layout: single
-title: XSS - ¿Qué es y como se explota?
+title: XSS - Laboratorios de PortSwigger
 excerpt: "Como se acontece una vulnerabilidad XSS, tipos y laboratorios de PortSwigger."
 date: 2023-05-21
 classes: wide
@@ -772,6 +772,8 @@ Y habremos terminado este laboratorio:
 
 <br>
 
+# Laboratorio 11: DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
+
 En este siguiente laboratorio, nos piden lo siguiente:
 
 ![lab11](/assets/images/XSS/lab11/lab11.png)
@@ -821,3 +823,295 @@ Así que nuestro código se inyecto correctamente, gracias a que la entrada de d
 Así que habremos terminado con este laboratorio:
 
 ![end](/assets/images/XSS/lab11/end.png)
+
+<br>
+
+# Laboratorio 12: Reflected DOM XSS
+
+En este laboratorio nos piden realizar lo siguiente:
+
+![lab12](/assets/images/XSS/lab12/lab12.png)
+
+Nos dice que existe una vulnerabilidad XSS basada en DOM Reflected(reflejada), nos dice lo que es un XSS basado en DOM reflejado que basicamente es cuando los datos de una petición web es realizada y los procesa en el lado del servidor y después lo regresa en algun valor de la web.
+
+Un script mal creado procesa estos datos de respuesta y los escribe en un punto peligroso donde puede tener el control el atacante.
+
+Y que para resolverlo debemos llamar a la función **alert(1)**.
+
+<br>
+
+Esta vez usaremos BurpSuite, para poder manipular peticiones web.
+
+Una vez en el laboratorio con el navegador ya configurado para interceptar con burpsuite veremos lo siguiente:
+
+![blog](/assets/images/XSS/lab12/blog.png)
+
+Vemos el siguiente blog, esta vez no nos dicen en que parte esta el XSS, así que empezaremos con la función de busqueda, buscaremos por ejemplo **"Prueba"**, y veremos:
+
+![codigo](/assets/images/XSS/lab12/codigo.png)
+
+Vemos multiples cosas llamativas en el código, por ejemplo que se esta cargando un archivo javascript de la ruta **"/resources/js/searchResults.js"**, y también que se esta llamando a la función **search()** con un valor pasado.
+
+Y debajo en la etiqueta `<h1>` vemos el valor reflejado que hemos ingresado.
+
+Así que como dije, usaremos BurpSuite, interceptaremos la petición donde buscamos **"Prueba"**:
+
+![peticion](/assets/images/XSS/lab12/peticion.png)
+
+Vemos la petición, daremos en **Forward** para que se tramite.
+
+Como carga 2 recursos más tenemos que darle 2 veces para que cargue esos recursos.
+
+Ahora vamos a la pestaña **target**, y seleccionamos la petición que se tramito:
+
+![web](/assets/images/XSS/lab12/web.png)
+
+Y ahora desplegamos el contenido que hay en esta petición dando click en la flechita:
+
+![opciones](/assets/images/XSS/lab12/opciones.png)
+
+Buscamos el recurso **resources>js>searchResult.js**, y podemos leer un código que se necesita para el funcionamiento de la función de busqueda de la web:
+
+![searchresults](/assets/images/XSS/lab12/searchresults.png)
+
+El código es el siguiente:
+
+```js
+function search(path) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            eval('var searchResultsObj = ' + this.responseText);
+            displaySearchResults(searchResultsObj);
+        }
+    };
+    xhr.open("GET", path + window.location.search);
+    xhr.send();
+
+    function displaySearchResults(searchResultsObj) {
+        var blogHeader = document.getElementsByClassName("blog-header")[0];
+        var blogList = document.getElementsByClassName("blog-list")[0];
+        var searchTerm = searchResultsObj.searchTerm
+        var searchResults = searchResultsObj.results
+
+        var h1 = document.createElement("h1");
+        h1.innerText = searchResults.length + " search results for '" + searchTerm + "'";
+        blogHeader.appendChild(h1);
+        var hr = document.createElement("hr");
+        blogHeader.appendChild(hr)
+
+        for (var i = 0; i < searchResults.length; ++i)
+        {
+            var searchResult = searchResults[i];
+            if (searchResult.id) {
+                var blogLink = document.createElement("a");
+                blogLink.setAttribute("href", "/post?postId=" + searchResult.id);
+
+                if (searchResult.headerImage) {
+                    var headerImage = document.createElement("img");
+                    headerImage.setAttribute("src", "/image/" + searchResult.headerImage);
+                    blogLink.appendChild(headerImage);
+                }
+
+                blogList.appendChild(blogLink);
+            }
+
+            blogList.innerHTML += "<br/>";
+
+            if (searchResult.title) {
+                var title = document.createElement("h2");
+                title.innerText = searchResult.title;
+                blogList.appendChild(title);
+            }
+
+            if (searchResult.summary) {
+                var summary = document.createElement("p");
+                summary.innerText = searchResult.summary;
+                blogList.appendChild(summary);
+            }
+
+            if (searchResult.id) {
+                var viewPostButton = document.createElement("a");
+                viewPostButton.setAttribute("class", "button is-small");
+                viewPostButton.setAttribute("href", "/post?postId=" + searchResult.id);
+                viewPostButton.innerText = "View post";
+            }
+        }
+
+        var linkback = document.createElement("div");
+        linkback.setAttribute("class", "is-linkback");
+        var backToBlog = document.createElement("a");
+        backToBlog.setAttribute("href", "/");
+        backToBlog.innerText = "Back to Blog";
+        linkback.appendChild(backToBlog);
+        blogList.appendChild(linkback);
+    }
+}
+```
+
+Pero lo que nos interesa es la primera parte del código:
+
+```js
+function search(path) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            eval('var searchResultsObj = ' + this.responseText);
+            displaySearchResults(searchResultsObj);
+        }
+    };
+    xhr.open("GET", path + window.location.search);
+    xhr.send();
+```
+
+Primero se esta creando la función **search()** que recibe como parametro **path**, este valor es el que pasamos a la función de busqueda.
+
+Después en la linea 2 creamos una nueva instancia del objeto **XMLHttpRequest**, y lo que hace este objeto es permitirnos realizar peticiones HTTP al servidor web, y a lo que me refiero con instancia, vemos que en esa linea nos queda así: `var xhr = new XMLHttpRequest();` lo que hace la variable **xhr** es obtener una referencia del objeto **XMLHttpRequest**, así que cada que usemos **xhr** es como si estuviesemos usando lo que hace el objeto **XMLHttpRequest**.
+
+En la linea 3: `xhr.onreadystatechange = function()` lo que sucede en esta parte es que con **xhr.onreadystatechange** y esto es un controlador de eventos, lo que hace es que primero usa **xhr**, que como sabemos es una referencia de **XMLHttpRequest**, y esto lo que hace es que ejecuta algo cada vez que el estado de la solicitud cambia, y en caso de ser así, entonces lo que ejecutara es al valor que se le esta dando, en este caso es este código:
+
+```js
+if (this.readyState == 4 && this.status == 200) {
+            eval('var searchResultsObj = ' + this.responseText);
+            displaySearchResults(searchResultsObj);
+        }
+```
+> Esto sigue siendo parte de la la función search(path).
+
+Lo que hace en caso de que el estado de solicitud cambia, es que primero comprueba que **readyState** sea igual a 4.
+Y esto porque?
+
+Esto es porque la propiedad **readyState** que sacamos de la referencia de **xhr** esta dentro de esa referencia, y para lo que nos sirve es para lo siguiente:
+
+**readyState** tiene diferentes valores:
+
+0 (UNSENT): La solicitud no ha sido inicializada.
+1 (OPENED): La solicitud ha sido configurada.
+2 (HEADERS_RECEIVED): Se han recibido los encabezados de respuesta.
+3 (LOADING): La respuesta está en proceso de carga (en transición).
+4 (DONE): La solicitud se ha completado y la respuesta está lista.
+
+Así que por eso verifica si es igual a 4, ya que quiere saber si la solicitud esta completa y la respuesta esta lista.
+
+Pero como vemos de nuevo:
+
+`if (this.readyState == 4 && this.status == 200) {`
+
+Vemos que no solo comprueba que este lista, si no que tambien verifica el estado de respuesta del servidor es 200, que como sabemos significa que la consulta se realizo correctamente, entonces en caso de que abmas condiciones se cumplan, entonces se ejecutará lo siguiente que es:
+
+```js
+eval('var searchResultsObj = ' + this.responseText);
+displaySearchResults(searchResultsObj);
+```
+Y aquí es la parte interesante, vemos que usa la función **eval()**, lo que hace esta función es que recibe un parametro, y ese parametro debe estar en formato de texto para poder ser interpretado como javascript, en este caso ese parametro es el que estamos guardando en la variable **searchResutlsObj**, si miramos bien, la manera en que guardamos ese valor es que concatenamos la entrada de datos del usuario que se concatena a la cadena anterior llamando a **this.responseText** recuerda que el valor de **this.responseText** lo obtenemos gracias a la petición anterior cuando usamos **XMLHttpRequest** pero en este caso estamos tomando el valor en formato de texto y que este valor de texto puede ser en formato JSON.
+
+Por ejemplo, supongamos que el valor de **this.responseText** es la cadena de texto **{"nombre" : "dansh, "edad" : 18}** entonces el eval quedaría así:
+
+eval('var searchResultsObj = {"nombre" : "dansh, "edad" : 18}');
+
+Ya que obtuvo el valor que se paso como respuesta de la petición que hicimos anteriroemnte con **XMLHttpRequest** pero en formato de texto JSON.
+
+Así que una vez este la cadena de texto, lo que sucederá es que el **eval()** nos va a interpretar como código javascript lo que se le paso como parametro, en este caso sabemos que es la variable **searchResultsObj** que contiene el valor que recibimos de **XMLHttpRequest** como respuesta en formato de texto JSON.
+
+Esto es un riesgo de ataque XSS por lo que se recomienda no usar **eval()** y en su lugar usar **JSON.parse()**.
+
+Y por último se usa:
+
+```js
+displaySearchResults(searchResultsObj);
+```
+
+Que lo que hace esta función es tomar los resultados para posteriormente mostrarlos en la página web y el resto del código que quedo es esta funcion, la cual nos muestran los datos en pantalla pero como no es tan importante en este caso no explicamos eso.
+
+Y luego se ejecuta la linea:
+
+```js
+xhr.open("GET", path + window.location.search);
+```
+
+Y lo que esto hace es que primero usa **xhr.open** que lo que nos sirve esto es para configurar una solicitud HTTP.
+
+La cual decimos que se tramite por el metodo **GET**, y a la URL donde se hará esta peticion es el valor de **path** el cual es la URL actual, y concatenado con **window.location.search**, que el valor de esto son los parametros pasados por la URL, quedando por ejemplo: **https://prueba.com/search?=hola** donde hola sería la parte concatenada. 
+
+Y por ultimo tramitamos esta petición:
+
+```js
+xhr.send();
+```
+
+<br>
+
+Y como sabemos existe este riesgo que dijimos al usar **eval()**, aprovecharemos esto para inyectar código malicioso.
+
+Volviendo a la petición interceptada, en la pestaña de **target>sitemap** , y vamos al siguiente recurso:
+
+![result](/assets/images/XSS/lab12/result.png)
+
+```js
+{"results":[],"searchTerm":"Prueba"}
+```
+
+Como podemos ver, nos esta devolviendo los resultados de la busqueda que hemos hecho, y como recordamos estos resultados los toma **eval()** para posteriormente interpretar el texto como javascript.
+
+Vemos que esta nuestra entrada la cual es **Prueba**.
+
+Así que ahora en lugar de meter esa entrada, meteremos un valor, pero como vemos en la respuesta:
+
+![short](/assets/images/XSS/lab12/short.png)
+
+```js
+{"results":[],"searchTerm":"Prueba"}
+```
+
+En el código por detras vemos que hay comillas dobles encerrando la entrada de datos, por lo que intentaremos escapar de esto, para ello meteremos la siguiente entrada: 
+
+**Prueba"-alert(1)**
+
+Que lo que hará esta entrada de datos es escapar de las comillas dobles que definen el valor de **searchTerm**, así que al meter este valor desde la función del buscador de la web y ver la respuesta actualizada veremos lo siguiente:
+
+![string](/assets/images/XSS/lab12/string.png)
+
+`{"results":[],"searchTerm":"Prueba\"-alert(1)"}`
+
+Podemos apreciar que aún no hemos escapado , ya que al ingresar unas comillas dobles, automaticamente se agrega una barra invertida `\` y como sabemos, en programación esto hace que un caracter no tenga una función especial y solo se pase como texto sin ejecutar algo.
+
+Entonces nosotros agregaremos una barra invertida para invalidar esa barra invertida y poder escapar, por lo que nuestra entrada quedaría así: 
+
+**Prueba\"-alert(1)**
+
+> El signo de menos es para separar los valores y como este no se url-encodea es el mejor para estos casos y evitar errores.
+
+Y al ver la respuesta:
+
+![esc](/assets/images/XSS/lab12/escape.png)
+
+`{"results":[],"searchTerm":"Prueba\\"-alert(1)"}`
+
+Como podemos ver, esto ha cambiado de color, ya que nos leyo la sintaxis y ya no es texto, vemos que la función alert inyectada ya no se ve como texto, si no que ya esta escapando del valor de **searchTerm** para agregar lo que indicamos y ya se toma como función.
+
+Pero esto no funciona ya que como vemos al final se recorrieron los valores **"}** por lo que hay que comentar esta parte para evitar errores de sintaxis.
+
+Así que nuestro código inyectado final es:
+
+`{"results":[],"searchTerm":"Prueba\\"-alert(1)}//"}`
+
+Vemos que agregamos `}` al final de la función alert, y esto es para cerrar el valor que estamos manipulando, y tambien al final agregamos `//` esto es para comentar lo que hay después de nuestra función y evitar errores de sintaxis. así que por eso antes usamos el `}` ya que el que estaba por defecto termino comentado y lo cerramos manualmente nosotros al igual que las comillas dobles para escapar y cerrar el valor del texto.
+
+Una vez ejecutemos esto en la web:
+
+![alert](/assets/images/XSS/lab12/alert.png)
+
+Vemos que se ejecuta la alerta, por lo que ya estariamos completando este laboratoro.
+
+Si vemos bien en la respuesta de BurpSuite, veremos que ahora si la sintaxis esta correcta:
+
+![sintaxis](/assets/images/XSS/lab12/sintaxis.png)
+
+`{"results":[],"searchTerm":"Prueba\\"-alert(1)}//"}`
+
+Y en resumen, este ataque fue posible gracias a que **eval()** recibe este recurso de entrada al cual tenemos entrada de datos que podemos manipular y escamamos para inyectar nuestro código malicioso.
+
+![end](/assets/images/XSS/lab12/end.png)
+
+<br>
+
