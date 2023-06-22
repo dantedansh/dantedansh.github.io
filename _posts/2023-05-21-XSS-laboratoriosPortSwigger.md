@@ -1116,3 +1116,240 @@ Y en resumen, este ataque fue posible gracias a que **eval()** recibe este recur
 ![end](/assets/images/XSS/lab12/end.png)
 
 <br>
+
+# Laboratorio 13: Stored DOM XSS
+
+En este laboratorio, nos dicen lo siguiente:
+
+![lab13](/assets/images/XSS/lab13/lab13.png)
+
+Nos dice que existe una vulnerabilidad XSS stored(almacenada) basada en XSS en la sección de comentarios, y que para resolver este laboratorio debemos llamar a la función **alert(1)**.
+
+Al entrar al laboratorio y dirigirnos a la sección de comentarios vemos lo siguiente:
+
+![comentario](/assets/images/XSS/lab13/comentario.png)
+
+Tenemos esta sección para agregar comentarios, agregaremos uno para ver a donde llega los datos ingresados:
+
+![lleno](/assets/images/XSS/lab13/lleno.png)
+
+Y al comentar esto, lo veremos en la web:
+
+![coment](/assets/images/XSS/lab13/coment.png)
+
+Ahora buscaremos "Prueba" que es lo que comentamos en el código de la web para ver que encontramos.
+
+![code](/assets/images/XSS/lab13/code.png)
+
+Vemos que se esta usando un recurso llamado **loadCommentsWithVulnerableEscapeHtml.js**, para leer este código usaremos BurpSuite, ya que con esta herramienta se nos hará más comodo leer el código y las peticiones.
+
+Pasamos a BurpSuite y obviamente en el navegador configurado con el proxy de burpsuite para interceptar peticiones hacemos la peticion de la seccion de comentarios y nos dirigimos a la pestaña de **target>siteMap**, y encontraremos la petición que ha pasado por el proxy de burpsuite:
+
+![burp](/assets/images/XSS/lab13/burp.png)
+
+Desplegamos la lista de recursos que cargo la web para buscar el código que encontramos anteriormente llamado **loadCommentsWithVulnerableEscapeHtml.js**:
+
+![js](/assets/images/XSS/lab13/js.png)
+
+El código es el siguiente:
+
+```js
+function loadComments(postCommentPath) {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            let comments = JSON.parse(this.responseText);
+            displayComments(comments);
+        }
+    };
+    xhr.open("GET", postCommentPath + window.location.search);
+    xhr.send();
+
+    function escapeHTML(html) {
+        return html.replace('<', '&lt;').replace('>', '&gt;');
+    }
+
+    function displayComments(comments) {
+        let userComments = document.getElementById("user-comments");
+
+        for (let i = 0; i < comments.length; ++i)
+        {
+            comment = comments[i];
+            let commentSection = document.createElement("section");
+            commentSection.setAttribute("class", "comment");
+
+            let firstPElement = document.createElement("p");
+
+            let avatarImgElement = document.createElement("img");
+            avatarImgElement.setAttribute("class", "avatar");
+            avatarImgElement.setAttribute("src", comment.avatar ? escapeHTML(comment.avatar) : "/resources/images/avatarDefault.svg");
+
+            if (comment.author) {
+                if (comment.website) {
+                    let websiteElement = document.createElement("a");
+                    websiteElement.setAttribute("id", "author");
+                    websiteElement.setAttribute("href", comment.website);
+                    firstPElement.appendChild(websiteElement)
+                }
+
+                let newInnerHtml = firstPElement.innerHTML + escapeHTML(comment.author)
+                firstPElement.innerHTML = newInnerHtml
+            }
+
+            if (comment.date) {
+                let dateObj = new Date(comment.date)
+                let month = '' + (dateObj.getMonth() + 1);
+                let day = '' + dateObj.getDate();
+                let year = dateObj.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                dateStr = [day, month, year].join('-');
+
+                let newInnerHtml = firstPElement.innerHTML + " | " + dateStr
+                firstPElement.innerHTML = newInnerHtml
+            }
+
+            firstPElement.appendChild(avatarImgElement);
+
+            commentSection.appendChild(firstPElement);
+
+            if (comment.body) {
+                let commentBodyPElement = document.createElement("p");
+                commentBodyPElement.innerHTML = escapeHTML(comment.body);
+
+                commentSection.appendChild(commentBodyPElement);
+            }
+            commentSection.appendChild(document.createElement("p"));
+
+            userComments.appendChild(commentSection);
+        }
+    }
+};
+```
+
+Pero hay 2 partes que nos interesan ya que llamo nuestra atención algo que explicare ahora, la primera es la siguiente:
+
+```js
+function loadComments(postCommentPath) {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            let comments = JSON.parse(this.responseText);
+            displayComments(comments);
+        }
+    };
+    xhr.open("GET", postCommentPath + window.location.search);
+    xhr.send();
+```
+En la primera linea se esta creando una función llamada **loadComments()** la cual recibe como parametro **postCommentPath**, y este parametro contiene la ruta donde se encuentra el apartado de comentarios de la página web.
+
+Después en la segunda linea hace algo similar a lo que vimos en el laboratorio anterior, crea una instancia llamada **xhr** la cual hace referencia a **XMLHttpRequest** que si recordamos, sabremos que nos sirve para realizar peticiones HTTP.
+
+En la tercera linea igualmente si recordamos en el código anterior, sabremos que **xhr.onreadystatechange** esta usando el manejador de eventos, que como recordamos, este funciona para que cuando haya algún cambio en el estado de la solicitud, entonces se ejecutará lo indicado, que en este caso es lo siguiente:
+
+```js
+function() {
+        if (this.readyState == 4 && this.status == 200) {
+            let comments = JSON.parse(this.responseText);
+            displayComments(comments);
+        }
+```
+Si recordamos bien, sabemos que es lo que esta sucediendo en el if, ya que en el post anterior dice, pero si no recuerdas, entonces lo que hace en caso de que el estado de solicitud cambie, es que primero comprueba que **readyState** sea igual a 4.
+¿Y esto porque?
+
+Esto es porque la propiedad **readyState** que sacamos de la referencia de **xhr** esta dentro de esa referencia, y para lo que nos sirve es para lo siguiente:
+
+**readyState** tiene diferentes valores:
+
+0 (UNSENT): La solicitud no ha sido inicializada.
+
+1 (OPENED): La solicitud ha sido configurada.
+
+2 (HEADERS_RECEIVED): Se han recibido los encabezados de respuesta.
+
+3 (LOADING): La respuesta está en proceso de carga (en transición).
+
+4 (DONE): La solicitud se ha completado y la respuesta está lista.
+
+Así que por eso verifica si es igual a 4, ya que quiere saber si la solicitud esta completa y la respuesta esta lista.
+
+Pero como vemos de nuevo:
+
+`if (this.readyState == 4 && this.status == 200) {`
+
+Vemos que no solo comprueba que este lista, si no que tambien verifica el estado de respuesta del servidor es 200, que como sabemos significa que la consulta se realizo correctamente.
+
+<br>
+
+Entonces en caso de que abmas condiciones se cumplan, entonces se ejecutará lo siguiente que es:
+
+```js
+let comments = JSON.parse(this.responseText);
+```
+
+Ahora lo que sucede es que dentro de la variable **comments**, se guarda la respuesta recibida que son los comentarios, pero esta vez se esta usando **JSON.parse()** en lugar de **eval()**, por lo que ahora si se corrigio el fallo de seguridad del laboratorio anterior y guardamos en formato JSON la respuesta.
+
+Y por último se usa:
+
+```js
+displayComments(comments);
+```
+
+Que lo que hace esto es simplemente mostrar los comentarios en lá página web, agregar un elemento a cada comentario dentro del apartado **user-comments** que es la sección HTML donde se alojan los comentarios , etc, y esta funcion **displayComments()** es la parte que no nos interesa deĺ código ya que no es relevante ya que solo funciona para mostrar los comentarios en la web.
+
+<br>
+
+Después de explicar lo anterior, sigue de ejecutarse las siguientes instrucciones del código:
+
+```js
+xhr.open("GET", postCommentPath + window.location.search);
+xhr.send();
+```
+
+Lo primero es que usando la instancia **xhr** usando **.open** configuramos una petición GET, y a la URL que se hará esta peticion es a la URL actual, y se le concatena la ruta donde recide la sección de comentarios.
+
+Y finalmente usando **xhr.send()** tramitamos la petición configurada anteriormente.
+
+<br>
+
+Como dije que eran 2 partes las que llamaron nuestra atención esta es la segunda:
+
+```js
+    function escapeHTML(html) {
+        return html.replace('<', '&lt;').replace('>', '&gt;');
+    }
+```
+
+Así que primero esta función recibe el valor string **html** que este valor debe contener los comentarios que se dan como entrada, y lo primero que hace es usar **return**, para devolver el valor de **html**, pero lo devolvera modificado, ya que primero usará la función **replace()** que lo que va a cambiar son los caracteres **<** y **>** por sus valores de entidades HTML, las cuales son **&lt** y **&gt**, esto se hace con el fin de que si en la entrada del comentario estan estos 2 caracteres, no se interpreten como código, y no pueda haber un XSS en teoria.
+
+Pero aquí hay un gran fallo, ya que cuando se usa la función **replace()** esta solo esta filtrando los primeros valores de esos caracteres que se ingresen, pero no los que siguen.
+
+Así que si usamos algun comentario como entrada de datos como esto:
+
+**<><img src=noexiste onerror=alert(1)>**
+
+Entonces lo que pasara es que la función tomara los primeros **<>** y estos si los filtrara, pero como la función solo recibe un valor, entonces los siguientes ya no seran reemplazados por sus valores en texto.
+
+Si no que serán interpretados, así que meteremos esto como un comentario:
+
+![post](/assets/images/XSS/lab13/post.png)
+
+Y al enviarlo veremos lo siguiente:
+
+![alert](/assets/images/XSS/lab13/alert.png)
+
+Y habremos terminado este laboratorio, el código se puede resumir en 3 pasos:
+
+![resumen](/assets/images/XSS/lab13/resumen.png)
+
+Como lo vemos a la derecha en la parte que deje comentada.
+
+Y terminamos:
+
+![end](/assets/images/XSS/lab13/end.png)
+
+<br>
