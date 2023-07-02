@@ -1550,3 +1550,129 @@ Y al ingresar con las credenciales de la victima habremos terminado este laborat
 ![end](/assets/images/XSS/lab15/end.png)
 
 <br>
+
+# Laboratorio 16: Exploiting XSS to perform CSRF
+
+En este siguiente laboratorio vemos que nos dice lo siguiente:
+
+![lab16](/assets/images/XSS/lab16/lab16.png)
+
+Nos dice que en este laboratorio existe un XSS stored(almacenado), dentro de la sección de comentarios del blog, y que debemos aprovechar el XSS para realizar un ataque CSRF y cambiar la dirección de correo de un usuario victima, este usuario victima lee los comentarios como recordamos después de ser publicados.
+
+Y después nos da un usuario desde donde atacaremos.
+
+> El usuario y contraseña que nos dan es para desde ese usuario atacar, no se debe confundir con que a ese usuario es el que atacaremos.
+
+Así que primero comprobamos que es vulnerable a XSS ya que usamos las etiquetas `<p></p>`:
+
+![comentario](/assets/images/XSS/lab16/comentario.png)
+
+Y podemos apreciar en la respuesta que existe un XSS:
+
+![xss](/assets/images/XSS/lab16/xss.png)
+
+Ya que nos esta interpretando el código que en este caso son las etiquetas y vemos que no se ven ya que han sido interpretadas por la web en el contexto de nuestro navegador.
+
+<br>
+
+Explorando la web encontré una sección para iniciar sesión llamada **My account**, usaremos las credenciales que nos da el laboratorio para iniciar sesión y tener una cuenta desde donde atacar y vemos lo siguiente:
+
+![mail](/assets/images/XSS/lab16/mail.png)
+
+Podemos ver que una vez ingresamos, podemos ver una función para cambiar el correo, cambiaremos nuestro correo para ver que es lo que sucede.
+
+Pero antes de esto abriremos BurpSuite y ejecutaremos esta petición con el BurpSuite abierto en el navegador por el cual viaja el trafico de BurpSuite, no ocupamos tener el intercept encendido pero si usar el proxy para ir revisando los archivos que se van cargando y analizarlos.
+
+Una vez dentro del navegador de BurpSuite cambiaremos el correo del usuario wiener que es nuestro usuario atacante, no la victima, lo cambiaremos a algo por ejemplo **dante@test.com**:
+
+![nuevomail](/assets/images/XSS/lab16/nuevomail.png)
+
+Vemos que hemos cambiado nuestro propio correo, esto lo hacemos para reconocer como trabaja la web y posteriormente intentar descubrir modos de atacar a el usuario victima.
+
+Primero analizaremos la consulta que sucedio por detrás al cambiar el correo, nos dirigiremos a la pestaña **target** de BurpSuite:
+
+![target](/assets/images/XSS/lab16/target.png)
+
+Y podemos ver el registro de el servidor en el que estamos haciendo todo, así que en la lista desplegable buscaremos algo que nos relacione con el cambio de correo para ver lo que sucedio por detrás:
+
+![recurso](/assets/images/XSS/lab16/recurso.png)
+
+Encontramos en el registro algo llamado **change-email** lo cual al acceder veremos lo que se ve en la imagen, una petición por el metodo POST, haciá la ruta **/my-account/change-email** de la web.
+
+Y vemos que en esta petición por POST se establecen 2 parametros, uno llamado **email** que será el nuevo correo electronico, y el otro llamado **csrf** que este es el que contiene el token csrf.
+
+¿Que es un token csrf?
+
+Basicamente un token csrf es una serie de digitos aleatorios los cuales se genera por cada sesión y para lo que sirven es para que se compruebe que eres tu el que quiere hacer algo dentro de la cuenta, en este caso cambiar el correo, estos token sirven para evitar ataques que hagan peticiones externas haciendo consultas hacia una web especifica, pero como existe el token csrf detecta que ese token no esta disponible o no es valido y no hace la petición.
+
+Pero como nosotros si somos el usuario que quiere hacer el cambio entonces nos deja ya que proporciona el token correcto.
+
+Pero de nada sirve tener esta seguridad si no se usa bien como lo es en este caso.
+
+Ya que al revisar el código de la web como vimos anteriormente se puede ver el **token csrf** y como tenemos un XSS en esta web entonces podemos inyectar código javascript y como javascript tiene acceso al DOM, y en el DOM es donde se encuentra el token, esto es potencialmente peligroso.
+
+Ya que buscando en esta web, nos dimos cuenta que al entrar a la sección de comentarios de un post, en el código de la web podemos apreciar lo siguiente:
+
+![post](/assets/images/XSS/lab16/post.png)
+
+Podemos ver que en el post con el id 6 al que accedimos, podemos encontrar en su código una sección de comentarios, la cual vemos que esta el **token csrf**, así que nuestro token csrf es visible en el código de esta sección.
+
+Recordemos que para cambiar el correo de alguien ocupamos su token y que interprete nuestro comentario vulnerable que veremos más adelante.
+
+Así que ahora que sabemos que el token se encuentra en el DOM de todos los usuarios ya que la página web es la misma para todos con las mismas configuraciones, entonces podemos crear un payload para que obtengamos el token de un usuario y cambiar su correo para tener acceso.
+
+Primero para filtrar el csrf del DOM, necesitamos ver que donde se almacena este token tiene un nombre llamado **csrf**, por lo que usando en la consola de inspeccionar elemento, usamos la siguiente linea de código:
+
+```js
+document.getElementsByName('csrf')[0].value;
+```
+
+![token](/assets/images/XSS/lab16/token.png)
+
+
+Y comprobamos que si podemos filtrar el token, y lo que hace este código simplemente es que primero con **document.getElementsByName** obtenemos el elemento por nombre el cual es **csrf** como vimos en el código de la web, y simplemente estamos tomando su primer valor **[0]** que es el token y lo mostramos con **.value**.
+
+<br>
+
+Así que ya sabemos como filtrar el token, por lo que ahora usaremos esto no para saber el token de los usuarios, ya que podemos referenciar al token dentro de nuestro código malicioso javascript que inyectaremos en el XSS, y que haga algo con todos los tokens de los usuarios que abran este post con el comentario malicioso.
+
+El objetivo es cambiar el correo de un usuario que no sabemos cual es pero que siempre entra a ver los comentarios de ser publicados, así que construiremos el siguiente payload:
+
+```js
+<script>
+
+window.addEventListener('DOMContentLoaded', function(){
+var token = document.getElementsByName('csrf')[0].value;
+
+var data = new FormData();
+data.append('csrf', token)
+data.append('email', 'dansh@dm.com');
+
+fetch('/my-account/change-email', {
+method: 'POST',
+mode: 'no-cors',
+body: data
+});
+});
+
+</script>
+```
+
+Lo que hace este código es que primero crea un evento para esperar que se cargue la página por completo, una vez se cargue, ejecutará la función la cual lo que hará es crear una variable llamada **token**, el contenido de **token** es el valor del elemento con el nombre "csrf", guardamos su primer valor como lo vimos anteriormente esta linea explicada para entender esto, después creamos otra variable llamada **data** que esto es un formulario para realizar una petición.
+
+A esta petición le pasaremos 2 parametros ya que como explique al principio vimos que recibe 2 parametros la ruta a la que haremos la petición la cual es **/my-account/change-email**, primero declaramos los valores de los parametros con **data.append** y que el parametro **csrf** tendrá el valor del token obtenido anteriormente que se guardo en la variable token, y en el segundo parametro le decimos que el valor de **email** será igual a un nuevo email por el que queremos que la victima cambie su correo, en este caso el correo de la victima será cambiado por "dansh@dm.com".
+
+Por último usando la función **fetch()**, haremos la petición, esta se hará en la ruta **/my-account/change-email** como dije anteriormente de la web actual, ya que como recordamos en la prueba donde cambiamos nuestro propio correo para ver el funcionamiento vimos que nos llevo a esta ruta para hacer los cambios con los paramteros. después configuramos la petición diciendo que se tramite por el metodó **POST**, en modo **no-cors**, y por último se especifica que el body de la solicitud **HTTP** será el objeto FormData creado anteriormente.
+
+<br>
+
+Así que una vez entendamos el payload, toca dejarlo en la sección de comentarios y esperar que la victima caiga:
+
+![payload](/assets/images/XSS/lab16/payload.png)
+
+Y una vez lo dejemos vemos que hemos completado el nivel ya que el correo de la victima ha sido cambiado correctamente, y el peligro de esto fue aparte del XSS que el token csrf estaba expuesto en el DOM al que pudimos referenciar para hacer tareas maliciosas como estas, y para evitar esto es importante revisar la seguridad de la web sobre los XSS y tokens en este caso, así que ahora terminamos este laboratorio:
+
+![end](/assets/images/XSS/lab16/end.png)
+
+<br>
+
