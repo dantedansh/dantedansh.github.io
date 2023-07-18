@@ -1332,9 +1332,9 @@ Pero aquí hay un gran fallo, ya que cuando se usa la función **replace()** est
 
 Así que si usamos algun comentario como entrada de datos como esto:
 
-**<><img src=noexiste onerror=alert(1)>**
+`<><img src=noexiste onerror=alert(1)>`
 
-Entonces lo que pasara es que la función tomara los primeros **<>** y estos si los filtrara, pero como la función solo recibe un valor, entonces los siguientes ya no seran reemplazados por sus valores en texto.
+Entonces lo que pasara es que la función tomara los primeros `<>` y estos si los filtrara, pero como la función solo recibe un valor, entonces los siguientes ya no seran reemplazados por sus valores en texto.
 
 Si no que serán interpretados, así que meteremos esto como un comentario:
 
@@ -1676,3 +1676,180 @@ Y una vez lo dejemos vemos que hemos completado el nivel ya que el correo de la 
 
 <br>
 
+# Laboratorio 17: Reflected XSS into HTML context with most tags and attributes blocked
+
+En este laboratorio nos piden realizar lo siguiente:
+
+![lab17](/assets/images/XSS/lab17/lab17.png)
+
+Primero nos dice que este laboratorio contiene una vulnerabilidad XSS reflected(reflejada) en la función de busqueda de la página web, pero que usa un WAF lo cual es un firewall web, para protejer la página de ataques XSS.
+
+Y que para terminar el laboratorio debemos evadir el WAF y llamar a la función **print()**, y dice que debemos enviar el ataque a un usuario pero sin la interacción de este usuario, que sea algo forzado con solo abrir lo que le enviemos.
+
+<br>
+
+Así que al acceder al laboratorio veremos lo siguiente:
+
+![blog](/assets/images/XSS/lab17/blog.png)
+
+Primero como sabemos que hay un XSS en la función de busqueda intentaremos inyectar algo simple como lo que ya hemos hecho antes:
+
+`<img src=noexiste onerror=print()>`
+
+Al enviar esto como busqueda nos muestra lo siguiente:
+
+![waf](/assets/images/XSS/lab17/waf.png)
+
+vemos que nos da un mensaje que dice "Tag is not allowed", por lo que el WAF esta bloqueando la petición ya que ha detectado que se estan inyectando etiquetas, pero si enviamos solo:
+
+`<prueba>`
+
+Podemos apreciar lo siguiente:
+
+![etiqueta](/assets/images/XSS/lab17/etiqueta.png)
+
+Podemos apreciar que no esta filtrando las etiquetas `<>`, por lo que ya es algo raro, así que ahora iremos a BurpSuite, una vez tengamos el proxy activado de burp con el navegador, enviaremos una petición como la anterior, y luego en el **Target** de burpsuite veremos la petición hecha:
+
+![target](/assets/images/XSS/lab17/target.png)
+
+Podemos ver que esta nuestra petición y podemos ver que se esta url-encodeando automaticamente, ya que vemos los valores "<" y ">" en sus valores de url-encode.
+
+lo que haremos ahora será enviar esta petición al **intruder** de BurpSuite con Ctrl + i, una vez estemos en el intruder damos a clear y veremos algo así:
+
+![intruder](/assets/images/XSS/lab17/intruder.png)
+
+Y lo que haremos será poner los valores de los simbolos `<>`, y en medio de ellos eliminamos el texto de prueba, agregaremos la posición del payload dando a el botón **add** 2 veces, para abrir y cerrar donde se va a fuzzear la petición, ahora veremos para que hacemos esto, nos quedará así:
+
+![payload](/assets/images/XSS/lab17/payload.png)
+
+Lo que pasará aquí es que lo que haremos será un ataque de tipo sniper el cual nos permitirá hacer fuzzing sobre esta petición, nuestro objetivo es fuzzear todas las etiquetas posibles y en base al estado de la respuesta saber cuales estan bloqueadas por el WAF y cuales no, así que primero iremos a la web donde se encuentran estas etiquetas la cuál nos la dan en el mismo laboratorio: https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+
+![tags](/assets/images/XSS/lab17/tags.png)
+
+Podemos apreciar que nos dan una lista de todas las etiquetas, las copiaremos al portapapeles dando al botón **Copy tags to clipoard**, y ahora volvemos a burpsuite en el intruder, y vamos a la pestaña **payloads**:
+
+![paste](/assets/images/XSS/lab17/paste.png)
+
+Y daremos click en paste para pegar todas las etiquetas, y una vez ya pegadas, daremos click en **start attack**:
+
+![start](/assets/images/XSS/lab17/start.png)
+
+Y lo que hará esto es empezar a hacer peticiones con cada etiqueta que asignamos y se probaran dentro de los `<>` de la petición.
+
+Una vez termine el ataque veremos lo siguiente:
+
+![status](/assets/images/XSS/lab17/status.png)
+
+Daremos click en **status** para filtrar por las peticiónes con estado de 200 primero:
+
+![200](/assets/images/XSS/lab17/200.png)
+
+Así que ya sabemos que la etiqueta `<body>` y `<custom tags>` no se están filtrando, la que nos llama la atención es la de **body** así que ahora fuzzearemos eventos de esta etiqueta para ver cuales tenemos acceso, es algo similar de nuevo.
+
+Ahora en el mismo payload borraremos lo anterior y ahora lo cambiamos por:
+
+`<body%20§§=1>`
+
+![payload2](/assets/images/XSS/lab17/payload2.png)
+
+Esto es simplemente esto: `<body §§=1>` solo que el espacio lo url-encodeamos para evitar errores, después le decimos que algo tendrá el valor de uno, esto lo haremos para saber si el evento actual que se esta fuzzeando es valido y no lo filtra el WAF, ya que como recordamos esos valores §§ indican donde empiza y termina lo que queremos fuzzear en la petición web.
+
+Ahora vamos a la pestaña de **payloads**, y aquí es donde pegaremos los eventos que copiaremos de la misma web que nos dan pero ahora copiaremos los eventos:
+
+![events](/assets/images/XSS/lab17/events.png)
+
+Copiamos los eventos y los pegamos donde ya sabemos:
+
+![start2](/assets/images/XSS/lab17/start2.png)
+
+Ahora damos en **start attack** y esperaremos a que haga las peticiónes con cada evento, una vez terminado filtraremos por el estado de respuesta:
+
+![5](/assets/images/XSS/lab17/5.png)
+
+Podemos apreciar que hay 5 eventos disponibles para la etiqueta **body**.
+
+**onbeforeinput**: Este evento sucede cuando el usuario esta a punto de meter datos de entrada en algun lugar de la web.
+
+**onratechange**: Este sucede al cambiar la velocidad de reproducción de un video.
+
+**onresize**: Este evento sucede es cuando la web cambia de tamaño.
+
+**onscrollend**: Y este evento sucede cuando llegas hasta el final de un elemento en la web.
+
+El que más llama la atención es el de **onresize** ya que requiere una minima interacción pero podemos forzarla y ahora veremos como.
+
+<br>
+
+Primero ejecutaremos:
+
+`<body onresize=print()>`
+
+Con interacción del usuario, probaremos nosotros mismos esto en la función de busqueda, y al ejecutarlo nos aparecerá lo siguiente:
+
+![interaccion](/assets/images/XSS/lab17/interaccion.png)
+
+Ahora no nos ha saltado el mensaje de error ya que vemos que si usamos la etiqueta **body** podemos hacer uso del evento **onresize** que lo que hace esto es que ejecutará algo al momento de que el usuario cambie el tamaño del navegador.
+
+Así que si lo cambiamos:
+
+![print](/assets/images/XSS/lab17/print.png)
+
+Podemos ver que se ha ejecutado la función **print()**!
+
+Así que ha funcionado, pero el objetivo es entregarle algo al usuario que cuando lo abra se fuerze esto sin su interacción.
+
+En el laboratorio nos dan una botón para acceder a una web de un servidor donde podemos crear nuestro exploit que entregaremos al usuario, más adelante veremos como funciona mejor.
+
+Al entrar a la web donde crearemos el exploit:
+
+![exploit](/assets/images/XSS/lab17/exploit.png)
+
+Veremos lo siguiente:
+
+![server](/assets/images/XSS/lab17/server.png)
+
+Aquí podemos ver que es donde crearemos nuestro payload, para posteriormente lo que se programe aquí se interpretará en otro servidor web que al abrirlo ejecutará lo programado aquí.
+
+Así que nuestro exploit es el siguiente:
+
+`<iframe src="https://0ad0000104929c8280a558bc003f009c.web-security-academy.net/?search=<body onresize=print()>" onload=this.style.width='100px'>`
+
+La web tercera contendrá este código que hemos creado y lo interpretará a quien lo abra, entonces primero usa un `<iframe>` que lo que hace esto es cargar una web dentro de la web tercera, la web tercera es lo que ya esta interpretando lo que programamos como dije anteriormente, así que llamamos a la web la cual en este caso es la web del laboratorio, junto con el parametro **search** y su valor el cual es lo que vimos anteriormente que lo que hace es llamar a la función **print()** cuando se cambie de tamaño la página aprovechandonos de que body y su atributo onresize no se filtran por el WAF, Cuando esta web se termine de cargar dentro de nuestra web tercera, entonces lo que hará es ejecutar la parte de **onload** que esto ejecuta algo cuando la página web anterior ya se cargo por completo, entonces forzamos a que el navegador cambie de tamaño haciendo que se ejecute la vulnerabilidad XSS dentro de la web que hemos llamado y cargado lo que hará que llame a la función print.
+
+Pero obviamente dentro del valor del source **src**, deben estar los valores url-encodeados ya que se trata de una URL, así que URL-encodearemos los valores que estan dentro del src, así que nuestro exploit final ya url-encodeado quedaría así:
+
+![urc](/assets/images/XSS/lab17/urlencodeonline.png)
+
+> Usamos una web para URL encodear el exploit que necesitaremos.
+
+`<iframe src="https://0ad0000104929c8280a558bc003f009c.web-security-academy.net/?search=%3Cbody%20onresize%3Dprint%28%29%3E" onload=this.style.width='100px'>`
+
+Puede ser confuso, pero usamos **iframe** en el servidor tercero, como el servidor tercero es nuestro y lo programamos como queremos entonces no hay un WAF, obviamente el WAF solo esta en la página del blog del laboratorio, entonces aquí en el servidor tercero podemos llamar a cualquier cosa, pero lo importante es que cuando carguemos la web del blog dentro del servidor tercero entonces ahí si se respeta lo del WAF por eso usamos lo del body y onresize, pero solo en la parte de la URL ya que la web que carga esta url esta libre de un WAF y por eso funciona, menciono esto ya que al inicio me confundi un poco con esto.
+
+![deliver](/assets/images/XSS/lab17/deliver.png)
+
+Damos en **Deliver exploit to victim**.
+
+Y terminaremos el laboratorio.
+
+![url3](/assets/images/XSS/lab17/url3.png)
+
+Podemos ver que nos da una URL donde podemos simular que somos la victima y ver lo que le sucedería, este link es el del servidor tercero, el servidor tercero como sabemos contiene en su código lo que le indicamos anteriormente que hiciera, nuestras instrucciones del iframe para cargar la web vulnerable y forzar el cambio de tamaño y eso.
+
+Así que al abrir esta URL veremos lo siguiente:
+
+![victimfinal](/assets/images/XSS/lab17/victimfinal.png)
+
+Podemos ver que nos llama a la función print apenas entramos al link sin hacer ninguna interacción más que abrir el link del servidor tercero.
+
+Y si podemos apreciar en la esquina se ve la web del blog que cargo dentro de nuestro servidor tercero, cargo con un tamaño pequeño como lo indicamos para que se ejecute la parte del onresize y nos ejecute la función deseada.
+
+En este caso print() no hace nada malo, pero podría ser algo verdaderamente grave si así lo quisieramos.
+
+![end](/assets/images/XSS/lab17/end.png)
+
+Podemos ver que en efecto la página del blog en la sección de busqueda que le indicamos por metodo GET que hiciera esta petición se pudo y logramos forzar la vulnerabilidad XSS a través de un servidor tercero.
+
+Y habremos terminado:
+
+![final](/assets/images/XSS/lab17/final.png)
