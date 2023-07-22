@@ -383,7 +383,7 @@ Así que en resumen, lo que hace este código de javascript, es que como dije an
 
 <br>
 
-Pero por otro lado, este código no es del todo seguro:pues en el código anterior, recide un pequeño detalle, que podría convertirse en algo peligroso.
+Pero por otro lado, este código no es del todo seguro, pues en el código anterior, recide un pequeño detalle, que podría convertirse en algo peligroso.
 
 Y me refiero a que al momento de recibir la entrada del usuario, no se esta aplicando ningun filtro de seguridad, así que veamos a lo que me refiero:
 
@@ -1853,3 +1853,131 @@ Podemos ver que en efecto la página del blog en la sección de busqueda que le 
 Y habremos terminado:
 
 ![final](/assets/images/XSS/lab17/final.png)
+
+<br>
+
+# Laboratorio 18: Reflected XSS into HTML context with all tags blocked except custom ones
+
+En este laboratorio vemos lo siguiente:
+
+![lab18](/assets/images/XSS/lab18/lab18.png)
+
+Este laboratorio contiene un WAF el cual nos bloquea todas las etiquetas, pero dice que las etiquetas personalizadas no son bloqueadas.
+
+Y que debemos inyectar una etiqueta personalizada que llame a **document.cookie** para terminar el laboratorio y sabemos que la parte vulnerable a XSS esta en la función de busqueda.
+
+<br>
+
+Una etiqueta personalizada como su nombre lo dice es una etiqueta la cual nosotros definimos junto con su función.
+
+Podemos ver que si intentamos meter alguna etiqueta HTML ya existente como `<body>` en el campo de busqueda del laboratorio:
+
+![body](/assets/images/XSS/lab18/body.png)
+
+Vemos que al tramitar esta petición nos muestra lo siguiente:
+
+![waf](/assets/images/XSS/lab18/waf.png)
+
+Vemos que el WAF nos bloquea la petición.
+
+Pero si agregamos una etiqueta creada por nosotros por ejemplo `<xss>` veremos lo siguiente:
+
+![xss](/assets/images/XSS/lab18/xss.png)
+
+Podemos apreciar que las etiquetas personalizadas no las esta filtrando el WAF.
+
+<br>
+
+Sabemos que el objetivo del nivel es llamar a **document.cookie**, así que primero haremos una prueba que no es como debe hacerse pero sirve para entender como funcionan las etiquetas personalizadas y después mostraré la forma como se resuelve.
+
+Primero en esta prueba de muestra, creamos la siguiente etiqueta HTML personalizada:
+
+`<xss onmouseover=alert(document.cookie)>`
+
+![search](/assets/images/XSS/lab18/search.png)
+
+> No lo url-encodeamos ya que sabemos que el navegador lo hace automaticamente.
+
+Lo que hace esta etiqueta que creamos llamada "xss", es que dentro de ella llamamos al evento **onmouseover** que lo que hace este evento es que cuando el usuario pasa el mouse por encima del elemento donde reside esta etiqueta que se inyecta, entonces se llamara a la función **alert()** la cuál llama a el valor **document.cookie**.
+
+Sabemos que la etiqueta anterior se inyecta en esta sección de la web:
+
+![reflected](/assets/images/XSS/lab18/reflected.png)
+
+Ya que ahí es donde se refleja la entrada de datos interpretada, así que si pasamos el mouse por ahí:
+
+![mouse](/assets/images/XSS/lab18/mouse.png)
+
+Y vemos que al pasar el mouse por ahí nos ejecuta lo que hace el evento que inyectamos gracias a la etiqueta personalizada.
+
+Y podemos revisar el código fuente y revisar que se inyecto nuestra etiqueta personalizada gracias a el XSS:
+
+![inject](/assets/images/XSS/lab18/inject.png)
+
+Esto no soluciona el laboratorio pero quería mostrar esto ya que hay muchas formas de hacer algo.
+
+<br>
+
+Como sabemos que debemos llamar a **document.cookie** pero sin la interacción del usuario más que abrir el link del servidor tercero que programamos.
+
+Así que hemos construido el siguiente exploit:
+
+`<xss id=x onfocus=alert(document.cookie) tabindex=1>`
+
+Lo que hace este exploit que creamos para inyectarlo en la web es lo siguienete:
+
+Primero crea una etiqueta personalizada llamada "xss", la cuál contiene un identificador único con el valor de "x", después llama a el atributo de eventos **onfocus** que lo que hace es que al recibir el enfoque (cuando se selecciona o activa un campo de entrada de datos en la web) mediante la tecla tabulador o ya sea que se haga click sobre el elemento, entonces lo que sucederá es que se ejecutará lo que contiene que en este caso es llamar a la función **alert()** mostrando la cookie, y por último establece que posición de tabulación será para llegar a el.
+
+Entonces al inyectar esto lo que veremos es esto:
+
+![index](/assets/images/XSS/lab18/index.png)
+
+No vemos nada en el lugar donde se refleja el campo de busqueda pero sabemos que es porque se ha interpretado por el navegador, entonces si pulsamos tab, veremos lo siguiente:
+
+![tab](/assets/images/XSS/lab18/tab.png)
+
+Y vemos que se llama a la función que contiene el **onfocus** que en este caso es mostrar la alerta de document.cookie, obviamente no se ve nada ya que como es prueba en laboratorio no hay cookies.
+
+<br>
+
+Así que ya tenemos una manerá pero aún se sigue requiriendo la interacción del usuario ya que el usuario tendría que pulsar tab o hacer click sobre el elemento y es dificil que lo haga ya que normalmente no se suele usar eso.
+
+Pero para ello vamos a forzar que suceda esto al momento de abrir el link del servidor tercero.
+
+Primero convertimos esto que hemos creado en formato url-encode ya que lo necesitaremos para programar el exploit del servidor web tercero.
+
+Así que el exploit anterior url-encodeado queda así:
+
+`%3Cxss%20id%3Dx%20onfocus%3Dalert%28document.cookie%29%20tabindex=1%3E`
+
+Y ahora vamos a el exploit server donde programaremos la web tercera a la que la victima ingresará:
+
+![expserv](/assets/images/XSS/lab18/exploitserver.png)
+
+Una vez dentro de donde vamos a programar la web tercera veremos lo siguiente:
+
+![craft](/assets/images/XSS/lab18/craft.png)
+
+Podemos ver que tenemos abajo para programar la web tercerá, así que nuestro exploit es el siguiente:
+
+```js
+<script>
+
+location = 'https://0a5d009a037f3c2387533a0f00dd00b6.web-security-academy.net/?search=%3Cxss%20id%3Dx%20onfocus%3Dalert%28document.cookie%29%20tabindex=1%3E/#x'
+
+</script>
+
+```
+![red](/assets/images/XSS/lab18/redirect.png)
+
+
+Lo que programamos en el servidor web tercero es que primero usamos las etiquetas de script para indicar que el código será javascript ya que usaremos **location** que requiere de javscript, y usamos **location** para que reemplazemos la dirección de URL cuando la victima abra el servidor tercero y sea redirigido a esta URL, la cúal es la  del blog yendo a la sección de busqueda y inyectando el XSS el cuál será forzado gracias a que como tiene un id para ser llamado y un tabindex, entonces vemos que al final de la URL ponemos **/#x** esto es para que el navegador se dirija hacia ese elemento en especifico, el cual x es el valor del id del elemento al que debe enfocarse la victima entonces de esta forma usando el hashtag si recordamos de laboratorios anteriores sabemos que el hashtag te redirige hacía un elemento en especifico dependiendo cual le indiques y como aquí se esta forzando que vaya a esa sección la cuál es donde se acontece el XSS entonces sucederá y con solo la victima abrir el link del servidor tercero el cual es el siguiente:
+
+![tercero](/assets/images/XSS/lab18/tercero.png)
+
+Lo que sucederá es que al abrirlo pasará lo anterior mencionado, y habremos cumplido con el objetivo de este laboratorio.
+
+![end](/assets/images/XSS/lab18/end.png)
+
+<br>
+
