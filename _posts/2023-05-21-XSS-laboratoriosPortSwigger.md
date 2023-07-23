@@ -1981,3 +1981,127 @@ Lo que sucederá es que al abrirlo pasará lo anterior mencionado, y habremos cu
 
 <br>
 
+# Laboratorio 19: Reflected XSS with some SVG markup allowed
+
+En este siguiente laboratorio vemos lo siguiente:
+
+![lab19](/assets/images/XSS/lab19/lab19.png)
+
+Nos dice que este laboratorio contiene una vulnerabilidad XSS reflected(reflejada) en la función de busqueda, y que el WAF bloquea todas las etiquetas comunes pero no filtra las que son `<svg>` ni sus eventos, y que debemos aprovechar esto para llamar a la función **alert()** y terminar el laboratorio.
+
+<br>
+
+Primero vemos que al meter un ataque XSS común en la función de busqueda como:
+
+`<img src=noexiste onerror=alert()>`
+
+Nos responde con lo siguiente:
+
+![waf](/assets/images/XSS/lab19/waf.png)
+
+Pero si usamos solo esto como entrada de datos:
+
+`<>`
+
+Vemos que nos responde:
+
+![tags](/assets/images/XSS/lab19/tags.png)
+
+Podemos ver que no nos esta bloqueando la entrada de estos simbolos, por lo que esto nos permite hacer un ataque de fuerza bruta para ir descubriendo que etiquetas estan habilitadas.
+
+Así que no podemos usar las etiquetas comunes, por lo que usaremos BurpSuite para fuzzear todas las etiquetas y ver cuales estan disponibles.
+
+Así que primero abriremos el laboratorio desde el navegador de BurpSuite o configurado con el proxy en tu navegador.
+
+Una vez tengamos la Web lista en el proxy, entonces abrimos el laboratorio y haremos la petición anterior, una vez la veamos en el **Target**:
+
+![peticion](/assets/images/XSS/lab19/peticion.png)
+
+Y lo que haremos ahora es enviarla a el **intruder** para iniciar con el ataque de fuzzing, la mandamos con ctrl + i, y una vez en el intruder veremos lo siguiente:
+
+![intruder](/assets/images/XSS/lab19/intruder.png)
+
+Y damos al botón de **clear** para eliminar lo que nos marca por defecto, ahora lo que haremos será cambiar el valor del parametro de busqueda, vemos que esta en url-encode pero en este caso los dejaremos normales manualmente como `<>` quedando así:
+
+![noencode](/assets/images/XSS/lab19/noencode.png)
+
+Ahora dentro de esto meteremos 2 valores que es el rango donde se va a fuzzear, queremos que se fuzze dentro de eso por lo que damos 2 veces al botón de **add**, una para abrir y otra para cerrar donde se va a fuzzear la petición quedandonos así:
+
+![fuzz](/assets/images/XSS/lab19/fuzz.png)
+
+Dejamos el ataque como esta de tipo sniper, y ahora lo que haremos será ir a la pestaña de **payloads** dentro del intruder, y veremos lo siguiente:
+
+![option](/assets/images/XSS/lab19/option.png)
+
+Ahora lo que haremos es ir a la web del cheat sheet que nos da el laboratorio para copiar todas las etiquetas https://portswigger.net/web-security/cross-site-scripting/cheat-sheet y una vez estemos en la página copiaremos todas las etiquetas:
+
+![copytags](/assets/images/XSS/lab19/copytags.png)
+
+Una vez las tengamos copiadas dandole al botón señalado, volvemos a BurpSuite y daremos aquí para pegar todas las etiquetas en lista:
+
+![pastetags](/assets/images/XSS/lab19/pastetags.png)
+
+Una vez hecho esto daremos en **startattack** y esperaremos a que se complete, filtrando por estado de respuesta vemos lo siguiente al terminar:
+
+![tres](/assets/images/XSS/lab19/tres.png)
+
+Podemos apreciar que hay 4 etiquetas las cuales forman parte de svg, la primera nos llama más la atención ya que con el resto no creo que podamos hacer mucho.
+
+Así que ahora intentaremos descubrir que eventos tiene habilitados la etiqueta **animatetransform**.
+
+<br>
+
+Volvemos al intruder en la primera pestaña para modificar el ataque de fuzzing porque ahora queremos descubrir que eventos tiene habilitados con fuzzing, nos quedará así:
+
+`<svg><animatetransform%20§§=1>`
+
+![payload2](/assets/images/XSS/lab19/payload2.png)
+
+Primero abrimos la etiqueta **svg** para poder usar la etiqueta siguiente, la cuál es **animatetransform**.
+
+Después ponemos un espacio en URL-encode, y por último ponemos que el valor que se fuzzeará es 1, esto es simplemente para verificar que nos devuelva una respuesta **true** y si la da quiere decir que el evento fuzzeado esta disponible.
+
+Ahora agregaremos la lista para fuzzear los eventos, para ello vamos a la pestaña de **payloads**, seleccionamos las anteriores y damos en **clear**:
+
+![clear](/assets/images/XSS/lab19/clear.png)
+
+Esto para eliminar los elementos de fuzzing anteriores usados, y ahora vamos a copiar los eventos de la misma web que copiamos las etiquetas:
+
+![copyevents](/assets/images/XSS/lab19/copyevents.png)
+
+Y ahora los pegaremos en la pestaña de payloads del intruder de burpsuite:
+
+![pasteevents](/assets/images/XSS/lab19/pasteevents.png)
+
+Una vez los peguemos, damos en **startattack**, y al terminar veremos cuales eventos estan disponibles, como recordamos filtraremos por el estado de respuesta:
+
+![onbegin](/assets/images/XSS/lab19/onbegin.png)
+
+Apreciamos que solo hay un evento que podemos usar, se llama **onbegin**.
+
+Por lo que buscando su funcionamiento encontramos lo siguiente:
+
+![data](/assets/images/XSS/lab19/data.png)
+
+Así que vemos que nos dice que los que inician con "on" tienden a tener una función especificada que ejecutará cuando son llamados.
+
+Como **onbegin** forma parte de esto, entonces creamos el siguiente exploit:
+
+`<svg><animatetransform onbegin=alert()>`
+
+Y al poner esto en el campo de busqueda del laboratorio:
+
+![xss](/assets/images/XSS/lab19/xss.png)
+
+Podemos ver que ha funcionado y hemos podido llamar a la función alert() gracias al uso de etiquetas y el atributo SVG.
+
+Y podemos ver que se inyecto nuestro exploit de forma reflejada:
+
+![inject](/assets/images/XSS/lab19/inject.png)
+
+Y habremos terminado con el objetivo de este laboratorio:
+
+![end](/assets/images/XSS/lab19/end.png)
+
+<br>
+
