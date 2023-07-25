@@ -2105,3 +2105,102 @@ Y habremos terminado con el objetivo de este laboratorio:
 
 <br>
 
+# Laboratorio 20: Reflected XSS in canonical link tag
+
+![lab20](/assets/images/XSS/lab20/lab20.png)
+
+Nos dice que este laboratorio en el enlace refleja la entrada del usuario en el enlace canónico.
+
+Un enlace canonico es una URL que se indica para saber que la web sepa cual es la URL principal, esto se usa para no mostrar contenido duplicado en una web, por ejemplo el siguiente es un enlace canónico:
+
+Supongamos que tenemos una tienda online, y tenemos una sección propia de computadoras de escritorio pero hay diferentes formas de llegar a esta sección de la web creada especificamente para computadoras de escritorio.
+
+https://tienda.com/computadoras-escritorio/
+
+Este enlace es el canónico, pero el usuario puede ingresar ahí de alguna otra forma por ejemplo, por algun filtro de busqueda:
+
+https://tienda.com/pc?categoria=computadoras&tipo=escritorio
+
+Este es el enlace no canónico ya que esta URL no canónica se ha creado por el usuario al acceder a secciónes o pulsar botónes etc.
+
+Pero como estan ambas realcionadas entonces en la url no canonica veremos lo mismo que en la url canonica, simplemente se define para saber cuál es la original, y evitar duplicados de url y problemas con la web.
+
+<br>
+
+Así que ahora que sabemos que el una URL canónica, vamos al laboratorio:
+
+![blog](/assets/images/XSS/lab20/blog.png)
+
+Al abrir el código fuente de la web vemos lo siguiente:
+
+![canon](/assets/images/XSS/lab20/canon.png)
+
+Vemos la siguiente linea:
+
+`<link rel="canonical" href='https://0ac300640411e9b081c621a9002a0002.web-security-academy.net/'/>`
+
+Podemos apreciar que se esta definiendo la URL canónica.
+
+Desúes el laboratorio nos decia que debemos inyectar un atributo y llamar a la función **alert()**.
+
+Y despúes nos dice que la victima tocará las teclas:
+
+- ALT+SHIFT+X (windows/Linux)
+- CTRL+ALT+X (MacOS)
+- Alt+X (Linux(Alternativo))
+
+Dependiendo el sistema operativo.
+
+<br>
+
+Intentaremos inyectar un parametro en la URL llamado **accesskey** lo que hace este parametro de HTML es definir un shortcut el cuál ejecutará algo, la sintaxis sería algo así:
+
+`/?accesskey='x'onclick='alert(1)'`
+
+Vemos que estamos definiendo el parametro inyectado, al cúal se accederá con la combinación de teclas que depende del sistema operativo más la letra en este caso **x**, después de que se ejecute el shortcut lo que sucederá es que se llamará a el evento **onclick** que ejecuta algo al momento de que en este caso el usuario pulse la combinación de teclas, y lo que ejecutará será la función **alert()** para completar el laboratorio.
+
+> El signo de ? se usa para que nos lea el parametro asignado, y no como parte de la dirección URL, esto se hace porque sin el signo nos daría un error de que no existe la web ya que se estaría tomando el parametro como parte de la URL y como este parametro no se toma como parametro nos dará error.
+
+<br>
+
+Pero en nuestro caso debemos modificar un poco ya que cambia algo en la URL, ya que si inyectamos justo como lo mostre en la URL no sucederá nada y en el código de la web veremos lo siguiente:
+
+![badlink](/assets/images/XSS/lab20/badlink.png)
+
+```js
+<link rel="canonical" href='https://0add00180396828f81a5932100d500e8.web-security-academy.net/?accesskey='x'onclick='alert(1)''/>
+```
+
+En este caso podemos ver que no sucedió nada ya que hay un error de sintaxis, si vemos bien podemos apreciar que después del parametro **accesskey** seguimos dentro del **href** por lo que se esta tomando como parte de la URL canónica y no como un valor que deba interpretarse que es lo que queremos que suceda.
+
+Y también vemos que al final hay una comilla extra ya que es la que cierra el **href**.
+
+Así que como dije anteriormente, no sucederá nada de esta forma, así que ahora vamos a hacer la forma correcta:
+
+`/?'accesskey='x'onclick='alert(1)`
+
+Si notamos bien, estamos poniendo una comilla simple antes del **accesskey**, y esto lo hacemos para cerrar el valor de URL que estaba cargando **href** como vimos en el código, y ahora continuamos escribiendo el código ya que habremos escapado del valor de **href**, así que después vemos que solo agregamos una comilla simple al definir la función de **alert()** y al final no pusimos otra, ¿Y esto Porque?, Esto se hace ya que como recordamos hay una comilla que cierra el **href** originalmente pero nosotros usaremos esa comilla que se ha arrastrado ya que cerramos el **href** desde antes, así que ahora la usaremos para cerrar el contenido de **onclick** osea **alert()**, de esta forma la sintaxis ya estaría bien y quedaría así:
+
+![goodlink](/assets/images/XSS/lab20/goodlink.png)
+
+Al enviar esta petición y pulslar la tecla dependiendo el sistema veremos lo siguiente:
+
+![altshiftx](/assets/images/XSS/lab20/altshiftx.png)
+
+Se ha ejecutado el XSS y terminamos el laboratorio.
+
+Ahora si vemos el código de esta petición podremos ver que ahora la sintaxis es correcta:
+
+![greatcode](/assets/images/XSS/lab20/greatcode.png)
+
+```js
+<link rel="canonical" href='https://0add00180396828f81a5932100d500e8.web-security-academy.net/?'accesskey='x'onclick='alert(1)'/>
+```
+Y podemos apreciar que la sintaxis si es correcta y por eso nos permitio ejecutar el XSS correctamente.
+
+Y terminamos el laboratorio:
+
+![end](/assets/images/XSS/lab20/end.png)
+
+<br>
+
