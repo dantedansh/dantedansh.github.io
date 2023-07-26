@@ -2204,3 +2204,81 @@ Y terminamos el laboratorio:
 
 <br>
 
+# Laboratorio 21: Reflected XSS into a JavaScript string with single quote and backslash escaped
+
+En este laboratorio nos dicen lo siguiente:
+
+![lab21](/assets/images/XSS/lab21/lab21.png)
+
+Dice que este laboratorio contiene un XSS reflected(reflejado), y que se encuentrá en la función de busqueda, y que se produce por detrás en una cadena que usa javascript con comillas simples y barras invertidas escapadas.
+
+Ahora veremos a lo que se refiere, y el objetivo es escapar de la cadena por defecto e inyectar nuestro código para llamar a la función **alert()**.
+
+Podemos usar BurpSuite para mayor comodidad pero yo usare el navegador para explicarlo más claro.
+
+Al entrar al laboratorio veremos lo siguiente:
+
+![blog](/assets/images/XSS/lab21/blog.png)
+
+Vemos un blog común, usaremos la función de busqueda para meter algún valor:
+
+Usaremos este valor de entrada:
+
+`<body> <prueba>`
+
+![test](/assets/images/XSS/lab21/test.png)
+
+Y al enviar esto no vemos nada, pero si vamos al código de la web, podremos notar lo siguiente:
+
+![xss](/assets/images/XSS/lab21/xss.png)
+
+Podemos ver que la variable **searchTerms** esta guardando el contenido ingresado por la función de busqueda se esta guardando en dicha variable.
+
+Y después podemos ver que abajo esta usando **document.write**, esta accediendo al DOM de la web para modificarlo ya que hará cambios, en este caso cargará una imagen .gif, y después mostrará el contenido que se ingreso por entrada y se supone que esta siendo filtrada para evitar ataques XSS usando **encodeURIComponent**, pero si el ataque sucede antes de que se filtre esto entonces no tiene sentido lo que hace el programador de la web.
+
+Para ello intentaremos escapar del valor de la variable **searchTerms**, primero meteremos de entrada lo siguiente para ver que sucede:
+
+![prueba](/assets/images/XSS/lab21/prueba.png)
+
+Vemos que pusimos de entrada `Prueba'xss`, ahora veremos el código de la web para ver como respondio esta petición:
+
+![esc](/assets/images/XSS/lab21/escape.png)
+
+Podemos ver que nos ha escapado la comilla simple para evitar cerrar el contenido de la variable, y nos la ha escapado usando una barra invertida \ haciendo que la comilla se tome como texto simple y no como un valor.
+
+<br>
+
+Sabemos que la variable que esta en el código esta dentro de una etiqueta `<script>` así que lo que haremos será intentar cerrar esa etiqueta y ver que sucede:
+
+Usaremos esta entrada de datos para cerrar el valor de  la etiqueta script que esta por defecto:
+
+`</script>Prueba'XSS`
+
+![xss2](/assets/images/XSS/lab21/xss2.png)
+
+Y podemos ver algo extraño en la parte de abajo, al parecer es una parte de código que hemos alterado gracias a nuestra entrada de datos por lo que es buena señal, así que iremos a ver el código de esta petición:
+
+![inyectado](/assets/images/XSS/lab21/inyectado.png)
+
+Podemos apreciar que sigue escapando la comilla simple, pero esta vez nos damos cuenta que hemos podido inyectar correctamente la finalización de la etiqueta script, así que como sabemos que podemos inyectar etiquetas después de cerrar la de script, entonces inyectaremos otra de script pero esta vez para llamar a la función **alert()** quedandonos la entrada así:
+
+`</script><script>alert(1)</script>`
+
+Y al enviar esta petición:
+
+![alert](/assets/images/XSS/lab21/alert.png)
+
+POdemos ver que se ha hecho correctamente el ataque XSS reflected ya que vemos la ventana de alert y que hemos terminado el laboratorio.
+
+Si vamos a ver el código de esta petición:
+
+![scriptfinal](/assets/images/XSS/lab21/scriptfinal.png)
+
+Podemos apreciar que cerramos el script por defecto gracias a la entrada no sanitizada de datos, y después abrimos una nueva llamando a la función **alert()** nuevamente.
+
+Y habremos acabado con este laboratorio:
+
+![end](/assets/images/XSS/lab21/end.png)
+
+<br>
+
