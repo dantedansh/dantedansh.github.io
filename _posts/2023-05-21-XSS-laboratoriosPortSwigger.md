@@ -1326,7 +1326,7 @@ Como dije que eran 2 partes las que llamaron nuestra atención esta es la segund
     }
 ```
 
-Así que primero esta función recibe el valor string **html** que este valor contiene el HTML de la web, incluidos los comentarios que se dan como entrada, y lo primero que hace es usar **return**, para devolver el valor de **html**, pero lo devolvera modificado, ya que primero usará la función **replace()** que lo que va a cambiar son los caracteres **<** y **>** por sus valores de entidades HTML, las cuales son **&lt** y **&gt**, esto se hace con el fin de que si en la entrada del comentario estan estos 2 caracteres, no se interpreten como código, y no pueda haber un XSS en teoria.
+Así que primero esta función recibe el valor string **html** que este valor contiene el HTML de la web, incluidos los comentarios que se dan como entrada, y lo primero que hace es usar **return**, para devolver el valor de **html**, pero lo devolvera modificado, ya que primero usará la función **replace()** que lo que va a cambiar son los caracteres `<` y `>` por sus valores de entidades HTML, las cuales son **&lt** y **&gt**, esto se hace con el fin de que si en la entrada del comentario estan estos 2 caracteres, no se interpreten como código, y no pueda haber un XSS en teoria.
 
 Pero aquí hay un gran fallo, ya que cuando se usa la función **replace()** esta solo esta filtrando los primeros valores de esos caracteres que se ingresen, pero no los que siguen.
 
@@ -2279,6 +2279,58 @@ Podemos apreciar que cerramos el script por defecto gracias a la entrada no sani
 Y habremos acabado con este laboratorio:
 
 ![end](/assets/images/XSS/lab21/end.png)
+
+<br>
+
+# Laboratorio 22: Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped
+
+En este laboratorio vemos que nos piden lo siguiente:
+
+![lab22](/assets/images/XSS/lab22/lab22.png)
+
+Nos dice que existe una vulnerabilidad XSS reflejada en la función de busqueda de la web, y que los corchetes angulares osea `<>` se codifican en formato HTML para evitar que se interpreten y las comillas simples `'` se escapan automaticamente como lo vimos en el anterior laboratorio donde se agregaba una barra invertida para evitar que se interprete.
+
+Y como objetivo nos pide realizar un XSS para escapar del código de la web javascript y llamar a la función **alert()**.
+
+Primero al ir a la web y hacer una consulta normal vemos lo siguiente:
+
+![prueba](/assets/images/XSS/lab22/prueba.png)
+
+Vemos que buscamos algo en este caso "Prueba", y no vemos nada raro.
+
+<br>
+
+Ahora leeremos el código de esta petición y veremos lo siguiente:
+
+![var](/assets/images/XSS/lab22/var.png)
+
+Podemos ver que estamos dentro de unas etiquetas `<script>` y que nuestro contenido ingresado por entrada esta guardandose en la variable **searchTerms**.
+
+Intentaremos escapar de la variable **searchTerms**, pero como recordamos no podemos usar los corchetes angulares ya que se convierten en entidades HTML y tampoco podemos la comilla simple ya que esta será escapada con una barra invertida.
+
+Así que lo que haremos será meter la siguiente entrada de datos:
+
+`\'-alert(1)//`
+
+Lo que estamos intentando aquí es que ponemos una barra invertida para escapar la otra barra invertida que se pondrá antes de la comilla simple para escapar la comilla, de este modo estaremos escapando el valor que escapa a la comilla simple.
+
+Ahora como esto se toma como texto lo que hicimos con la comilla simple fue cerrar el valor de la variable **searchTerms**, usamos un guion para separar esa parte de la que sigue, la cuál es llamar a la función **alert()** y esta vez la llamamos ya que si recordamos en el código estamos dentro de unas etiquetas `<script>` así que ya podremos llamar a esta función de javascript, una vez llamada lo que haremos será comentar el resto de código para evitar errores de sintaxis usando **//** , de este modo estaremos comentando todo el resto de código de esta misma linea.
+
+<br>
+
+Así que una vez metamos esta entrada de datos en la función de busqueda veremos lo siguiente:
+
+![exploit](/assets/images/XSS/lab22/exploit.png)
+
+Podemos ver que hemos logrado inyectar el código, y si vemos el código de la web nuevamente:
+
+![code](/assets/images/XSS/lab22/code.png)
+
+Podemos apreciar que hemos logrado inyectar la alerta como vimos anteriormente que funciono.
+
+Y hemos terminado el laboratorio:
+
+![end](/assets/images/XSS/lab22/end.png)
 
 <br>
 
