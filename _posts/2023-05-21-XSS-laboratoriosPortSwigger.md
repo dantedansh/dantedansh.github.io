@@ -2334,3 +2334,107 @@ Y hemos terminado el laboratorio:
 
 <br>
 
+# Laboratorio 23: Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
+
+En este laboratorio de XSS almacenado nos piden lo siguiente:
+
+![lab23](/assets/images/XSS/lab23/lab23.png)
+
+Nos dice que existe una vulnerabilidad XSS en la sección de comentarios, y que debemos llamar un comentario aprovechando el XSS para llamar a la función **alert()** y también que la entrada de corchetes angulares, comillas simples, y barras invertidas, se convierten a entidades HTML para evitar ataques XSS.
+
+<br>
+
+Al abrir la web vemos un blog común con posts:
+
+![post](/assets/images/XSS/lab23/post.png)
+
+Al entrar a cualquier post encontraremos una sección de comentarios:
+
+![comentarios](/assets/images/XSS/lab23/comentarios.png)
+
+Dejaremos un comentario normal para ver como se comporta el servidor web:
+
+![comentario](/assets/images/XSS/lab23/comentario.png)
+
+Al postear el comentario, lo veremos publicado en la sección de comentarios de este post:
+
+![link](/assets/images/XSS/lab23/link.png)
+
+Si damos click al nombre esto nos redigira a la URL que proporcionamos como sitio web al momento de postear el comentario.
+
+Ahora veremos el código de la web en este comentario para ver que hay por detrás:
+
+![codeline](/assets/images/XSS/lab23/codeline.png)
+
+```js
+<a id="author" href="https://dantedansh.github.io/" onclick="var tracker={track(){}};tracker.track('https://dantedansh.github.io/');">Dante</a>
+```
+
+Podemos ver que primero usa la etiqueta `<a>` para crear un enlace, el cual tiene como id el valor de **author**, después se le pasa la URL a la que hará referencia la web para ser redirigido, y después usamos el evento **onclick** donde dentro de este evento se esta llamando a alguna función llamada **track()** que debe haber en algún lugar y se envia la URL como parametro dentro de **tracker.track**, vemos que se pasa como parametro la URL para después finalizar el valor URL de `</a>`.
+
+<br>
+
+Ahora intentaremos escapar del valor de  **tracker.track** pero no podemos ya que al intentar algún exploit como el siguiente:
+
+`https://dantedansh.github.io' + alert(1) + '`
+
+Y lo que intentamos aquí en teoria es escapar del valor de  **tracker.track** con una comilla simple, para posteriormente concatenar la función de alerta, y cerrar con una ultima comilla simple la comilla que se recorre por detrás al momento de poner la primera comilla simple y escapar del valor de  **tracker.track** y cerrarla para evitar errores.
+
+Así que comentaremos este valor:
+
+![pruebasxss](/assets/images/XSS/lab23/pruebasxss.png)
+
+Pero al comentar con esta entrada de datos como URL, no funciona lo que queriamos ya que como podemos ver en el código de la respuesta de esta petición:
+
+![scape](/assets/images/XSS/lab23/scape.png)
+
+Apreciamos que las comillas que agregamos se han escapado automaticamente, y ya no es posible usar una barra inversa para escapar el valor que escapa la comilla ya que esta más protegido.
+
+<br>
+
+Así que lo que intentaremos es lo siguiente:
+
+`https://dantedansh.github.io?&apos;-alert(1)-&apos;`
+
+Lo que estamos haciendo en este exploit que hemos creado, es lo siguiente pero decodificado en valores entidades HTML:
+
+`https://dantedansh.github.io?'-alert(1)-'`
+
+Primero estamos usando el signo de interrogación para decirle que hay un parametro a agregar en la URL el cúal es simplemente la comilla simple, esto es para cerrar el valor de la URL del **tracker.track**, después una vez hemos escapado lo que haremos será llamar a la función **alert()** separada de las comillas usando guiones para evitar errores, y por último ponemos esta última comilla que lo que hará es como ya sabemos cerrar el valor de la comilla simple que se recorrio al poner la primera comilla simple.
+
+Pero como vimos el exploit original es el que esta codificado en entidades HTML para evitar que los filtros detecten la comilla simple, pero en este caso el filtro no detecta la comilla en entidad HTML por lo que podemos burlar el filtro.
+
+<br>
+
+Una vez entendido esto, lo que haremos será publicar el comentario con ese exploit:
+
+![exploit](/assets/images/XSS/lab23/exploit.png)
+
+Y al ver el comentario posteado vemos lo siguiente:
+
+![click](/assets/images/XSS/lab23/click.png)
+
+Si hacemos click en el Nombre que es donde se almaceno el link que pusimos en un principio, entonces se ejecutará el XSS provocando la llamada de la función **alert()**, y hemos completado el objetivo del laboratorio.
+
+Ahora iremos a ver el código de este comentario para ver que ha funcionado:
+
+![exploitfinal](/assets/images/XSS/lab23/exploitfinal.png)
+
+```js
+<a id="author" href="https://dantedansh.github.io?&apos;-alert(1)-&apos;" onclick="var tracker={track(){}};tracker.track('https://dantedansh.github.io?&apos;-alert(1)-&apos;');">Dant3</a>
+```
+
+Así ha quedado el código de la web, podemos ver que no nos agrego ningun valor para escapar la comilla en entidad HTML.
+
+Y así se ve la respuesta interpretada en el contexto de nuestro navegador:
+
+![nav](/assets/images/XSS/lab23/navegador.png)
+
+Vemos que interpreto las comillas simples, pero no se escaparon ya que la parte donde se deberian escapar ya paso y así hemos evadido el escapado de caracteres que estaba configurado por detrás.
+
+Y habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab23/end.png)
+
+<br>
+
