@@ -2438,3 +2438,76 @@ Y habremos terminado este laboratorio:
 
 <br>
 
+# Laboratorio 24: Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped
+
+En este laboratorio vemos lo siguiente:
+
+![lab24](/assets/images/XSS/lab24/lab24.png)
+
+Nos dice que existe un XSS reflejado en la función de busqueda del blog, y que los corchetes angulares son codificados en entidades HTML al igual que las comillas simples, dobles y inversas.
+
+Y que para terminar este laboratorio debemos inyectar la función **alert()** dentro de la cadena de plantilla.
+
+Primero al abrir la web vemos lo siguiente:
+
+![blog](/assets/images/XSS/lab24/blog.png)
+
+Podemos ver el blog y la función de busqueda, meteremos una cadena de texto para después ver en el código en que parte se esta reflejando, en este caso metimos la cadena de texto "Prueba":
+
+![prueba](/assets/images/XSS/lab24/prueba.png)
+
+Y en el código de esta petición vemos lo siguiente:
+
+![code](/assets/images/XSS/lab24/code.png)
+
+```js
+<script>
+  var message = `0 search results for 'Prueba'`;
+  document.getElementById('searchMessage').innerText = message;
+</script>                     
+```
+
+Primero podemos ver que estamos dentro de unas etiquetas `<script>` y después se crea una variable llamada **Message** pero a diferencia de declaración de variables comunes y que hemos visto, esta no usa comillas simples o dobles para guardar el contenido, vemos que esta usando unas  comillas inversas y dentro de ellas esta el valor **0 search results for 'Prueba'**, y esto porque es importante?
+
+Es importante ya que al declarar una variable de ese modo lo que se esta haciendo es una cadena de plantilla o template string, la ventaja de esto es que con una variable declarada así se puede usar algo llamado interpolación de variables y expresiones directamente dentro desde la cadena de la variable a guardar.
+
+Por ejemplo veamos el siguiente código:
+
+```js
+const nombre = 'D4nsh';
+const edad = 18;
+
+// Cadena de plantilla
+const mensaje = `Hola, soy ${nombre} y tengo ${edad} años.`;
+
+console.log(mensaje); // Salida: "Hola, soy D4nsh y tengo 18 años."
+```
+
+Podemos ver que nos permite llamar a una expresión usando los caracteres **${}** en este caso llamamos a la variable **nombre** y **edad** pero también podemos llamar a funciones de javascript, así que esto es en cuestion lo que quería aclarar sobre las cadenas de plantilla.
+
+Y esto lo menciono ya que si recordamos, en el código donde se esta tratando el valor que dimos por entrada, vimos que estamos dentro de etiquetas `<script>` por lo que podemos llamar a algun valor de javascript, intentaremos hacer algo.
+
+De entrada de datos meteremos esto:
+
+`${alert(1)}`
+
+Como estamos dentro de etiquetas de código javascript osea `<script>` entonces podemos llamar a una expresión en este caso será la función **alert()**, y como la web no esta bien sanitizada para la entrada de datos:
+
+![alert](/assets/images/XSS/lab24/alert.png)
+
+Podemos ver que la web ha interpretado nuestra función inyectada a través de la expresión.
+
+Así que habremos terminado este laboratiro.
+
+Podemos ver en el código de la web como se logro inyectar:
+
+![inject](/assets/images/XSS/lab24/inject.png)
+
+Podemos apreciar como se interpreto nuestra entrada como expresión y llamo a la función **alert()** gracias a que estamos en una etiqueta de `<script>` y podemos usar código javasript.
+
+Y habremos terminado este laboratorio:
+
+![end](/assets/images/XSS/lab24/end.png)
+
+<br>
+
