@@ -334,4 +334,171 @@ Podemos ver que hemos cambiado de shell a una bash.
 
 <br>
 
-# 
+# Operadores lógicos , control del flujo (stdout y stderr) y procesos en segundo plano
+
+---
+
+## Concatenación de comandos
+
+Existe una forma de concatenar comandos para ejecutar 2 o más comandos en una sola linea (one liner), por ejemplo si queremos ejecutar el comando `whoami` y también el comando `ls` en una sola linea podemos concatenar ambos usando el punto y coma `;` como podemos ver:
+
+![whoami](parte3-imagenes/concatenados.png)
+
+Podemos ver que nos dio el output de los 2 comandos.
+
+> El output significa la salida de los comandos que hemos ejecutado que se muestran en pantalla.
+
+Podemos ver que primero nos dio el output del comando whoami seguido del comando ls.
+
+Si ponemos un comando que no existe concatenado con uno que si existe sucederá esto:
+
+![whoami](parte3-imagenes/error.png)
+
+Podemos ver que el comando "whoa" no existe, pero aún así si ejecuto el ls ya que ese comando si existe, y vemos que en el output nos da un error en la salida del comando whoa, ya que no existe y nos dice que el comando no ha sido encontrado.
+
+> Cuando recibes un error en pantalla como el del comando whoa se le denomina stderr, ya que significa que hubo un error, por el contrario si todo es exitoso se le denomina stdout a la salida de tu comando como en este caso lo es el ls.
+
+----
+
+## Ver códigos de estados de un comando o proceso
+
+Cada que ejecutamos un comando, ya sea que haya sido exitoso o no, siempre por detrás se genera un código de estado ante el último comando ejecutado.
+
+Los más comunes son los siguientes:
+
+| Valor de estado | significado                                                                                       |
+|-----------------|---------------------------------------------------------------------------------------------------|
+| 0               | Indica que la ejecución del comando o proceso se ha realizado con éxito.                          |
+| 127             | Este estado significa cuando el comando dado no existe en la ruta de la variable de entorno PATH. |
+| 1               | Indica que el proceso tuvo un error y nos ha mostrado una alerta sobre ese error.                 |
+
+Hagamos unas pruebas con cada uno de estos estados de respuesta.
+
+Primero ejecutaremos un comando que sea exitoso, osea que lo que hayamos ejecutado se haya realizado con éxito y como debe ser, por ejemplo un simple `ls`:
+
+![whoami](parte3-imagenes/0.png)
+
+Después de ejecutar el ls, podemos ver que ejecutamos `echo $?` esto nos sirve para imprimir el estado que tuvo la ejecución anterior, en este caso podemos ver un valor 0 por lo que se ha realizado con éxito.
+
+Pero por otro lado si llamamos a un comando que no existe y mostramos el estado:
+
+![whoami](parte3-imagenes/127.png)
+
+Podemos apreciar que nos ha respondido el valor 127 que como sabemos, indica que el comando no existe dentro de la variable de entorno PATH.
+
+![whoami](parte3-imagenes/1.png)
+
+Podemos apreciar que intentamos leer el contenido de un archivo que no existe y su respuesta de estado fue 1, que como sabemos indica que ha habido un error con alerta.
+
+----
+
+## Operadores lógicos
+
+Existen varios tipos de operadores lógicos en linux, veamos cuales son:
+
+| Operador lógico | significado                                                                                                                                                                                                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| &&              | Este operador "AND" significa que si ambas expresiones son verdaderas entonces nos devuelve un valor positivo (true), y si alguna de las 2 expresiones no se cumple entonces devolverá un estado de error (false).                                                                                                                                                |
+| \|\|            | El operador "OR" significa que aunque una de las 2 expresiones sea falsa, mientras una sea verdadera este se ejecutará sin problemas, dando 2 opciones a elegir, en caso de que la primera no se cumpla, tomara la segunda, que en caso de cumplirse devolverá un estado de respuesta verdadero (true), y obviamente si ninguna es verdadera devolverá un false. |
+| !               | Y este operador no se usará por ahora ya que se toca en otros temas pero significa que si al evaluar las operaciones osea las expresiones, si esto da falso, entonces esto responderá con un estado verdadero, esto es para asegurarse de que algo no se este cumpliendo por cualquier motivo necesario, pero esto se verá después.                                                                                                                                                                                                                                                                                                                                                                 |
+
+Para entender mejor los primeros 2 operadores veamos ejemplos:
+
+### ejemplo del operador AND
+
+![whoami](parte3-imagenes/y.png)
+
+Podemos ver que en la primera ejecución pusimos `whoami && ls` y como ambas expresiones son verdaderas ya que existen en el PATH, entonces se ejecutará la acción, en este caso es la ejecución del comando.
+
+Pero si vemos abajo si desde un inicio la primera expresión es falsa, ambas se tomaran como falsas y no ejecutarán su función.
+
+### Ejemplo del operador OR
+
+![whoami](parte3-imagenes/o.png)
+
+Podemos apreciar en la imagen que aunque la primera expresión no exista en el PATH la cual es en este caso "wh" , vemos que como la primera expresión no existe, entonces paso a la siguiente y la ejecuto aunque no existiera la primera expresión.
+
+Y en la segunda ejecución vemos que siempre tomará la primera expresión pero en caso de no existir pasará a la segunda para comprobar si esa otra opción existe.
+
+----
+
+## Control de flujo stdout y stderr
+
+### stderr:
+
+Al ejecutar un comando, o una instrucción que genere un error como por ejemplo, intentaremos leer un archivo que no existe:
+
+![whoami](parte3-imagenes/stderr.png)
+
+Podemos ver que por debajo se manifiesta el mensaje de error que se le conoce como stderr ya que nos esta mostrando una salida con un mensaje erróneo.
+
+Pero podemos ocultar esto en caso de que nos sea molesto y queramos omitir esta salida de error aunque el comando no haya sido exitoso por cualquier motivo.
+
+Para esto usamos el control de flujo, el stderr se identifica en su control de flujo como el valor numérico 2.
+
+Entonces podemos hacer lo siguiente:
+
+![whoami](parte3-imagenes/2.png)
+
+Podemos apreciar que al ejecutar esto ya no nos mostró el aviso y en la segunda ejecución podemos ver que aunque fue un estado de error, ya no nos mostró ningún aviso de error en la pantalla, y esto fue porque redirigimos la salida del error hacía la ruta `/dev/null`.
+
+La ruta `/dev/null` es una ruta del sistema donde todo lo que se meta dentro de esa ruta será eliminado permanentemente, es algo así como un agujero negro dentro del sistema.
+
+Vemos que usamos `2>/dev/null` después de el comando, y esto se hace para como dijimos redirigir el stderr hacía esa ruta y sea desaparecida sin verla en pantalla en ningún momento a pesar de que no haya sido una ejecución exitosa.
+
+El número 2 indica que la salida en caso de ser errónea, entonces será redirigida a el `/dev/null` pero usamos el símbolo de mayor que `>` para redirigir el estado de error osea el 2 a la ruta > /dev/null.
+
+
+### stdout:
+
+De igual manera que el error, también podemos redirigir la salida de un comando exitoso.
+
+![whoami](parte3-imagenes/1.1.png)
+> Es exitoso ya que el archivo que intentamos leer si existe, pero no queremos ver su salida.
+
+Podemos apreciar que es lo mismo pero simplemente cambio el valor de 2 a 1 que el 1 significa stdout, salida exitosa.
+
+
+## redirigir ambos flujos a la vez
+
+Ahora si queremos ocultar el estado stdout, y el stderr a la vez, haremos lo siguiente:
+
+![whoami](parte3-imagenes/ambos.png)
+
+Podemos apreciar que usando: `&>/dev/null` tanto de forma exitosa y no exitosa pudimos ocultar ambos casos.
+
+Y lo que hacemos aquí es que simplemente redirigimos las 2 salidas a la ruta que ya sabemos /dev/null/ para desaparecer cosas.
+
+## ¿Para que ocultar el flujo de algo?
+
+Puede que te estés preguntando esto ya que por el momento no parece tener sentido, pero pongamos un ejemplo sencillo.
+
+Al abrir un programa por ejemplo:
+
+![whoami](parte3-imagenes/telegram.png)
+
+En este caso estamos abriendo telegram desde la terminal y vemos muchas advertencias pero nosotros no queremos ver esto, por lo que podemos redirigir esto para tener la terminal limpia:
+
+![whoami](parte3-imagenes/telegramlimpio.png)
+
+Podemos apreciar que al redirigir el flujo ya no nos muestra nada y es más cómodo estar así , pero obviamente tiene muchas funciones mejores que estas, esto solo fue un simple ejemplo.
+
+Por ejemplo algo más extenso sería al momento ya de programar scripts en bash y requieras la ejecución de ciertos programas, comandos, etc. Entonces será muy útil esto para no llenar la pantalla de quien ejecuta el script haciendo que tenga un mal aspecto.
+
+## procesos en segundo plano
+
+Como en el ejemplo anterior vimos que al abrir un programa o algún proceso por terminal esta se queda en espera, se quedará así a menos que cierres la terminal pero si la cierras se cerrara también el programa que haz abierto con ella.
+
+Para solucionar esto podemos optar por poner el proceso en segundo plano.
+
+![whoami](parte3-imagenes/id.png)
+
+Podemos ver que al final de la ejecución del programa pusimos un símbolo de &, y este símbolo al final de un proceso indica que lo que se va a ejecutar se haga en segundo plano, y podemos ver que nos lanza un numero que es un identificador llamado "pid" process id, el cuál se le asigno a el proceso que se abrirá en segundo plano.
+
+Pero aún hecho esto si cerramos la terminal se cerrara el programa que abrimos con el ya que el programa aún depende de la terminal, pero para hacerlo independiente usaremos el comando `disown` para hacer independiente el proceso anterior:
+
+![whoami](parte3-imagenes/disown.png)
+
+Y de esta forma podremos cerrar la terminal sin perder el programa abierto ya que ya no depende de la terminal.
+
+> Esta no es la manera más recomendada de ejecutar programas en linux, ya que se puede facilitar simplemente ejecutándolos desde el menú de apps o desde un atajo de teclado si es que usas bspwm o algún parecido, pero explico esto ya que es muy importante para cuando profundicemos más.
