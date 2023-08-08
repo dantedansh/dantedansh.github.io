@@ -28,7 +28,7 @@ En este post iré explicando lo fundamental que necesitas saber sobre linux, has
 
 Podemos ver que el usuario que esta ejecutando el sistema actualmente es d4nsh.
 
-----
+---
 
 ## id, sudo su, exit
 
@@ -64,7 +64,7 @@ Podemos usar el comando `sudo` antes del comando que queremos ejecutar como root
 
 Podemos apreciar que ejecutamos el comando `whoami` en el contexto del usuario root, pero seguimos siendo d4nsh ya que solamente ejecutamos el comando anterior con contexto de root más no nos convertimos en root.
 
-----
+---
 
 ## Rutas de los grupos, cat
 
@@ -102,7 +102,7 @@ Ahora que ya sabemos la ruta absoluta de este binario, llamaremos a el comando w
 
 Esto es lo mismo que usar simplemente `whoami`, pero si lo llamamos desde toda su ruta entonces se esta llamando desde su ruta absoluta.
 
-----
+---
 
 ## Variable de entorno, $PATH, $HOME, echo
 
@@ -157,6 +157,8 @@ Podemos ver que la salida del comando `cat /etc/group` se almacena dentro del pi
 
 Entonces ponemos como parámetro al comando `grep`  la palabra a filtrar, en este caso queremos que nos filtre lo que contenga la palabra "floppy", y en la salida del comando podemos ver que nos da una linea de salida filtrandonos solo ese elemento y ignorando el resto ya que solo queremos filtrar las cosas que contengan ese valor en la linea.
 
+---
+
 ## parámetro -n de grep
 
 el parámetro `-n` del comando grep, nos sirve para indicarnos en que linea del archivo pasado se encuentra el valor que filtramos, por ejemplo:
@@ -168,6 +170,8 @@ Podemos apreciar que nos muestra que esta en la linea 19, y podemos comprobar qu
 ![whoami](/assets/images/Linux/comandos_basicos/19.png)
 
 <br>
+
+---
 
 # Segunda parte de comandos básicos en Linux
 
@@ -206,6 +210,8 @@ También podemos listar archivos no solo de la ruta actual si no también de la 
 
 Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 
+---
+
 ## Parámetros de ls:
 
 `-l` nos sirve para mostrar lo mismo que lo anterior pero con más detalles, como los permisos, propietario y grupo, etc:
@@ -217,6 +223,8 @@ Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 ![whoami](/assets/images/Linux/comandos_basicos/ls-la.png)
 
 > En linux los elementos ocultos inician con un punto, por ejemplo: .datos
+
+---
 
 ## cd y manejo de directorios
 
@@ -262,6 +270,8 @@ Y si estamos dentro de una ruta por ejemplo en la de imágenes, y hacemos el com
 
 ![whoami](/assets/images/Linux/comandos_basicos/default.png)
 
+---
+
 ## Manejo de rutas y TAB
 
 Una vez entendimos un poco el funcionamiento del comando `cd` toca ir a explicar unas cuantas cosas más.
@@ -278,6 +288,7 @@ Este símbolo ~ representa a la ruta por defecto del sistema que es la carpeta h
 
 Podemos ver que viajamos a Imágenes usando el comando cd y usamos el símbolo `~` que es lo mismo que `/home/d4nsh` y ahora nos facilita el trabajo de no tener que escribir toda la ruta de home de nuestro usuario.
 
+---
 
 ## Auto-completado de rutas con TAB
 
@@ -424,7 +435,7 @@ Y en la segunda ejecución vemos que siempre tomará la primera expresión pero 
 
 ## Control de flujo stdout y stderr
 
-### stderr:
+## stderr:
 
 Al ejecutar un comando, o una instrucción que genere un error como por ejemplo, intentaremos leer un archivo que no existe:
 
@@ -448,7 +459,6 @@ Vemos que usamos `2>/dev/null` después de el comando, y esto se hace para como 
 
 El número 2 indica que la salida en caso de ser errónea, entonces será redirigida a el `/dev/null` pero usamos el símbolo de mayor que `>` para redirigir el estado de error osea el 2 a la ruta > /dev/null.
 
-
 ### stdout:
 
 De igual manera que el error, también podemos redirigir la salida de un comando exitoso.
@@ -458,6 +468,7 @@ De igual manera que el error, también podemos redirigir la salida de un comando
 
 Podemos apreciar que es lo mismo pero simplemente cambio el valor de 2 a 1 que el 1 significa stdout, salida exitosa.
 
+---
 
 ## redirigir ambos flujos a la vez
 
@@ -468,6 +479,8 @@ Ahora si queremos ocultar el estado stdout, y el stderr a la vez, haremos lo sig
 Podemos apreciar que usando: `&>/dev/null` tanto de forma exitosa y no exitosa pudimos ocultar ambos casos.
 
 Y lo que hacemos aquí es que simplemente redirigimos las 2 salidas a la ruta que ya sabemos /dev/null/ para desaparecer cosas.
+
+---
 
 ## ¿Para que ocultar el flujo de algo?
 
@@ -484,6 +497,8 @@ En este caso estamos abriendo telegram desde la terminal y vemos muchas adverten
 Podemos apreciar que al redirigir el flujo ya no nos muestra nada y es más cómodo estar así , pero obviamente tiene muchas funciones mejores que estas, esto solo fue un simple ejemplo.
 
 Por ejemplo algo más extenso sería al momento ya de programar scripts en bash y requieras la ejecución de ciertos programas, comandos, etc. Entonces será muy útil esto para no llenar la pantalla de quien ejecuta el script haciendo que tenga un mal aspecto.
+
+---
 
 ## procesos en segundo plano
 
@@ -502,3 +517,359 @@ Pero aún hecho esto si cerramos la terminal se cerrara el programa que abrimos 
 Y de esta forma podremos cerrar la terminal sin perder el programa abierto ya que ya no depende de la terminal.
 
 > Esta no es la manera más recomendada de ejecutar programas en linux, ya que se puede facilitar simplemente ejecutándolos desde el menú de apps o desde un atajo de teclado si es que usas bspwm o algún parecido, pero explico esto ya que es muy importante para cuando profundicemos más.
+
+<br>
+
+---
+
+# Descriptores de archivo
+
+Para crear un descriptor de archivo podemos hacer lo siguiente:
+
+![whoami](/assets/images/Linux/descriptores/5.png)
+
+Lo que estamos haciendo aquí es que con el comando `exec` estamos creando un descriptor de archivo, este descriptor que estamos creando se identificara con el ID 5, y contendrá permisos para leer y escribir dentro de ese archivo, esto se lo indicamos usando los `<>` el símbolo de menor que significa que asignas el permiso de lectura, y el símbolo de mayor que, significa que asignas el permiso de escritura en el descriptor de archivo, y por último le damos un nombre al archivo en este caso será "archivo".
+
+Una vez lo creamos hicimos un ls para apreciar que el archivo se ha creado y al hacerle cat nos dice que no contiene nada y es normal ya que no hemos metido ningún contenido.
+
+---
+
+## Redirigir un output dentro de un descriptor de archivo
+
+Si queremos redirigir la salida de un comando hacía el descriptor de archivo que hemos creado podemos hacer lo siguiente:
+
+![whoami](/assets/images/Linux/descriptores/redirigir.png)
+
+Lo que estamos haciendo es redirigir la salida del comando whoami usando el símbolo `>` y con el & lo que hacemos es llamar a el id 5 que sabemos que es del archivo que creamos anteriormente, por lo que al ejecutar eso y leer el contenido del archivo vemos que ahora la salida del comando whoami se ha redirigido hacía el descriptor de archivo.
+
+Y si ahora queremos meter otro output dentro del mismo descriptor de archivo podemos hacerlo:
+
+![whoami](/assets/images/Linux/descriptores/pwd.png)
+
+Podemos apreciar en la primera ejecución que se esta enviando el output del comando pwd hacía el descriptor de archivo con el id 5, en este caso es el que creamos antes.
+
+Y al leer el archivo podemos apreciar que se agrego el contenido encima del anterior sin reemplazarlo, de esta forma se guardan multiples cosas sin ser reemplazadas.
+
+---
+
+## Finalizar de escribir en un descriptor de archivo
+
+Si ya no queremos meter datos dentro de un descriptor de archivo podemos cerrarlo de la siguiente forma:
+
+![whoami](/assets/images/Linux/descriptores/cerrar.png)
+
+De esta forma ya no podremos meter datos dentro de este descriptor de archivo ya que lo hemos finalizado.
+
+Y si intentamos meter datos nos saldrá esto:
+
+![whoami](/assets/images/Linux/descriptores/error.png)
+
+Podemos ver que ya nos sale un error ya que ya hemos cerrado el descriptor de archivo anteriormente.
+
+---
+
+## Hacer copias de un descriptor de archivo
+
+![whoami](/assets/images/Linux/descriptores/datos.png)
+
+Creamos un nuevo descriptor de archivo con el id 3, permisos de escritura y lectura, y que se llame "datos" en este caso.
+
+Después le metemos algo, en este caso el output del comando whoami, y al mostrar su contenido vemos que se guardo con éxito.
+
+Ahora para hacer una copia de este descriptor haremos lo siguiente:
+
+![whoami](/assets/images/Linux/descriptores/copia.png)
+
+Podemos ver que con exec asignamos un nuevo descriptor de archivo con el id 8, y con `>&3` indicamos que ese nuevo descriptor apuntará a el descriptor con id 3.
+
+Y vemos que no se duplico el archivo, ya que lo que se duplica es el descriptor en si con el contenido más no el archivo.
+
+Ahora si metemos datos dentro del nuevo descriptor:
+
+![whoami](/assets/images/Linux/descriptores/duplicado.png)
+
+Podemos apreciar que aunque metimos el output del comando pwd dentro del descriptor con el id 8, vemos que se refleja dentro de el archivo "datos" que pertenece al descriptor con el id 3.
+
+Si cerramos el descriptor con el id 3:
+
+![whoami](/assets/images/Linux/descriptores/fail.png)
+
+Vemos que ya no nos deja obviamente ya que lo hemos cerrado, pero aún tenemos el duplicado y podremos hacerlo desde ese:
+
+![whoami](/assets/images/Linux/descriptores/output.png)
+
+Podemos ver que aquí si nos permitió meter el output al descriptor con el id 8, el cuál apunta hacía el archivo datos ya que al duplicarlo obtuvo esa referencia por lo que vemos que se ha pasado correctamente el output.
+
+> No olvides cerrar el descriptor copia.
+
+<br>
+
+----
+
+# Lectura e interpretación de permisos + modos de escribir en archivos
+
+> Antes de ver la lectura e interpretación de permisos veremos algo básico pero necesario.
+
+## Comando file y escritura en archivos
+
+`file` : Este comando se usa para crear un archivo, por ejemplo:
+
+![img](/assets/images/Linux/lectura_permisos/file.png)
+
+Podemos ver que hemos creado un archivo llamado "archivo.txt" el cuál vemos que se creo correctamente al verificarlo con un ls.
+
+Ahora hay multiples formas de editar el contenido de un archivo, por ejemplo si queremos meter un texto dentro del archivo podemos hacerlo así:
+
+![img](/assets/images/Linux/lectura_permisos/contenido.png)
+
+Podemos ver que estamos metiendo el output del comando echo con el contenido que queremos meter dentro del archivo, ya sabemos que con el símbolo de mayor que se redirige el output hacía un sitio, en este caso al archivo.
+
+Y vemos que al hacerle un cat leemos su contenido.
+
+Pero si intentamos meter más texto a ese mismo archivo de esta misma manera sucederá lo siguiente:
+
+![img](/assets/images/Linux/lectura_permisos/otrotexto.png)
+
+Podemos apreciar que el texto anterior se ha borrado y a cambio se ha sobrepuesto este texto nuevo.
+
+Para evitar que un contenido se sobre-escriba encima del otro, haremos uso de dobles símbolos de mayor que:
+
+![img](/assets/images/Linux/lectura_permisos/doble.png)
+
+De esta forma el texto anterior ya no sera reemplazado.
+
+---
+
+## Uso de nano
+
+Otra forma de editar archivos más fácil es usando el editor de texto `nano`:
+
+![img](/assets/images/Linux/lectura_permisos/nano.png)
+
+Al ejecutar este comando y al darle el archivo que queremos editar nos abrirá lo siguiente:
+
+![img](/assets/images/Linux/lectura_permisos/nano-gui.png)
+
+Desde aquí mismo ya podemos ir editando el texto.
+
+Abajo vemos una serie de elementos que nos pueden ayudar, el símbolo de ^ significa ctrl, por ejemplo para salir se usa ctrl + x, o para buscar algo dentro del archivo se usa ctrl + f, para cortar una linea entera de texto se usa ctrl + k pero debes tener el cursor a partir de donde quieres cortar el contenido.
+
+Para pegar contenido que tengas en el portapapeles, en nano se pega contenido con `ctrl + shift + v` y para copiar `ctrl + shift + c`.
+
+Y por último para guardar el contenido se usa `ctrl + s`.
+
+Ahora pasaremos a la parte de los permisos en el sistema.
+
+---
+
+## Lectura e interpretación de permisos, mkdir
+
+Con el comando `mkdir` nos sirve para crear un nuevo directorio, osea una carpeta:
+
+![img](/assets/images/Linux/lectura_permisos/mkdir.png)
+> La carpeta la hice para explicar los permisos.
+
+Al hacer un `ls -l` veremos lo siguiente:
+
+![img](/assets/images/Linux/lectura_permisos/permisos.png)
+
+Si podemos ver bien, primero están los permisos que en breve profundizaremos en ellos.
+
+Después nos muestra el propietario y grupo al que pertenece ese archivo o directorio, también vemos su peso, y hora de creación etc.
+
+Pero lo que nos interesa es lo de los permisos:
+
+![img](/assets/images/Linux/lectura_permisos/lectura.png)
+
+En los permisos del directorio nos muestra "d" al inicio que indica que es un directorio.
+
+Y en los permisos del archivo nos muestra un simple punto "." al inicio para saber que se trata de un archivo.
+
+Vemos lo siguiente en los permisos del directorio:
+
+rwx   r-x   r-x
+
+> Estos valores siempre se separan en conjuntos de 3, la "d" no la tomamos en cuenta ya que solo indica que es un directorio.
+
+| Permiso | significado                                                                                                                               |     |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| r       | permiso de lectura en el archivo o directorio.                                                                                       |
+| w       | permiso de escritura en el archivo o directorio.                                                                                     |
+| x       | permiso de ejecutar un archivo, programa, etc, pero en caso de que este permiso este en un directorio, indica que podemos entrar a dicho directorio. |
+
+Si vemos en los permisos del directorio:
+
+rwx   r-x   r-x
+
+Podemos ver que los hemos separado en 3 conjuntos, ¿y esto porque?: Lo hacemos así ya que cada conjunto de estos permisos pertenecen a lugares diferentes.
+
+El primer conjunto pertenece a los permisos que el usuario propietario de ese directorio tiene sobre ese directorio.
+
+El segundo conjunto pertenece a los permisos que el grupo al que pertenece ese directorio tiene sobre el, por ejemplo si algún usuario dentro de la red de mi linux tiene asignado el grupo al que pertenece este archivo, entonces se le asignaran estos permisos del segundo conjunto.
+
+Y por último el tercer conjunto pertenece a otros, por ejemplo alguien que no es dueño del archivo y no esta en el grupo del archivo, entonces se le asignan esos permisos del tercer conjunto.
+
+Siempre van en orden rwx rwx rwx pero al desactivar un permiso se usa un guion.
+
+Por eso vemos que el propietario tiene todos los permisos, los grupos solo pueden leer, y ejecutar pero no escribir.
+
+Y con los otros es lo mismo que grupos.
+
+---
+
+## Un ejemplo más para aclarar la lectura de permisos
+
+Ahora veremos los permisos del archivo:
+
+.rw- r-- r--
+
+Sabemos que el punto indica que es un archivo y no un directorio que en su caso sería "d".
+
+Ahora los separamos en conjuntos de 3:
+
+rw-   r--   r--
+
+Si entendimos bien, sabremos que el propietario tiene permiso de leer y escribir en el archivo pero no de ejecutarlo.
+
+Los grupos y otros solo pueden leer el archivo pero no modificarlo ni ejecutarlo.
+
+---
+
+## Prueba de permisos 
+
+Haremos otra prueba para entender un poco más, listamos con detalle el siguiente archivo:
+
+![img](/assets/images/Linux/lectura_permisos/passwd.png)
+
+Podemos ver que en este caso nosotros somos parte del grupo de otros ya que no somos el propietario, y tampoco estamos en el grupo root, podemos verlo con id:
+
+![img](/assets/images/Linux/lectura_permisos/noroot.png)
+
+Por lo que no estamos tampoco en el grupo, así que nuestros permisos son los de otros.
+
+Sabemos que se separa de 3 conjuntos:
+
+| propietario | grupo | otros |
+| ----------- | ----- | ----- |
+| rw-         | r--   | r--   |
+
+Y pertenecemos al último conjunto que es el de otros, así que se nos asignas esos permisos hacía ese archivo.
+
+Podemos leer el contenido:
+
+![img](/assets/images/Linux/lectura_permisos/passwd-content.png)
+
+Pero no podemos modificarlo:
+
+![img](/assets/images/Linux/lectura_permisos/denegado.png)
+
+Ya que no tenemos los permisos de escritura en este archivo.
+
+<br>
+
+---
+
+# Asignación de permisos
+
+Ahora que ya sabemos leer los permisos, vamos a aprender a asignar esos permisos.
+
+Cuando somos el propietario ya sea de un directorio, archivo, etc. Podemos modificar también el grupo al que pertenece ese archivo y también su propietario.
+
+Veamos un ejemplo:
+
+> Primero entre como el usuario root para crear un archivo y después con `su d4nsh` volví a ser el usuario d4nsh para hacer la prueba.
+
+![img](/assets/images/Linux/escritura_permisos/root.png)
+
+Ya como el usuario d4nsh, podemos ver que hay un archivo el cuál el propietario es root, y su grupo es root.
+
+Como no somos el propietario, como podemos ver en la segunda ejecución vemos que somos d4nsh, así que nuestros permisos son los del último conjunto los cuales son solo de lectura.
+
+Y podemos ver que no podemos escribir en el archivo ya que no tenemos permiso.
+
+Así que volvemos a convertirnos en root con `sudo su` para poder modificar los permisos y ver como se hace:
+
+![img](/assets/images/Linux/escritura_permisos/test.png)
+
+Primero, podemos apreciar que usamos `whoami` para mostrar que nos convertimos en root.
+
+Después mostramos los permisos del archivo, los cuales son: `rw-   r--   r--` y vemos que "otros" no tienen permiso de escritura pero se lo queremos agregar.
+
+Así que usaremos el comando `chmod` esto sirve para modificar los permisos de algo.
+
+En este caso como somos el propietario ya que root lo es, entonces podemos modificar los permisos de este archivo, así que queremos que los que pertenecen a "otros", tengan el permiso de escritura sobre ese archivo.
+
+Por lo que haremos lo siguiente:
+
+![img](/assets/images/Linux/escritura_permisos/asignacion.png)
+
+Podemos ver que usamos: `chmod o+w archivo.txt` 
+
+Lo que significa esto es que la o significa "otros", y el símbolo de + significa que asignaremos un permiso, la w es para asignar ese permiso, y pasamos el archivo al cual se le modificaran esos permisos, en este caso es archivo.txt.
+
+Y podemos ver abajo que al hacer nuevamente un ls -l apreciamos que el permiso "w" de escritura ya esta asignado en "otros", y al volver a ser d4nsh y intentar meter contenido ya podremos ya que hemos asignado ese permiso:
+
+![img](/assets/images/Linux/escritura_permisos/w.png)
+
+Vemos que hacemos un exit para volver a ser d4nsh, después mostramos el permiso que vimos que se asigno anteriormente y probamos meter contenido que antes no pudimos y ahora si ya que tenemos el permiso en "otros".
+
+Y podemos ver que el contenido se agrego correctamente gracias a la asignación del permiso de escritura en "otros".
+
+Ahora si queremos remover un permiso se usa el signo de menos `-` en lugar del de `+` y de esta forma asignamos y removemos permisos.
+
+Y si quieres cambiar permisos del propietario se usa `u` que significa user.
+
+Si quieres cambiar el permiso de grupos se usa `g` que significa group.
+
+Recordemos estos valores:
+
+| Letra | significado  |
+| ----- | ------------ |
+| u     | propietario. |
+| g     | grupo.       |
+| o     | otros        |
+
+Y los símbolos:
+
+`+` para asignar un permiso.
+`-` para remover un permiso.
+
+---
+
+## Cambiar diferentes permisos en una sola linea
+
+Ahora si queremos cambiar diferentes permisos en una sola ejecución, veamos como se hace.
+
+Supongamos que queremos cambiar:
+
+![img](/assets/images/Linux/escritura_permisos/permisos.png)
+
+estos permisos, por otros.
+
+rw-   r--   rw-
+
+Queremos cambiarlos por:
+
+rwx   rwx   r--
+
+Por ejemplo.
+
+Así que haremos lo siguiente:
+
+![img](/assets/images/Linux/escritura_permisos/varios.png)
+
+Apreciamos que separamos con una coma al momento de asignar los de cada conjunto.
+
+Y podemos adjuntar varios en uno solo como fue en el g+wx esto para asignar los 2 permisos de ese conjunto, por lógica también podemos hacer esto al remover permisos.
+
+---
+
+## Cambiar grupo de un archivo/directorio
+
+.................
+
+---
+
+## Cambiar propietario de un archivo/directorio
+
+................
