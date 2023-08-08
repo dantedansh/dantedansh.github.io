@@ -332,3 +332,6 @@ Podemos ver que hemos cambiado de shell a una bash.
 
 > Para volver a tu shell por defecto simplemente usa el comando exit.
 
+<br>
+
+# 
