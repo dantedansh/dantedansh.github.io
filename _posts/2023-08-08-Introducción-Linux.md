@@ -342,7 +342,7 @@ Podemos ver que hemos cambiado de shell a una bash.
 
 Existe una forma de concatenar comandos para ejecutar 2 o más comandos en una sola linea (one liner), por ejemplo si queremos ejecutar el comando `whoami` y también el comando `ls` en una sola linea podemos concatenar ambos usando el punto y coma `;` como podemos ver:
 
-![whoami](parte3-imagenes/concatenados.png)
+![whoami](/assets/images/Linux/operadores/concatenados.png)
 
 Podemos ver que nos dio el output de los 2 comandos.
 
@@ -352,7 +352,7 @@ Podemos ver que primero nos dio el output del comando whoami seguido del comando
 
 Si ponemos un comando que no existe concatenado con uno que si existe sucederá esto:
 
-![whoami](parte3-imagenes/error.png)
+![whoami](/assets/images/Linux/operadores/error.png)
 
 Podemos ver que el comando "whoa" no existe, pero aún así si ejecuto el ls ya que ese comando si existe, y vemos que en el output nos da un error en la salida del comando whoa, ya que no existe y nos dice que el comando no ha sido encontrado.
 
@@ -376,17 +376,17 @@ Hagamos unas pruebas con cada uno de estos estados de respuesta.
 
 Primero ejecutaremos un comando que sea exitoso, osea que lo que hayamos ejecutado se haya realizado con éxito y como debe ser, por ejemplo un simple `ls`:
 
-![whoami](parte3-imagenes/0.png)
+![whoami](/assets/images/Linux/operadores/0.png)
 
 Después de ejecutar el ls, podemos ver que ejecutamos `echo $?` esto nos sirve para imprimir el estado que tuvo la ejecución anterior, en este caso podemos ver un valor 0 por lo que se ha realizado con éxito.
 
 Pero por otro lado si llamamos a un comando que no existe y mostramos el estado:
 
-![whoami](parte3-imagenes/127.png)
+![whoami](/assets/images/Linux/operadores/127.png)
 
 Podemos apreciar que nos ha respondido el valor 127 que como sabemos, indica que el comando no existe dentro de la variable de entorno PATH.
 
-![whoami](parte3-imagenes/1.png)
+![whoami](/assets/images/Linux/operadores/1.png)
 
 Podemos apreciar que intentamos leer el contenido de un archivo que no existe y su respuesta de estado fue 1, que como sabemos indica que ha habido un error con alerta.
 
@@ -406,7 +406,7 @@ Para entender mejor los primeros 2 operadores veamos ejemplos:
 
 ### ejemplo del operador AND
 
-![whoami](parte3-imagenes/y.png)
+![whoami](/assets/images/Linux/operadores/y.png)
 
 Podemos ver que en la primera ejecución pusimos `whoami && ls` y como ambas expresiones son verdaderas ya que existen en el PATH, entonces se ejecutará la acción, en este caso es la ejecución del comando.
 
@@ -414,7 +414,7 @@ Pero si vemos abajo si desde un inicio la primera expresión es falsa, ambas se 
 
 ### Ejemplo del operador OR
 
-![whoami](parte3-imagenes/o.png)
+![whoami](/assets/images/Linux/operadores/o.png)
 
 Podemos apreciar en la imagen que aunque la primera expresión no exista en el PATH la cual es en este caso "wh" , vemos que como la primera expresión no existe, entonces paso a la siguiente y la ejecuto aunque no existiera la primera expresión.
 
@@ -428,7 +428,7 @@ Y en la segunda ejecución vemos que siempre tomará la primera expresión pero 
 
 Al ejecutar un comando, o una instrucción que genere un error como por ejemplo, intentaremos leer un archivo que no existe:
 
-![whoami](parte3-imagenes/stderr.png)
+![whoami](/assets/images/Linux/operadores/stderr.png)
 
 Podemos ver que por debajo se manifiesta el mensaje de error que se le conoce como stderr ya que nos esta mostrando una salida con un mensaje erróneo.
 
@@ -438,7 +438,7 @@ Para esto usamos el control de flujo, el stderr se identifica en su control de f
 
 Entonces podemos hacer lo siguiente:
 
-![whoami](parte3-imagenes/2.png)
+![whoami](/assets/images/Linux/operadores/2.png)
 
 Podemos apreciar que al ejecutar esto ya no nos mostró el aviso y en la segunda ejecución podemos ver que aunque fue un estado de error, ya no nos mostró ningún aviso de error en la pantalla, y esto fue porque redirigimos la salida del error hacía la ruta `/dev/null`.
 
@@ -453,7 +453,7 @@ El número 2 indica que la salida en caso de ser errónea, entonces será rediri
 
 De igual manera que el error, también podemos redirigir la salida de un comando exitoso.
 
-![whoami](parte3-imagenes/1.1.png)
+![whoami](/assets/images/Linux/operadores/1.1.png)
 > Es exitoso ya que el archivo que intentamos leer si existe, pero no queremos ver su salida.
 
 Podemos apreciar que es lo mismo pero simplemente cambio el valor de 2 a 1 que el 1 significa stdout, salida exitosa.
@@ -463,7 +463,7 @@ Podemos apreciar que es lo mismo pero simplemente cambio el valor de 2 a 1 que e
 
 Ahora si queremos ocultar el estado stdout, y el stderr a la vez, haremos lo siguiente:
 
-![whoami](parte3-imagenes/ambos.png)
+![whoami](/assets/images/Linux/operadores/ambos.png)
 
 Podemos apreciar que usando: `&>/dev/null` tanto de forma exitosa y no exitosa pudimos ocultar ambos casos.
 
@@ -475,11 +475,11 @@ Puede que te estés preguntando esto ya que por el momento no parece tener senti
 
 Al abrir un programa por ejemplo:
 
-![whoami](parte3-imagenes/telegram.png)
+![whoami](/assets/images/Linux/operadores/telegram.png)
 
 En este caso estamos abriendo telegram desde la terminal y vemos muchas advertencias pero nosotros no queremos ver esto, por lo que podemos redirigir esto para tener la terminal limpia:
 
-![whoami](parte3-imagenes/telegramlimpio.png)
+![whoami](/assets/images/Linux/operadores/telegramlimpio.png)
 
 Podemos apreciar que al redirigir el flujo ya no nos muestra nada y es más cómodo estar así , pero obviamente tiene muchas funciones mejores que estas, esto solo fue un simple ejemplo.
 
@@ -491,13 +491,13 @@ Como en el ejemplo anterior vimos que al abrir un programa o algún proceso por 
 
 Para solucionar esto podemos optar por poner el proceso en segundo plano.
 
-![whoami](parte3-imagenes/id.png)
+![whoami](/assets/images/Linux/operadores/id.png)
 
 Podemos ver que al final de la ejecución del programa pusimos un símbolo de &, y este símbolo al final de un proceso indica que lo que se va a ejecutar se haga en segundo plano, y podemos ver que nos lanza un numero que es un identificador llamado "pid" process id, el cuál se le asigno a el proceso que se abrirá en segundo plano.
 
 Pero aún hecho esto si cerramos la terminal se cerrara el programa que abrimos con el ya que el programa aún depende de la terminal, pero para hacerlo independiente usaremos el comando `disown` para hacer independiente el proceso anterior:
 
-![whoami](parte3-imagenes/disown.png)
+![whoami](/assets/images/Linux/operadores/disown.png)
 
 Y de esta forma podremos cerrar la terminal sin perder el programa abierto ya que ya no depende de la terminal.
 
