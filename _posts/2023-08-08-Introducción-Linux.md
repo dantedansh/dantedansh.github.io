@@ -866,10 +866,45 @@ Y podemos adjuntar varios en uno solo como fue en el g+wx esto para asignar los 
 
 ## Cambiar grupo de un archivo/directorio
 
-.................
+Para hacer esto usaremos el comando `chgrp` que significa change group, cambiar grupo, y le pasamos el grupo al que queremos que se cambie el archivo dado:
+
+![img](/assets/images/Linux/escritura_permisos/cambio.png)
+
+Podemos apreciar que el grupo de el archivo.txt ha cambiado del grupo d4nsh a el grupo video, como vemos en la imagen.
+
+De esta forma se cambia el grupo a algo.
 
 ---
 
 ## Cambiar propietario de un archivo/directorio
 
-................
+Y ahora para cambiar el propietario usamos el comando `chown` de change owner, cambiar propietario, y le pasamos el propietario que queremos que se cambie el archivo o directorio dado:
+
+![img](/assets/images/Linux/escritura_permisos/root1.png)
+
+Podemos apreciar que esta vez usamos los permisos de `sudo` ya que como es root necesitamos su permiso para asignarle un archivo como propietario.
+
+Y abajo podemos aperciar que el usuario propietario del archivo ya es root y no d4nsh.
+
+De esta forma podemos cambiar el propietario de algo.
+
+### Asignar propietario y grupo en un solo comando
+
+Veamos:
+
+![img](/assets/images/Linux/escritura_permisos/default.png)
+
+Podemos apreciar que usamos el comando que se usa para cambiar el propietario `chown` pero esta vez hicimos:
+
+`sudo chown d4nsh:d4nsh archivo.txt`
+
+Vemos que ponemos en el primer apartado d4nsh, que indica el propietario al que se cambiara el archivo, pero si también ponemos separado de dos puntos : el grupo, entonces esto automaticamente lodetectará que el segundo valor es para asignar el grupo y primero el propietario , para no usar 2 comandos diferentes, por lo que al hacer eso podemos ver debajo que el propietario y el grupo han sido cambiados a d4nsh.
+
+Y fue gracias a el comando chown que pudimos hacer esto, recuerda:
+
+![img](/assets/images/Linux/escritura_permisos/oneline.png)
+
+Vemos que podemos hacerlo en un solo comando, también podemos usar el comando `chgrp` del mismo modo y esto funcionará igual pero obviamente en lugar de que primero sea el usuario el que se asigne, será el grupo ya que es su comando.
+
+Y vemos que usamos sudo ya que como le quitaremos el propietario a root necesitamos su permiso ya que es el propietario y necesitamos su confirmacion.
+
