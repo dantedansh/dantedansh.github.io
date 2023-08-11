@@ -24,7 +24,7 @@ tags:
 
 En este post iré explicando lo fundamental que necesitas saber sobre linux, hasta cosas más avanzadas como bash scripting.
 
-# Comandos básicos linux
+# Comandos b\ásicos linux
 
 ## whoami
 
