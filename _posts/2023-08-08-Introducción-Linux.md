@@ -888,7 +888,9 @@ Y abajo podemos aperciar que el usuario propietario del archivo ya es root y no 
 
 De esta forma podemos cambiar el propietario de algo.
 
-### Asignar propietario y grupo en un solo comando
+---
+
+## Asignar propietario y grupo en un solo comando
 
 Veamos:
 
@@ -908,3 +910,148 @@ Vemos que podemos hacerlo en un solo comando, también podemos usar el comando `
 
 Y vemos que usamos sudo ya que como le quitaremos el propietario a root necesitamos su permiso ya que es el propietario y necesitamos su confirmacion.
 
+---
+
+<br>
+
+# Crear un nuevo usuario
+
+Ahora aprenderemos a crear un usuario nuevo, primero necesitamos ser root para hacer modificaciones en el sistema.
+
+![img](/assets/images/Linux/crear_usuario/f4r.png)
+
+Podemos ver que siendo como root, creamos el directorio f4r dentro de la ruta `/home/` Y esto es porque este directorio home será la carpeta por defecto de un nuevo usuario que vamos a crear:
+
+![img](/assets/images/Linux/crear_usuario/useradd.png)
+
+Lo que hicimos en este comando primero fue usar el comando `useradd` seguido de sus parametros , el primero es el nombre del nuevo usuario, en este caso es "f4r", después con -s indicamos que tipo de shell va a tener ese usuario, le indicamos que tendrá una bash `/bin/bash` y por último con el parametro -d le indicamos cúal va a ser su directorio personal, en este caso es el que creamos anteriormente `/home/f4r`.
+
+Y podemos confirmar que se creo el usuario leyendo el archivo `/etc/passwd`:
+
+![img](/assets/images/Linux/crear_usuario/passwd.png)
+
+Vemos que se ha creado el usuario f4r y vemos que tiene su directorio personal al igual que la shell bash asignada.
+
+<br>
+
+Ahora le asignaremos una contraseña a este nuevo usuario, para ello usamos el comando `passwd` y le pasamos como parametro el usuario a modificar la contraseña:
+
+![img](/assets/images/Linux/crear_usuario/passwdf4r.png)
+
+Podemos ver que hemos asignado la contraseña al usuario f4r correctamente.
+
+<br>
+
+Ahora vemos que al hacer un ls -l podemos apreciar que el directorio de f4r le pertenece a root y también al grupo root:
+
+![img](/assets/images/Linux/crear_usuario/root.png)
+
+Pero queremos que le pertenezca al usuario f4r, por lo que lo vamos a modificar:
+
+![img](/assets/images/Linux/crear_usuario/chown.png)
+
+Podemos apreciar que hemos modificado correctamente el propietario y grupo del directorio f4r.
+
+> No usamos sudo antes de ejecutar el comando ya que ya estamos como el usuario root y no es necesario.
+
+---
+
+## Migrar a otro usuario
+
+Ahora migraremos a el nuevo usuario f4r, usaremos `su f4r` y entraremos automaticamente:
+
+![img](/assets/images/Linux/crear_usuario/bash.png)
+
+Podemos ver que al hacer simplemente este comando entramos como el usuario f4r, y no nos pidio la contraseña de f4r ya que como estabamos como root y tenemos los maximos privilegios sobre el sistema entonces tenemos admitido entrar a cualquier usuario sin proporcionar su contraseña.
+
+Pero si estuviesemos como d4nsh, si nos pediria la contraseña al intentar migrar:
+
+![img](/assets/images/Linux/crear_usuario/contra.png)
+
+Podemos apreciar que aquí si nos pidió la contraseña del usuario f4r, ya que d4nsh no tiene permisos de acceder a cualquier usuario como root.
+
+<br>
+
+Podemos ver que estamos en la ruta `/home` en un inicio, pero vemos que si usamos el comando `cd` este nos llevará a nuestro directorio personal como podemos comprobarlo con `pwd`:
+
+![img](/assets/images/Linux/crear_usuario/cd.png)
+
+Esto fue gracias a que asignamos esta ruta como su directorio personal.
+
+<br>
+
+---
+
+# Crear nuevo grupo
+
+Ahora aprenderemos a crear nuevos grupos, en este ejemplo crearemos el grupo "Testing":
+
+![img](/assets/images/Linux/crear_usuario/idgrupo.png)
+
+> Recuerda estar como root al crear usuarios,grupos,modificar contraseñas, y cualquier actividad que requiera modificaciones en el sistema que cualquier usuario no privilegiado no pueda hacer.
+
+Podemos apreciar que hemos creado el grupo correctamente usando el comando `groupadd` y pasandole como parametro el grupo a crear.
+
+Después comprobamos que se ha creado este grupo "Testing" al comprobarlo en el archivo `/etc/group`, y podemos ver que se le asigno un gid(group id) con el valor de 1005 y también vemos que no aparece ningún usuario ya que nadie esta en este grupo por ahora.
+
+## Asignar usuarios a grupos
+
+Ahora para asigar usuarios a un grupo, en este caso asignaremos al usuario f4r al grupo "Testing":
+
+![img](/assets/images/Linux/crear_usuario/usermod.png)
+
+para ello usamos el comando `usermod` con el parametro -a que significa añadir algo a un usuario, y lo que le añadimos es al grupo que se pasa en el parametro -G en este caso es Testing, y por último le pasamos el usuario al que se le aplicarán estos cambios.
+
+Y si vemos abajo en el cat podemos apreciar que ahora ya hay un usuario dentro del grupo "Testing" que podemos leer en el archivo `/etc/group/`.
+
+Ahora migraremos a el usuario f4r y podremos ver que al hacer `id` se encuentra el grupo que asignamos anteriormente:
+
+![img](/assets/images/Linux/crear_usuario/id.png)
+
+Vemos que aparece el grupo Testing al cual pertenece el usuario f4r.
+
+<br>
+
+## Ejemplo extra de permisos
+
+Veremos un último ejemplo sobre estos temas para repasar, crearemos una carpeta la cuál solo los que pertenecen al grupo Testing, puedan atravesar un directorio y escribir dentro de el.
+
+Primero creamos el directorio:
+
+![img](/assets/images/Linux/crear_usuario/dir.png)
+
+Podemos ver que hemos creado un directiro llamado Archivos, y como somos root, el propietario y grupo de este directorio es root como podemos ver.
+
+Ahora con el comando `chgrp` hemos cambiado el grupo de ese directorio a el grupo Testing:
+
+![img](/assets/images/Linux/crear_usuario/change.png)
+
+Podemos ver que ya pertenece este directorio a el grupo Testing.
+
+<br>
+
+Ahora solamente queda modificar los permisos como queremos, que otros no puedan atravesar el directorio ni leer nada dentro, y que solo el propietario y el grupo puedan escribir, leer y atravesar ese directorio:
+
+![img](/assets/images/Linux/crear_usuario/final.png)
+
+Y podemos apreciar que hemos asignado los permisos usando chmod como lo explicamos pero esta vez aplicado a lo requerido que en este caso es que solo el propietario y el grupo tengan control sobre el directorio pero no "otros".
+
+Como el usuario d4nsh no esta dentro del grupo Testing, no podra ingresar al directiro ni hacer nada sobre el:
+
+![img](/assets/images/Linux/crear_usuario/denegado.png)
+
+Esto es ya que el usuario d4nsh no es el propietario ni pertenece al grupo, por lo que sus permisos son los de "otros", pero como lo configuramos sin ningun permiso entonces no podra hacer nada el usuario d4nsh sobre ese directorio.
+
+<br>
+
+Y por otro lado con el usuario f4r si que podremos atravesar el directorio, escribir y leer:
+
+![img](/assets/images/Linux/crear_usuario/privilegios.png)
+
+Podemos apreciar que como el usuario f4r pertenece al grupo Testing, tenemos los permisos de grupo.
+
+<br>
+
+---
+
+# 
