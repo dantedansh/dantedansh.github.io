@@ -24,7 +24,7 @@ tags:
 
 En este post iré explicando lo fundamental que necesitas saber sobre linux, hasta cosas más avanzadas como bash scripting.
 
-# Comandos b\ásicos linux
+# Comandos basicos linux
 
 ## whoami
 
@@ -165,7 +165,7 @@ Entonces ponemos como parámetro al comando `grep`  la palabra a filtrar, en est
 
 ---
 
-## parámetro -n de grep
+## parametro -n de grep
 
 el parámetro `-n` del comando grep, nos sirve para indicarnos en que linea del archivo pasado se encuentra el valor que filtramos, por ejemplo:
 
@@ -179,7 +179,7 @@ Podemos apreciar que nos muestra que esta en la linea 19, y podemos comprobar qu
 
 ---
 
-# Segunda parte de comandos básicos en Linux
+# Segunda parte de comandos basicos en Linux
 
 Ahora toca ver más comandos Básicos:
 
@@ -220,7 +220,7 @@ Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 
 ---
 
-## Parámetros de ls:
+## Parametros de ls:
 
 `-l` nos sirve para mostrar lo mismo que lo anterior pero con más detalles, como los permisos, propietario y grupo, etc:
 
@@ -329,7 +329,7 @@ Podemos apreciar que el identificador de usuario es el 1000 que es d4nsh, y el i
 
 ----
 
-## Migración de shell
+## Migracion de shell
 
 Existe una variable de entorno llamada `SHELL` la cuál nos indica que tipo de shell esta ejecutando nuestro usuario:
 
@@ -355,11 +355,11 @@ Podemos ver que hemos cambiado de shell a una bash.
 
 ---
 
-# Operadores lógicos , control del flujo (stdout y stderr) y procesos en segundo plano
+# Operadores logicos , control del flujo (stdout y stderr) y procesos en segundo plano
 
 Ahora sigue ver sobre los operadores lógicos, saber que son y también control de flujo, y procesos en segundo plano.
 
-## Concatenación de comandos
+## Concatenacion de comandos
 
 Existe una forma de concatenar comandos para ejecutar 2 o más comandos en una sola linea (one liner), por ejemplo si queremos ejecutar el comando `whoami` y también el comando `ls` en una sola linea podemos concatenar ambos usando el punto y coma `;` como podemos ver:
 
@@ -381,7 +381,7 @@ Podemos ver que el comando "whoa" no existe, pero aún así si ejecuto el ls ya 
 
 ----
 
-## Ver códigos de estados de un comando o proceso
+## Ver codigos de estados de un comando o proceso
 
 Cada que ejecutamos un comando, ya sea que haya sido exitoso o no, siempre por detrás se genera un código de estado ante el último comando ejecutado.
 
@@ -413,7 +413,7 @@ Podemos apreciar que intentamos leer el contenido de un archivo que no existe y 
 
 ----
 
-## Operadores lógicos
+## Operadores logicos
 
 Existen varios tipos de operadores lógicos en linux, veamos cuales son:
 
@@ -616,7 +616,7 @@ Podemos ver que aquí si nos permitió meter el output al descriptor con el id 8
 
 ----
 
-# Lectura e interpretación de permisos + modos de escribir en archivos
+# Lectura e interpretacion de permisos + modos de escribir en archivos
 
 Antes de ver la lectura e interpretación de permisos veremos algo básico pero necesario.
 
@@ -672,7 +672,7 @@ Ahora pasaremos a la parte de los permisos en el sistema.
 
 ---
 
-## Lectura e interpretación de permisos, mkdir
+## Lectura e interpretacion de permisos, mkdir
 
 Con el comando `mkdir` nos sirve para crear un nuevo directorio, osea una carpeta:
 
@@ -727,7 +727,7 @@ Y con los otros es lo mismo que grupos.
 
 ---
 
-### Un ejemplo más para aclarar la lectura de permisos
+### Un ejemplo mas para aclarar la lectura de permisos
 
 Ahora veremos los permisos del archivo:
 
@@ -779,7 +779,7 @@ Ya que no tenemos los permisos de escritura en este archivo.
 
 ---
 
-# Asignación de permisos
+# Asignacion de permisos
 
 Ahora que ya sabemos leer los permisos, vamos a aprender a asignar esos permisos.
 
