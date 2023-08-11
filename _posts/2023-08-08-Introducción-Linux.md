@@ -24,9 +24,11 @@ tags:
 
 En este post iré explicando lo fundamental que necesitas saber sobre linux, hasta cosas más avanzadas como bash scripting.
 
+
+
 # Comandos básicos linux
 
-## whoami
+### whoami
 
 `whoami` : Este comando nos sirve para saber que usuario esta usando el sistema actualmente.
 
@@ -36,7 +38,7 @@ Podemos ver que el usuario que esta ejecutando el sistema actualmente es d4nsh.
 
 ---
 
-## id, sudo su, exit
+### id, sudo su, exit
 
 `id` : Este comando nos permite ver los grupos a los que el usuario esta integrado:
 
@@ -72,7 +74,7 @@ Podemos apreciar que ejecutamos el comando `whoami` en el contexto del usuario r
 
 ---
 
-## Rutas de los grupos, cat
+### Rutas de los grupos, cat
 
 Los grupos mostrados anteriormente existen en rutas del sistema, existen dentro de la ruta del sistema **/etc/**  y dentro de esta ruta existe un archivo llamado **group**.
 
@@ -88,7 +90,7 @@ Podemos apreciar que todos estos grupos son los que existen dentro del sistema, 
 
 ----
 
-## Ruta absoluta y ruta relativa, which
+### Ruta absoluta y ruta relativa, which
 
 Cada comando contiene una ruta absoluta y una ruta relativa, veamos el ejemplo con el comando `whoami` .
 
@@ -110,7 +112,7 @@ Esto es lo mismo que usar simplemente `whoami`, pero si lo llamamos desde toda s
 
 ---
 
-## Variable de entorno, $PATH, $HOME, echo
+### Variable de entorno, $PATH, $HOME, echo
 
 `echo` Este comando nos sirve para imprimir un mensaje en pantalla por ejemplo:
 
@@ -145,7 +147,7 @@ Y la variable de entorno `HOME` nos indica cual es nuestro directorio personal d
 
 ----
 
-## grep, pipes
+### grep, pipes
 
 El comando `grep` nos es muy útil al momento de querer filtrar información, por ejemplo, si hacemos un cat al archivo `/etc/group`:
 
@@ -165,7 +167,7 @@ Entonces ponemos como parámetro al comando `grep`  la palabra a filtrar, en est
 
 ---
 
-## parámetro -n de grep
+### parámetro -n de grep
 
 el parámetro `-n` del comando grep, nos sirve para indicarnos en que linea del archivo pasado se encuentra el valor que filtramos, por ejemplo:
 
@@ -181,7 +183,7 @@ Podemos apreciar que nos muestra que esta en la linea 19, y podemos comprobar qu
 
 # Segunda parte de comandos básicos en Linux
 
-## command -v
+### command -v
 
 Como recordamos en el post anterior, vimos el uso del comando `which` para saber la ruta absoluta de un comando, pero también nos puede servir para verificar si existe cierto comando, por ejemplo si ponemos algo que no existe nos mostrara esto:
 
@@ -194,7 +196,7 @@ De esta forma podemos saber si existe un comando o no dentro de un sistema, pero
 ![whoami](/assets/images/Linux/comandos_basicos/alternativa.png)
 Esto es una alternativa en caso de que el binario de whoami no exista en el sistema y queramos saber si existen otros binarios, vemos que también nos dice su ruta absoluta.
 
-##  pwd, ls
+###  pwd, ls
 
 El comando `pwd` nos sirve para saber en que directorio estamos actualmente:
 
@@ -218,7 +220,7 @@ Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 
 ---
 
-## Parámetros de ls:
+### Parámetros de ls:
 
 `-l` nos sirve para mostrar lo mismo que lo anterior pero con más detalles, como los permisos, propietario y grupo, etc:
 
@@ -232,7 +234,7 @@ Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 
 ---
 
-## cd y manejo de directorios
+### cd y manejo de directorios
 
 `cd` : Este comando nos sirve para entrar dentro de un directorio especifico, por ejemplo, hacemos un ls para listar los archivos del directorio actual:
 
@@ -278,7 +280,7 @@ Y si estamos dentro de una ruta por ejemplo en la de imágenes, y hacemos el com
 
 ---
 
-## Manejo de rutas y TAB
+### Manejo de rutas y TAB
 
 Una vez entendimos un poco el funcionamiento del comando `cd` toca ir a explicar unas cuantas cosas más.
 
@@ -296,7 +298,7 @@ Podemos ver que viajamos a Imágenes usando el comando cd y usamos el símbolo `
 
 ---
 
-## Auto-completado de rutas con TAB
+### Auto-completado de rutas con TAB
 
 Otra cosa que nos será muy útil para ahorrar tiempo viajando dentro de rutas es que podemos usar la tecla de TAB para auto-completar la ruta a la que queremos ir, por ejemplo escribimos: `cd /home/d4` y al dar a la tecla de TAB esta nos auto-completará el resto que es nsh, y nos lo agrega  ya que eso es lo único que empieza con d4, si hubiera otro directorio que empiece con d4 entonces tendrías que agregar más letras hasta que haya una diferencia y el único que quede sea el directorio al que quieres ir.
 
@@ -304,7 +306,7 @@ O otro modo es presionar TAB multiples veces ya que de esa forma se irá poniend
 
 ----
 
-## Identificador de usuario e identificador de grupo
+### Identificador de usuario e identificador de grupo
 
 Cada usuario tiene asignado un grupo, y ese grupo tiene un valor numérico que es un identificador y también el usuario tiene un identificador.
 
@@ -327,7 +329,7 @@ Podemos apreciar que el identificador de usuario es el 1000 que es d4nsh, y el i
 
 ----
 
-## Migración de shell
+### Migración de shell
 
 Existe una variable de entorno llamada `SHELL` la cuál nos indica que tipo de shell esta ejecutando nuestro usuario:
 
@@ -351,11 +353,11 @@ Podemos ver que hemos cambiado de shell a una bash.
 
 <br>
 
-# Operadores lógicos , control del flujo (stdout y stderr) y procesos en segundo plano
-
 ---
 
-## Concatenación de comandos
+# Operadores lógicos , control del flujo (stdout y stderr) y procesos en segundo plano
+
+### Concatenación de comandos
 
 Existe una forma de concatenar comandos para ejecutar 2 o más comandos en una sola linea (one liner), por ejemplo si queremos ejecutar el comando `whoami` y también el comando `ls` en una sola linea podemos concatenar ambos usando el punto y coma `;` como podemos ver:
 
@@ -377,7 +379,7 @@ Podemos ver que el comando "whoa" no existe, pero aún así si ejecuto el ls ya 
 
 ----
 
-## Ver códigos de estados de un comando o proceso
+### Ver códigos de estados de un comando o proceso
 
 Cada que ejecutamos un comando, ya sea que haya sido exitoso o no, siempre por detrás se genera un código de estado ante el último comando ejecutado.
 
@@ -409,7 +411,7 @@ Podemos apreciar que intentamos leer el contenido de un archivo que no existe y 
 
 ----
 
-## Operadores lógicos
+### Operadores lógicos
 
 Existen varios tipos de operadores lógicos en linux, veamos cuales son:
 
@@ -439,9 +441,9 @@ Y en la segunda ejecución vemos que siempre tomará la primera expresión pero 
 
 ----
 
-## Control de flujo stdout y stderr
+### Control de flujo stdout y stderr
 
-## stderr:
+### stderr
 
 Al ejecutar un comando, o una instrucción que genere un error como por ejemplo, intentaremos leer un archivo que no existe:
 
@@ -465,7 +467,7 @@ Vemos que usamos `2>/dev/null` después de el comando, y esto se hace para como 
 
 El número 2 indica que la salida en caso de ser errónea, entonces será redirigida a el `/dev/null` pero usamos el símbolo de mayor que `>` para redirigir el estado de error osea el 2 a la ruta > /dev/null.
 
-### stdout:
+### stdout
 
 De igual manera que el error, también podemos redirigir la salida de un comando exitoso.
 
@@ -476,7 +478,7 @@ Podemos apreciar que es lo mismo pero simplemente cambio el valor de 2 a 1 que e
 
 ---
 
-## redirigir ambos flujos a la vez
+### redirigir ambos flujos a la vez
 
 Ahora si queremos ocultar el estado stdout, y el stderr a la vez, haremos lo siguiente:
 
@@ -488,7 +490,7 @@ Y lo que hacemos aquí es que simplemente redirigimos las 2 salidas a la ruta qu
 
 ---
 
-## ¿Para que ocultar el flujo de algo?
+### ¿Para que ocultar el flujo de algo?
 
 Puede que te estés preguntando esto ya que por el momento no parece tener sentido, pero pongamos un ejemplo sencillo.
 
@@ -506,7 +508,7 @@ Por ejemplo algo más extenso sería al momento ya de programar scripts en bash 
 
 ---
 
-## procesos en segundo plano
+### procesos en segundo plano
 
 Como en el ejemplo anterior vimos que al abrir un programa o algún proceso por terminal esta se queda en espera, se quedará así a menos que cierres la terminal pero si la cierras se cerrara también el programa que haz abierto con ella.
 
@@ -540,7 +542,7 @@ Una vez lo creamos hicimos un ls para apreciar que el archivo se ha creado y al 
 
 ---
 
-## Redirigir un output dentro de un descriptor de archivo
+### Redirigir un output dentro de un descriptor de archivo
 
 Si queremos redirigir la salida de un comando hacía el descriptor de archivo que hemos creado podemos hacer lo siguiente:
 
@@ -558,7 +560,7 @@ Y al leer el archivo podemos apreciar que se agrego el contenido encima del ante
 
 ---
 
-## Finalizar de escribir en un descriptor de archivo
+### Finalizar de escribir en un descriptor de archivo
 
 Si ya no queremos meter datos dentro de un descriptor de archivo podemos cerrarlo de la siguiente forma:
 
@@ -574,7 +576,7 @@ Podemos ver que ya nos sale un error ya que ya hemos cerrado el descriptor de ar
 
 ---
 
-## Hacer copias de un descriptor de archivo
+### Hacer copias de un descriptor de archivo
 
 ![whoami](/assets/images/Linux/descriptores/datos.png)
 
@@ -616,7 +618,7 @@ Podemos ver que aquí si nos permitió meter el output al descriptor con el id 8
 
 > Antes de ver la lectura e interpretación de permisos veremos algo básico pero necesario.
 
-## Comando file y escritura en archivos
+### Comando file y escritura en archivos
 
 `file` : Este comando se usa para crear un archivo, por ejemplo:
 
@@ -646,7 +648,7 @@ De esta forma el texto anterior ya no sera reemplazado.
 
 ---
 
-## Uso de nano
+### Uso de nano
 
 Otra forma de editar archivos más fácil es usando el editor de texto `nano`:
 
@@ -668,7 +670,7 @@ Ahora pasaremos a la parte de los permisos en el sistema.
 
 ---
 
-## Lectura e interpretación de permisos, mkdir
+### Lectura e interpretación de permisos, mkdir
 
 Con el comando `mkdir` nos sirve para crear un nuevo directorio, osea una carpeta:
 
@@ -723,7 +725,7 @@ Y con los otros es lo mismo que grupos.
 
 ---
 
-## Un ejemplo más para aclarar la lectura de permisos
+### Un ejemplo más para aclarar la lectura de permisos
 
 Ahora veremos los permisos del archivo:
 
@@ -741,7 +743,7 @@ Los grupos y otros solo pueden leer el archivo pero no modificarlo ni ejecutarlo
 
 ---
 
-## Prueba de permisos 
+### Prueba de permisos 
 
 Haremos otra prueba para entender un poco más, listamos con detalle el siguiente archivo:
 
@@ -842,7 +844,7 @@ Y los símbolos:
 
 ---
 
-## Cambiar diferentes permisos en una sola linea
+### Cambiar diferentes permisos en una sola linea
 
 Ahora si queremos cambiar diferentes permisos en una sola ejecución, veamos como se hace.
 
@@ -870,7 +872,7 @@ Y podemos adjuntar varios en uno solo como fue en el g+wx esto para asignar los 
 
 ---
 
-## Cambiar grupo de un archivo/directorio
+### Cambiar grupo de un archivo/directorio
 
 Para hacer esto usaremos el comando `chgrp` que significa change group, cambiar grupo, y le pasamos el grupo al que queremos que se cambie el archivo dado:
 
@@ -882,7 +884,7 @@ De esta forma se cambia el grupo a algo.
 
 ---
 
-## Cambiar propietario de un archivo/directorio
+### Cambiar propietario de un archivo/directorio
 
 Y ahora para cambiar el propietario usamos el comando `chown` de change owner, cambiar propietario, y le pasamos el propietario que queremos que se cambie el archivo o directorio dado:
 
@@ -896,7 +898,7 @@ De esta forma podemos cambiar el propietario de algo.
 
 ---
 
-## Asignar propietario y grupo en un solo comando
+### Asignar propietario y grupo en un solo comando
 
 Veamos:
 
@@ -916,9 +918,9 @@ Vemos que podemos hacerlo en un solo comando, también podemos usar el comando `
 
 Y vemos que usamos sudo ya que como le quitaremos el propietario a root necesitamos su permiso ya que es el propietario y necesitamos su confirmacion.
 
----
-
 <br>
+
+---
 
 # Crear un nuevo usuario
 
@@ -962,7 +964,7 @@ Podemos apreciar que hemos modificado correctamente el propietario y grupo del d
 
 ---
 
-## Migrar a otro usuario
+### Migrar a otro usuario
 
 Ahora migraremos a el nuevo usuario f4r, usaremos `su f4r` y entraremos automaticamente:
 
@@ -1000,7 +1002,7 @@ Podemos apreciar que hemos creado el grupo correctamente usando el comando `grou
 
 Después comprobamos que se ha creado este grupo "Testing" al comprobarlo en el archivo `/etc/group`, y podemos ver que se le asigno un gid(group id) con el valor de 1005 y también vemos que no aparece ningún usuario ya que nadie esta en este grupo por ahora.
 
-## Asignar usuarios a grupos
+### Asignar usuarios a grupos
 
 Ahora para asigar usuarios a un grupo, en este caso asignaremos al usuario f4r al grupo "Testing":
 
@@ -1018,7 +1020,7 @@ Vemos que aparece el grupo Testing al cual pertenece el usuario f4r.
 
 <br>
 
-## Ejemplo extra de permisos
+### Ejemplo extra de permisos
 
 Veremos un último ejemplo sobre estos temas para repasar, crearemos una carpeta la cuál solo los que pertenecen al grupo Testing, puedan atravesar un directorio y escribir dentro de el.
 
