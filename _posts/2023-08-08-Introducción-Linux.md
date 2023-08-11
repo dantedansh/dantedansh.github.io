@@ -4,6 +4,12 @@ title: Introducción a Linux (Completo).
 excerpt: "Introducción completa para comenzar a usar sistemas GNU/Linux."
 date: 2023-08-08
 classes: wide
+
+toc: true
+toc_label: "Contenido del post"
+toc_icon: "book"
+toc_float: "true"
+
 header:
   teaser: /assets/images/Linux/Linux.jpg
   teaser_home_page: true
