@@ -220,7 +220,7 @@ Y podemos ver que dentro de esa ruta existe la carpeta d4nsh.
 
 ---
 
-## Parametros de ls:
+## Parametros de ls
 
 `-l` nos sirve para mostrar lo mismo que lo anterior pero con más detalles, como los permisos, propietario y grupo, etc:
 
@@ -1063,4 +1063,182 @@ Podemos apreciar que como el usuario f4r pertenece al grupo Testing, tenemos los
 <br>
 
 ---
+
+# Notacion octal de permisos
+
+Ahora veremos otra manera de asignar permisos, esto se hace de la siguiente forma, por ejemplo tenemos este archivo:
+
+![img](/assets/images/Linux/permisos_octal/archivo.png)
+
+Sus permisos son los siguientes:
+
+rw-   r--   r--
+
+Ahora después de separarlos en 3 conjuntos, en una hoja o donde quieras , debes agregar los siguientes valores por debajo:
+
+rw-   r--   r--
+|||	  |||   |||
+110	  100   100
+
+Si hay un permiso, agregamos un "1", y si no hay un permiso agregamos un "0".
+
+Después vamos a agregar unas posiciones imaginarias:
+
+rw-   r--   r--
+|||	  |||   |||
+110	  100   100
+|||   |||   |||
+210   210   210
+
+Agregamos las posiciones en orden en cada conjunto en relación a los valores de arriba, estas pociciones inician desde 0 contando hasta 2. o sea 012, pero al revés.
+
+Ahora se elevará el numero 2 a el exonente de la posicion, pero esto solo si en esa posicion hay un permiso.
+
+Por ejemplo:
+
+Empezaremos con el primer conjunto para no confundirnos:
+
+rw-
+|||
+110   <--- binarios.
+|||
+210   <--- posiciónes.
+
+En la posición 0 no hay permiso en su binario de arriba ya que hay un 0 arriba, por lo que se ignora ya que indica que no hay un permiso ahí.
+
+En la posición 1 si hay permiso ya que hay un 1 en su binario de arriba, lo que indica que hay un permiso, por lo que elevamos 2 a el valor de esa posición, en este caso: 2¹ que nos da: 2
+
+Y en la posición 2 también hay un permiso, por lo que elevaremos 2 a el valor de esa posición: 2² que nos da: 4
+
+Luego sumamos estos valores: 2 + 4 = 6.
+
+<br>
+
+Y haremos esto mismo con los otros 2 conjuntos restantes:
+
+r--
+|||
+100    <--- Ponemos los valores en binario, recuerda, 1 se pone si encima hay un permiso, y 0 si no hay.
+|||
+210    <--- Agregamos las posiciones 0,1,2 pero al revés.
+
+
+Ahora sigue elevar el 2 dependiendo las posiciones y que exista un permiso, en la posición 0 no hay permiso arriba en el binario, por lo que se queda vacio.
+
+En la posición 1 tampoco hay permiso por lo que se queda vacío.
+
+Y en la posición 2 si hay permiso, por lo que elevamos el 2 a el valor de la posición: 2² que es igual a: 4.
+
+Y como solo había 1 permiso en este conjunto entonces ya no hay con que sumarlo y se pasa así.
+
+<br>
+
+El tercer conjunto es lo mismo que el anterior por lo que igual es igual a 4.
+
+Y una vez terminado nos quedarán así los permisos ya elevados:
+
+rw-   r--   r--
+6     4     4
+
+Ahora tenemos el valor 644, este valor equivale a los permisos que vimos en un inicio dentro del archivo.
+
+![img](/assets/images/Linux/permisos_octal/test.png)
+
+Podemos ver que aplicamos este valor usando el comando chmod, y pasandole el archivo, y al comprobar nuevamente los permisos con ls -l, vemos que no se modifico nada ya que sus permisos son los que asignamos que ya tenian.
+
+## Otro ejemplo para aclarar
+
+Ahora supongamos que a ese mismo archivo anterior, queremos cambiarle los permisos a estos:
+
+rwx   r-x   r--   <--- permisos.
+
+Empezamos haciendo el binario dependiendo de si hay un permiso o no:
+
+111   110   100   <--- binario.
+
+Ahora agregamos las posiciones:
+
+111   110   100   <--- Binario.
+
+210   210   210   <--- Posiciones.
+
+Ahora elevaremos el 2, a la potencia que nos indica la posición, recuerda que solo se aplica esto en caso de que haya un permiso en esa posición.
+
+Primer conjunto:
+
+rwx   <--- permisos.
+|||
+111   <--- binario.
+|||
+210   <--- posición.
+
+En la posición 0 hay un permiso, por lo que elevaremos 2 a la potencia de esa posición: 2⁰ que es igual a 1.
+
+En la posición 1 hay un permiso, por lo que elevaremos 2 a la potencia de esa posición: 2¹ que es igual a 2.
+
+Por último la posición 2 tiene un permiso, por lo que elevamos el 2 a la potencia de esa posición: 2² que es igual a 4.
+
+Sumamos estos valores y tenemos: 7
+
+<br>
+
+Ya sacamos el primer valor numerico del primer conjunto, ahora sacaremos los de los otros 2 conjuntos restantes:
+
+segundo conjunto:
+
+r-x   <--- permisos.
+|||
+101   <--- binario.
+|||
+210   <--- posición.
+
+2 se eleva a la posición 0, ya que hay permiso en la posición: 2⁰ = 1.
+
+En la posición 1 no hacemos nada ya que no hay permiso en la posición.
+
+2 se eleva a la posición 2, ya que hay permiso en la posición: 2² = 4.
+
+Al sumar esto da 5.
+
+Hemos sacado el valor del segundo conjunto.
+
+<br>
+
+Por último sacaremos el tercer conjunto:
+
+r--   <--- permisos.
+|||
+100   <--- binario.
+|||
+210   <--- posición.
+
+Posición 0 y 1 se omiten ya que no hay permisos en sus posiciones.
+
+La posición 2 tiene permiso, por lo que elevamos el 2 a esa posición: 2² = 4.
+
+Y como no hay nada más con que sumarlo de este conjunto entonces ya tenemos el valor de este conjunto: 4.
+
+Ahora ya sacamos el valor del tercer conjunto.
+
+<br>
+
+Y ya tenemos los valores de los 3 conjuntos, ahora simplemente los juntamos: 754
+
+Y al asignar este valor a el archivo veremos que se asignaron los permisos deseados:
+
+rwx   r-x   r--   <--- permisos deseados.
+
+Resultado:
+
+![img](/assets/images/Linux/permisos_octal/permisos.png)
+
+Y podemos apreciar que se aplicaron correctamente como lo deseamos.
+
+> Esto puede resultar muy tardado para algo simple pero con el tiempo, sobre todo si practicas vas a lograr hacerlo mucho más rapido y se te quedarán ciertos valores grabados.
+
+<br>
+
+## Alternativa por si la anterior te parece complicada
+
+Aquí veremos otra manera de hacer esto un poco más rapido.
 
