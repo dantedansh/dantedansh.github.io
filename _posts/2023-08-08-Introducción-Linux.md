@@ -1077,9 +1077,9 @@ Sus permisos son los siguientes:
 Ahora después de separarlos en 3 conjuntos, en una hoja o donde quieras , debes agregar los siguientes valores por debajo:
 
 ```
-rw-   r--   r--
-|||	  |||   |||
-110	  100   100
+rw-ㅤㅤr--ㅤㅤr--
+|||ㅤㅤ|||ㅤㅤ|||
+110ㅤㅤ100ㅤㅤ100
 ```
 
 Si hay un permiso, agregamos un "1", y si no hay un permiso agregamos un "0".
@@ -1087,11 +1087,11 @@ Si hay un permiso, agregamos un "1", y si no hay un permiso agregamos un "0".
 Después vamos a agregar unas posiciones imaginarias:
 
 ```
-rw-   r--   r--
-|||	  |||   |||
-110	  100   100
-|||   |||   |||
-210   210   210
+rw-ㅤㅤr--ㅤㅤr--
+|||ㅤㅤ|||ㅤㅤ|||
+110ㅤㅤ100ㅤㅤ100
+|||ㅤㅤ|||ㅤㅤ|||
+210ㅤㅤ210ㅤㅤ210
 ```
 
 Agregamos las posiciones en orden en cada conjunto en relación a los valores de arriba, estas pociciones inician desde 0 contando hasta 2. o sea 012, pero al revés.
