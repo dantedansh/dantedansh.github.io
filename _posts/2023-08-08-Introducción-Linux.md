@@ -1072,23 +1072,27 @@ Ahora veremos otra manera de asignar permisos, esto se hace de la siguiente form
 
 Sus permisos son los siguientes:
 
-rw-   r--   r--
+`rw-   r--   r--`
 
 Ahora después de separarlos en 3 conjuntos, en una hoja o donde quieras , debes agregar los siguientes valores por debajo:
 
+```
 rw-   r--   r--
 |||	  |||   |||
 110	  100   100
+```
 
 Si hay un permiso, agregamos un "1", y si no hay un permiso agregamos un "0".
 
 Después vamos a agregar unas posiciones imaginarias:
 
+```
 rw-   r--   r--
 |||	  |||   |||
 110	  100   100
 |||   |||   |||
 210   210   210
+```
 
 Agregamos las posiciones en orden en cada conjunto en relación a los valores de arriba, estas pociciones inician desde 0 contando hasta 2. o sea 012, pero al revés.
 
@@ -1098,11 +1102,13 @@ Por ejemplo:
 
 Empezaremos con el primer conjunto para no confundirnos:
 
+```
 rw-
 |||
 110   <--- binarios.
 |||
 210   <--- posiciónes.
+```
 
 En la posición 0 no hay permiso en su binario de arriba ya que hay un 0 arriba, por lo que se ignora ya que indica que no hay un permiso ahí.
 
@@ -1116,12 +1122,13 @@ Luego sumamos estos valores: 2 + 4 = 6.
 
 Y haremos esto mismo con los otros 2 conjuntos restantes:
 
+```
 r--
 |||
 100    <--- Ponemos los valores en binario, recuerda, 1 se pone si encima hay un permiso, y 0 si no hay.
 |||
 210    <--- Agregamos las posiciones 0,1,2 pero al revés.
-
+```
 
 Ahora sigue elevar el 2 dependiendo las posiciones y que exista un permiso, en la posición 0 no hay permiso arriba en el binario, por lo que se queda vacio.
 
@@ -1137,8 +1144,10 @@ El tercer conjunto es lo mismo que el anterior por lo que igual es igual a 4.
 
 Y una vez terminado nos quedarán así los permisos ya elevados:
 
+```
 rw-   r--   r--
 6     4     4
+```
 
 Ahora tenemos el valor 644, este valor equivale a los permisos que vimos en un inicio dentro del archivo.
 
@@ -1150,10 +1159,11 @@ Podemos ver que aplicamos este valor usando el comando chmod, y pasandole el arc
 
 Ahora supongamos que a ese mismo archivo anterior, queremos cambiarle los permisos a estos:
 
-rwx   r-x   r--   <--- permisos.
+`rwx   r-x   r--   <--- permisos.`
 
 Empezamos haciendo el binario dependiendo de si hay un permiso o no:
 
+```
 111   110   100   <--- binario.
 
 Ahora agregamos las posiciones:
@@ -1161,16 +1171,19 @@ Ahora agregamos las posiciones:
 111   110   100   <--- Binario.
 
 210   210   210   <--- Posiciones.
+```
 
 Ahora elevaremos el 2, a la potencia que nos indica la posición, recuerda que solo se aplica esto en caso de que haya un permiso en esa posición.
 
 Primer conjunto:
 
+```
 rwx   <--- permisos.
 |||
 111   <--- binario.
 |||
 210   <--- posición.
+```
 
 En la posición 0 hay un permiso, por lo que elevaremos 2 a la potencia de esa posición: 2⁰ que es igual a 1.
 
@@ -1186,11 +1199,13 @@ Ya sacamos el primer valor numerico del primer conjunto, ahora sacaremos los de 
 
 segundo conjunto:
 
+```
 r-x   <--- permisos.
 |||
 101   <--- binario.
 |||
 210   <--- posición.
+```
 
 2 se eleva a la posición 0, ya que hay permiso en la posición: 2⁰ = 1.
 
@@ -1206,11 +1221,13 @@ Hemos sacado el valor del segundo conjunto.
 
 Por último sacaremos el tercer conjunto:
 
+```
 r--   <--- permisos.
 |||
 100   <--- binario.
 |||
 210   <--- posición.
+```
 
 Posición 0 y 1 se omiten ya que no hay permisos en sus posiciones.
 
@@ -1226,7 +1243,7 @@ Y ya tenemos los valores de los 3 conjuntos, ahora simplemente los juntamos: 754
 
 Y al asignar este valor a el archivo veremos que se asignaron los permisos deseados:
 
-rwx   r-x   r--   <--- permisos deseados.
+`rwx   r-x   r--   <--- permisos deseados.`
 
 Resultado:
 
