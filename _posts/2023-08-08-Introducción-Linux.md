@@ -1259,3 +1259,42 @@ Y podemos apreciar que se aplicaron correctamente como lo deseamos.
 
 Aquí veremos otra manera de hacer esto un poco más rapido.
 
+Supongamos que tenemos la siguiente serie de permisos que queremos saber su valor numerico:
+
+![img](/assets/images/Linux/permisos_octal/draw_permisos.png)
+
+Ahora en lugar de agregar lo de binario, vamos a agregar los valores en orden: 4,2,1 , y en caso de no haber permiso no ponemos nada:
+
+![img](/assets/images/Linux/permisos_octal/421.png)
+
+¿Y porque esto?
+
+Esto de 421, son los valores de 2 elevado a 0,1 o 2, como lo haciamos anteriormente, pero ahora solo ponemos los resultados de cada permiso y tomamos en cuenta los que tengan permiso, y los que no les ponemos una X para saber que no hay permiso.
+
+Sumaremos los valores del mismo conjunto siempre y cuando encima de su valor exista un permiso, entonces los que tengan permiso se sumaran con su valor que esta dentro del mismo conjunto siempre y cuando tengan un permiso arriba.
+
+Como vemos en la imagen:
+
+![img](/assets/images/Linux/permisos_octal/suma.png)
+
+Apreciamos que en el primer conjunto, esta `rwx`, por lo que sus valores de abajo se sumaran entre si, dando como resultado 7, que es el primer valor que formamos en el valor numerico de esos permisos.
+
+En el segundo conjunto esta `r-x` vemos que no esta el permiso de escritura, por lo que debajo de sus valores solo se sumarian el 4 y el 1 dando el resultado 5, que este es el segundo valor que se forma en el valor numerico de estos permisos.
+
+Y en el último conjunto solo hay un permiso: `r--` el cual es el de lectura, entonces su valor de abajo se pasa así ya que no hay con que sumarlo, dando resultado 4, y con esto terminamos los 3 conjuntos.
+
+Por lo que el valor de estos permisos es: 754.
+
+Y al asignarlos:
+
+![img](/assets/images/Linux/permisos_octal/chmod.png)
+
+Vemos que agregamos con el comando chmod exactamente los permisos que queriamos agregar en un principio.
+
+> Esta forma de asignar permisos es la más rapida y recomendada, pero debes saber el porque del 4,2,1 por eso explique la manera compleja para que sepas que viene de ahí.
+
+<br>
+
+---
+
+# 
