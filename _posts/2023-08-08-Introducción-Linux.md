@@ -1297,4 +1297,53 @@ Vemos que agregamos con el comando chmod exactamente los permisos que queriamos 
 
 ---
 
+# Permiso especial Sticky Bit
+
+Pongamos una situación para entender lo que hace este permiso.
+
+Supongamos que tenemos este directorio con estos permisos:
+
+
+![img](/assets/images/Linux/StickyBit/testing.png)
+
+Vemos que el usuario propietario y grupo de este archivo es d4nsh, y este directorio vemos que tiene permisos de todos para todos.
+
+Pero dentro de este directorio esta el siguiente archivo:
+
+![img](/assets/images/Linux/StickyBit/archivo.png)
+
+Y podemos ver que los grupos y otros solo tienen permitodo leer el contenido, y no tienen permiso de escritura ni ejecución.
+
+Ahora migraremos a el usuario f4r:
+
+![img](/assets/images/Linux/StickyBit/migrar.png)
+
+Podemos apreciar que migramos al usuario f4r, y como no es el usuario propietario ni esta en el grupo del archivo creado anteriormente entonces no podemos meter datos como vemos.
+
+Si no tenemos permisos de modificar el archivo entonces tampoco podremos eliminarlo ¿cierto?, esto no es así:
+
+![img](/assets/images/Linux/StickyBit/delete.png)
+
+Podemos ver que pudimos eliminar el archivo al que supuestamente solo teniamos permiso de lectura, y ¿porque sucede esto?: Esto se debe gracias a que el directorio en el que se encuentra este archivo, tenemos permiso de escritura, entonces tendremos permiso de modificar dentro de los archivos de este directorio.
+
+> Por eso pudimos eliminarlo, y aunque no es seguro tener cosas con todos los permisos en todos, lo hicimos solo para entender este ejemplo.
+
+Ahora si queremos evitar esto sin tener que cambiar los permisos de otros o grupos, podemos usar el permiso Sticky Bit en el directorio.
+
+Ahora como el usuario d4nsh, en este caso asignamos el permiso especial sticky bit usando +t a el directorio testing en este caso:
+
+![img](/assets/images/Linux/StickyBit/T.png)
+
+Esto nos permitira que nadie pueda modificar el archivo, ni si quiera si el que tiene permisos de escritura en ese directorio podrá, solo va a poder el propietario o el usuario root.
+
+Y luego creamos el archivo que eliminamos anteriormente de nuevo, pero ahora para ver que ya no se puede eliminar:
+
+![img](/assets/images/Linux/StickyBit/no_permiso.png)
+
+Podemos ver que no podemos eliminar el archivo, gracias al permiso especial asignado en el directorio.
+
+---
+
+<br>
+
 # 
