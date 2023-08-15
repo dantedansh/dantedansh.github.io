@@ -34,6 +34,35 @@ En este post iré explicando lo fundamental que necesitas saber sobre linux, has
 
 Podemos ver que el usuario que esta ejecutando el sistema actualmente es d4nsh.
 
+<br>
+
+---
+
+# Crear y borrar archivos y directorios(carpetas).
+
+Para crear un archivo usamos el comando `touch`:
+
+![image](/assets/images/Linux/comandos_basicos/touch.png)
+
+Y para eliminarlo usamos el comando `rm`:
+
+![image](/assets/images/Linux/comandos_basicos/rm.png)
+
+Y para crear un directorio se usa el comando `mkdir`:
+
+![image](/assets/images/Linux/comandos_basicos/test.png)
+
+Y para eliminar directorios vacios simplemente usamos rm, pero cuando no este vacio usamos `rm -r`:
+
+![image](/assets/images/Linux/comandos_basicos/rm-r.png)
+
+Vemos que se ha eliminado correctamente el directorio.
+
+> Otro parametro de rm puede ser el -f que nos sirve para que no nos pida la confirmación de eliminar una carpeta con archivos dentro.
+
+
+<br>
+
 ---
 
 ## id, sudo su, exit
@@ -1346,4 +1375,39 @@ Podemos ver que no podemos eliminar el archivo, gracias al permiso especial asig
 
 <br>
 
-# 
+# Control de atributos de ficheros en Linux – Chattr y Lsattr
+
+Necesitamos un archivo para usarlo de ejemplo, por esto haremos una copia de un archivo, por ejemplo del `/etc/hosts/`, para copiar el archivo usaremos el comando `cp`:
+
+![img](/assets/images/Linux/atributos_ficheros/cp.png)
+
+De esta forma hemos copiado el archivo hosts dentro del archivo prueba, y vemos que el contenido se guarda por lo que sabemos que se copio correctamente.
+
+Ahora ya tenemos una copia de ese archivo para pruebas y no dañar el original.
+
+<br>
+
+El comando `lsattr` nos sirve para listar los archivos y ver los permisos especiales que estos contienen en caso de tenerlos.
+
+Por ejemplo:
+
+![img](/assets/images/Linux/atributos_ficheros/lsattr.png)
+
+Podemos ver que hemos listado los permisos especiales de el directorio actual, y podemos ver que esta el archivo que copiamos, pero no tiene ningun permiso especial.
+
+El permiso especial que le agregaremos será el i, que se agrega con el comando `chattr +i -V archivo` en este caso:
+
+![img](/assets/images/Linux/atributos_ficheros/chattr.png)
+
+Podemos apreciar que se agrego correctamente, necesitamos estar como root para asignar este permiso especial, el +i en el comando es para agregar ese permiso especial, y el -V es para aplicar el llamado "verbose" que esto significa que nos mostrará los cambios en pantalla como se ve al momento de asignar el permiso, y volvemos a confirmar que se agrego usando el `lsattr` y vemos que se ha agregado el permiso "i".
+
+Y lo que hace este permiso especial es que no nos dejara eliminar ese archivo por nadie ni si quiera por root:
+
+![img](/assets/images/Linux/atributos_ficheros/delete.png)
+
+Y podemos apreciar que no podemos eliminarlo gracias a el permiso especial que hemos asignado, para eliminar el archivo tendriamos que quitar el permiso pero esta vez para quitarlo se usa un -i y no un +i:
+
+![img](/assets/images/Linux/atributos_ficheros/-i.png)
+
+Y podemos ver que al quitarlo ya nos  dejara eliminarlo, este permiso sirve para que no puedas eliminar cosas importantes por error, u otros usos más.
+
