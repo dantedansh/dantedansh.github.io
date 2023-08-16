@@ -1375,7 +1375,7 @@ Podemos ver que no podemos eliminar el archivo, gracias al permiso especial asig
 
 <br>
 
-# Control de atributos de ficheros en Linux – Chattr y Lsattr
+# Control de atributos de ficheros en Linux Chattr y Lsattr
 
 Necesitamos un archivo para usarlo de ejemplo, por esto haremos una copia de un archivo, por ejemplo del `/etc/hosts/`, para copiar el archivo usaremos el comando `cp`:
 
@@ -1411,3 +1411,84 @@ Y podemos apreciar que no podemos eliminarlo gracias a el permiso especial que h
 
 Y podemos ver que al quitarlo ya nos  dejara eliminarlo, este permiso sirve para que no puedas eliminar cosas importantes por error, u otros usos más.
 
+<br>
+
+---
+
+# Permisos especiales SUID y SGID
+
+El permiso SUID y SGID, vienen de que es un permiso especial que se proporciona a un archivo o grupo este permiso especial es el cuál nos permitirá ejecutar temporalmente ese archivo en el contexto del usuario propietario aunque no lo seamos.
+
+Por ejemplo si tenemos el archivo ejecutable que se les llaman binarios en linux, si tenemos uno y tiene este permiso especial SUID, entonces aunque no seamos el propietario, si tenemos permiso de ejecución entonces ese archivo se ejecutará como si el usuario propietario lo estuviese ejecutando, pero en realidad lo esta ejecutando un usuario el cual no es el propietario pero tiene permiso de ejecución, entonces sucede esto gracias a este permiso.
+
+Por ejemplo, tenemos el binario python3.9:
+
+![img](/assets/images/Linux/suid_sgid/python.png)
+
+Podemos ver que nos ejecuta el binario normalmente, en este caso vemos que esta todo normal, y vemos con which su ruta absoluta.
+
+Ahora para ver que permisos tiene ese binario de una forma diferente que ir a su ruta y hacer un ls -l, lo que podemos hacer es lo siguiente:
+
+![img](/assets/images/Linux/suid_sgid/xargs.png)
+
+Vemos que estamos usando which para que nos muestre el output de la ruta absoluta de python3.9, pero lo que hacemos aparte es agregar un pipe, para que ese output se almacene para posteriormente ejecutar otro comando con el contexto de ese pipe, en este caso nos hará un ls -l a el archivo que nos dio de salida el comando which y podemos ver que nos devuelve lo que le indicamos.
+
+Podemos ver que tiene los permisos por defecto, el propietario es root, y no tiene ningún permiso especial.
+
+<br>
+
+Nosotros nos convertiremos en el usuario root, le asignaremos el permiso suid para hacer la prueba:
+
+![img](/assets/images/Linux/suid_sgid/s.png)
+
+Podemos apreciar que se agrego correctamente el permiso especial s, en este caso como lo asignamos al propietario, por eso se le llama suid ya que la s es el permiso y la u es de user.
+
+> También podemos asignar este permiso en forma numerica, por ejemplo si los permisos del archivo son 755 entonces al inicio se debe agregar el numero 4 quedando: 4755 de esta forma agregamos el permiso especial dejando el resto como estaba por defecto.
+
+## Comando find y riesgo del suid
+
+Ahora veamos el riesgo de tener un suid en un binario que ejecuta ordenes importantes como python, migraremos a el usuario d4nsh, y una vez lo hayamos hecho vamos a usar el comando `find` para encontrar todo lo que contenga permisos suid:
+
+`find / -type f -perm -4000`
+
+Lo que estamos haciendo es encontrar desde la ruta raíz que recordemos que es "/" de donde inician todos los directorios existentes en el sistema, después le diremos con el parametro -type que queremos encontrar archivos "f" de files, y que estos archivos a buscar deben contener el permiso -perm con el valor 4000 que este valor es con el que se identifica el suid.
+
+Y al ejecutarlo veremos lo siguiente: 
+
+![img](/assets/images/Linux/suid_sgid/error.png)
+
+Vemos muchos errores ya que como no estamos como root no tenemos acceso a ciertas rutas y nos muestra muchos errores, y como no nos interesa ver el stderr, ya sabemos que hacer, vamos a redirigir los errores a /dev/null/:
+
+`find / -type f -perm -4000 2>/dev/null`
+
+![img](/assets/images/Linux/suid_sgid/find.png)
+
+Podemos ver que nos ha encontrado el binario el cuál le asignamos el permiso suid, y como tenemos permiso de ejecución en ese binario, entonces lo podemos ejecutar y lo que hagamos será como si el usuario propietario en este caso root, estuviese haciendo con sus privilegios.
+
+<br>
+
+![img](/assets/images/Linux/suid_sgid/d4nsh.png)
+
+Podemos ver que estamos como d4nsh, y ejecutamos el binario normalmente, ya que tenemos permiso de ejecución, pero como este binario contiene el permiso especial suid, y todo lo que se haga en python, todas las ordenes que demos serán ejecutadas en el contexto de root, por lo que primero haremos lo siguiente:
+
+![img](/assets/images/Linux/suid_sgid/import_os.png)
+
+Primero estamos importando la libreria os de python, esta libreria nos permitira tener contacto con el sistema y ejecutar comandos como vemos que hicimos usando `os.system("whoami")` y vemos que somos el usuario d4nsh.
+
+Pero como esto se esta ejecutando en el contexto del propietario y el propietario es root, entonces podremos modificar nuestro id de usuario y cambiarlo por el de root, y nos dejará hacerlo sin problema gracias a el permiso que nos esta permitiendo ejecutar esto ya que el mismo propietario es el que esta interpretando estas instrucciones, entonces cambiaremos nuestro id de usuario por el de root, el id de usuario root es el 0, por lo que lo asignaremos:
+
+![img](/assets/images/Linux/suid_sgid/os.png)
+
+Vemos que hemos cambiado nuestro uid por el valor de 0 el cual pertenece a root, entonces al hacer nuevamente el comando whoami, vemos que nos dice root ya que hemos cambiado temporalmente nuestro uid, así que ya podemos empezar a hacer lo que queramos, por ejemplo sacar una bash para tener control del sistema:
+
+![img](/assets/images/Linux/suid_sgid/spawn.png)
+
+Vemos que hemos spawneado una bash como root, y apartir de aquí ya haremos lo que queramos.
+
+Esto lo mostre para saber los peligros que hay al momento de asignar un suid a un binario que ejecuta cosas importantes como lo es python.
+
+No olvides volver a dejar el binario de python3.9 por defecto para evitar posibles hackeos.
+
+![img](/assets/images/Linux/suid_sgid/remove.png)
+
+Podemos ver que ya hemos eliminado el permiso correctamente.
