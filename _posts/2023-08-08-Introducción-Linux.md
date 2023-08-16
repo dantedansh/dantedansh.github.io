@@ -1445,7 +1445,7 @@ Podemos apreciar que se agrego correctamente el permiso especial s, en este caso
 
 > También podemos asignar este permiso en forma numerica, por ejemplo si los permisos del archivo son 755 entonces al inicio se debe agregar el numero 4 quedando: 4755 de esta forma agregamos el permiso especial dejando el resto como estaba por defecto.
 
-## Comando find y riesgo del suid
+## Comando find y riesgo del SUID
 
 Ahora veamos el riesgo de tener un suid en un binario que ejecuta ordenes importantes como python, migraremos a el usuario d4nsh, y una vez lo hayamos hecho vamos a usar el comando `find` para encontrar todo lo que contenga permisos suid:
 
@@ -1492,3 +1492,27 @@ No olvides volver a dejar el binario de python3.9 por defecto para evitar posibl
 ![img](/assets/images/Linux/suid_sgid/remove.png)
 
 Podemos ver que ya hemos eliminado el permiso correctamente.
+
+<br>
+
+# Riesgo del SGID
+
+En esto sucede exactamente lo mismo que antes pero la diferencia es que en lugar de que el archivo con el permiso especial se ponga en el usuario propietario, se pone en el grupo de ese archivo.
+
+`chmod g+s python3.9`
+
+Y lo que sucede es que el usuario que ejecute ese archivo se ejecutará en el contexto del grupo, es decir se va a ejecutar como si el usuario perteneciera a el grupo al cuál pertenece el archivo ejecutable.
+
+Se asigna como lo vimos anteriormente o también con su valor numerico que es 2, se agrega a los permisos que ya tiene por defecto quedando: 2755
+
+`chmod 2755 python2.9`
+
+De esta forma alternativa a la anterior, se agregará el permiso especial a la parte de grupos, así que como esto es igual a lo anterior solo cambia eso que mencione, no pondré ejemplo ya que no es algo distinto.
+
+Ya que ahora podriamos acceder a cosas que solo el grupo tiene, etc.
+
+<br>
+
+---
+
+# 
