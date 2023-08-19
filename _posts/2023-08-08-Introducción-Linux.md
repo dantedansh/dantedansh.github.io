@@ -1515,4 +1515,70 @@ Ya que ahora podriamos acceder a cosas que solo el grupo tiene, etc.
 
 ---
 
+# Privilegios especiales Capabilities
+
+Las capabilities en linux son atributos especiales en el kernel del sistema, que dan permisos especificos a procesos o programas.
+
+Agregaremos una para mostrar el ejemplo del riesgo que lleva asignar una capabilitie, antes de asignarla, vemos que al ejecutar el binario de python3.9 e intentar cambiar nuestro uid como hicimos anteriormente con el suid, vemos que no podemos:
+
+![img](/assets/images/Linux/capabilities/uid0.png)
+
+Vemos que nos da error ya que no tenemos permiso de hacer esto, pero en cambio si el binario de python tuviera la capabilitie especial que permite cambiar tu valor de uid, la cual se llama cap_setuid, que nos va a permitir asignar el uid y modificarlo.
+
+Agregaremos esta capabilitie al binario:
+
+![img](/assets/images/Linux/capabilities/setcap.png)
+
+Con este comando llamado `setcap` nos permite agregar capabilities, obviamente para esto debemos estar como root, y lo que hacemos es asignar la capabilitie cap_setuid+ep a el binario de python3.9 como vemos que le damos su ruta absoluta.
+
+Y ahora para hacer una busqueda en el sistema de las cosas que tienen asignadas capabilities podemos usar el comando `getcap` para buscar:
+
+`getcap -r / 2>/dev/null`
+
+![img](/assets/images/Linux/capabilities/ep.png)
+
+Vemos que estamos buscando de forma recursiva desde la raíz del sistema archivos que tengan capabilities y también redirigiendo los errores al /dev/null ya que ahora somos el usuario d4nsh y no tendremos acceso a todos los directorios.
+
+Y como vemos en la imagen nos encontró el binario al cual le asignamos la capabilitie, y vemos que somos el usuario d4nsh, pero si ejecutamos este binario e intentamos cambiar nuestro uid:
+
+![img](/assets/images/Linux/capabilities/root.png)
+
+Podemos ver que ahora nos deja cambiarlo gracias a la capabilitie asignada, podemos ver que nos spawneamos una bash como el usuario root, cuando eramos d4nsh y no necesitamos la contraseña de root gracias a esta capabilitie.
+
+Podemos ver que es un riesgo en caso de no asignarlas correctamente.
+
+<br>
+
+Y ahora para eliminar la capabilitie y no dejar tu sistema vulnerable por la practica, hacemos lo siguiente como root:
+
+`setcap -r /usr/bin/python3.9`
+
+![img](/assets/images/Linux/capabilities/remove.png)
+
+De esta forma hemos quitado la capabilitie y ya ningun usuario podrá cambiarse su uid:
+
+![img](/assets/images/Linux/capabilities/no.png)
+
+Vemos que da error ya que no cuenta con los permisos para hacer el cambio de uid.
+
+<br>
+
+Una página para conocer que riesgos hay en cada binario si tiene capabilities es la siguiente:
+
+[GtfoBins](https://gtfobins.github.io/)
+
+![img](/assets/images/Linux/capabilities/capa.png)
+
+Podemos ver que al buscar el binario de python nos da una opción de que se puede hacer si hay una capabilitie asignada:
+
+![img](/assets/images/Linux/capabilities/web.png)
+
+Vemos que nos dice lo que descubrimos anteriormente, que podemos migrar a root en caso de que la capabilitie cap_setuid este asignada en el binario de python.
+
+> En la imagen se muestra lo que hicimos pero en una sola linea, ejecuta lo que esta entre comillas simples interpretado con python.
+
+<br>
+
+---
+
 # 
