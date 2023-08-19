@@ -1581,4 +1581,44 @@ Vemos que nos dice lo que descubrimos anteriormente, que podemos migrar a root e
 
 ---
 
-# 
+# Estructura de directorios en el sistema
+
+Sabemos que el sistema Linux contiene una serie de estructura de directorios que conforman todo el sistema, veamos para que sirven las rutas más importantes, primero iremos a la raíz y veremos los siguientes directorios:
+
+![img](/assets/images/Linux/estructura_directorios/directorios.png)
+
+**/bin/**: Este directorio almacena todos los binarios/ejecutables a los que el usuario puede acceder para utilizar en el sistema.
+
+**/sbin/**: Esto es similar a el anterior pero solo para el usuario root, solo que aquí los binarios son más para tareas administrativas, como configuraciones del sistema, etc.
+
+**/boot/**: Dentro de este directorio se encuentran los archivos que son necesarios para que el sistema inicie correctamente, entorno grafico, configuraciones, grub, etc.
+
+**/dev/**: Este directorio contiene los dispositivos de hardware que esten configurados en el sistema, en forma de archivos, nos sirve para detectar estos dispositivos y configurarlos, un ejemplo puede ser que nos detecte nuestra tarjeta de red, de sonido, etc.
+
+**/etc/**: En este directorio se almacenan los archivos de configuración, como el /etc/passwd, /etc/group, y similares.
+
+**/home/**: Sabemos que es donde estan las rutas personales de cada usuario, también pueden contener archivos de configuración de la shell que use el usuario como zsh, etc. Y se almacenan dentro de /home/, en el caso de root, su directorio personal no se almacena aquí sino en:
+
+**/root/**: Aquí el usuario root tiene su propio directorio en la raíz y este se toma como su directorio personal.
+
+**/lib/**: En este directorio se almacenan todas las librerias que necesita el sistema para que funcione correctamente.
+
+**/lib64/**: Similar a el anterior pero para programas que requieren librerias de 64 bits.
+
+**/lib32/**: Y esto es como lo anterior pero para programas que requieren librerias de 32 bits.
+
+**/media/**: Aquí se van a montar los disopsitivos de almacenamiento que se conecten temporalmente a el sistema, discos duros, usb, cd, etc, desde aquí accederás a ellos.
+
+**/opt/**: Aquí se almacenan los programas que no estan por defecto en el sistema, por ejemplo puedes encontrar dentro de /opt/ programas que instalaste que no venian con el sistema, como algún editor de videos, spotify, vivaldi, etc.
+
+**/proc/**: Es una ruta que almacena logs/registros de los programas que se estan ejecutando actualmente, y nos da información de cada uno.
+
+**/srv/**: Sirve para almacenar archivos que sean de servidores, http, ftp, etc.
+
+**/sys/**: Almacena un registro del kernel, información de particiones, etc.
+
+**/tmp/**: Almacena archivos temporales que se desaparecen en cada reinicio del equipo, se usa comunmente para ahorrar espacio y rendimiento.
+
+**/usr/**: Contiene la mayor cantidad de programas instalados en el sistema.
+
+**/var/**: Este directorio contiene un log de todo el sistema por así decirlo ya que contiene muchos logs de una gran cantidad del sistema.

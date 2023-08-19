@@ -1722,7 +1722,7 @@ Y lo que haremos será poner los valores de los simbolos `<>`, y en medio de ell
 
 ![payload](/assets/images/XSS/lab17/payload.png)
 
-Lo que pasará aquí es que lo que haremos será un ataque de tipo sniper el cual nos permitirá hacer fuzzing sobre esta petición, nuestro objetivo es fuzzear todas las etiquetas posibles y en base al estado de la respuesta saber cuales estan bloqueadas por el WAF y cuales no, así que primero iremos a la web donde se encuentran estas etiquetas la cuál nos la dan en el mismo laboratorio: https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+Lo que pasará aquí es que lo que haremos será un ataque de tipo sniper el cual nos permitirá hacer fuzzing sobre esta petición, nuestro objetivo es fuzzear todas las etiquetas posibles y en base al estado de la respuesta saber cuales estan bloqueadas por el WAF y cuales no, así que primero iremos a la web donde se encuentran estas etiquetas la cuál nos la dan en el mismo laboratorio: [XSS-CheatSheet](https://portswigger.net/web-security/cross-site-scripting/cheat-sheet)
 
 ![tags](/assets/images/XSS/lab17/tags.png)
 
@@ -2033,7 +2033,7 @@ Dejamos el ataque como esta de tipo sniper, y ahora lo que haremos será ir a la
 
 ![option](/assets/images/XSS/lab19/option.png)
 
-Ahora lo que haremos es ir a la web del cheat sheet que nos da el laboratorio para copiar todas las etiquetas https://portswigger.net/web-security/cross-site-scripting/cheat-sheet y una vez estemos en la página copiaremos todas las etiquetas:
+Ahora lo que haremos es ir a la web del cheat sheet que nos da el laboratorio para copiar todas las etiquetas [XSS-CheatSheet](https://portswigger.net/web-security/cross-site-scripting/cheat-sheet) y una vez estemos en la página copiaremos todas las etiquetas:
 
 ![copytags](/assets/images/XSS/lab19/copytags.png)
 
