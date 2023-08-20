@@ -1705,4 +1705,27 @@ Y podemos ver que se ha creado y funciona correctamente la función que hemos ag
 
 ---
 
-# 
+# Actualizacion del sistema
+
+Para actualizar los paquetes de tu sistema y buen funcionamiento debemos actualizar el sistema cada cierto tiempo, podemos hacerlo usando el comando:
+
+`sudo apt update`
+
+![img](/assets/images/Linux/update/update.png)
+
+Nos dice que se pueden actualizar 39 paquetes, y para actualizarlos usaremos el comando: `sudo parrot-upgrade` en caso de tener parrot os, si tienes alguna distro basada en debian como kali puedes usar `sudo apt upgrade`, en este caso usaré la de parrot:
+
+![img](/assets/images/Linux/update/parrot-upgrade.png)
+
+Y vemos que han empezado a instalarse las actualiazciones que obtuvimos anteriormente.
+
+Nunca debes usar el `sudo apt upgrade` en parrot OS ya que de ser así te dará un error grave y puede que no puedas usar el sistema, en su lugar debes usar como ya dije, el `sudo parrot-upgrade`.
+
+Se recomienda reinciar el sistema una vez se actualizó todo el sistema.
+
+<br>
+
+---
+
+# Uso y manejo con Tmux
+
