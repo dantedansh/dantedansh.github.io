@@ -1622,3 +1622,87 @@ Sabemos que el sistema Linux contiene una serie de estructura de directorios que
 **/usr/**: Contiene la mayor cantidad de programas instalados en el sistema.
 
 **/var/**: Este directorio contiene un log de todo el sistema por así decirlo ya que contiene muchos logs de una gran cantidad del sistema.
+
+<br>
+
+---
+
+# Uso de bashrc y zshrc
+
+Cada tipo de shell ya sea bash o zsh deben tener un archivo de configuración para configurar la shell como deseas.
+
+Por defecto en el directorio personal de tu usuario siempre hay un archivo de configuración ya sea de bash ".bashrc" o de zsh ".zshrc", estos archivos son ocultos por lo que incian con un punto.
+
+Podemos ver al hacer un ls -a:
+
+![img](/assets/images/Linux/shellrc/zshrc.png)
+
+Podemos apreciar el archivo de configuración de la shell que uso, en este caso es una zsh, si tienes una bash que es la que viene por defecto y no existe el archivo puedes crearlo con `touch .bashrc`.
+
+Al entrar al .zshrc con nano vemos lo siguiente:
+
+![img](/assets/images/Linux/shellrc/info.png)
+
+Podemos ver que estan las configuraciones que he hecho, como instlar plugins, agregar nuestras propias funciones, aliases, etc.
+
+Recomiendo el uso de zsh en lugar de bash, ya que zsh te permite instalar plugins muy utiles y bash no, ademas de muchas cosas más.
+
+<br>
+
+## Agregando una funcion a el zshrc
+
+Agregaremos una función para ver como funciona el zshrc, en este caso haré una función que me diga cual es mi ip local.
+
+Primero construiremos el comando el cual nos va a reportar la ip.
+
+`hostname -I` Con este comando podremos ver las diferentes ip en el sistema:
+
+![img](/assets/images/Linux/shellrc/ip.png)
+
+La primera ip es la que nos interesa, ya que es la que nuestro equipo tiene en la red local, así que solo queremos ver el primer valor y no el que esta alado.
+
+Entonces para ello usaremos el comando `awk`, este comando nos permitira filtrar información mediante una output dado, en este caso haremos lo siguiente:
+
+`hostname -I | awk '{print$1}'`
+
+![img](/assets/images/Linux/shellrc/primerip.png)
+
+Lo que hacemos en el comando es decirle que con awk, nos imprima el primer valor que esta en el output anterior dado con el comando hostname -I, y le decimos la instrucción en medio de llaves {} y dentro le decimos que nos imprima el primer valor iniciando desde la derecha, por eso usamos el $1, para indicarle que el primer valor, ya que de poner $2 nos pondría el valor que no nos interesa, awk usa los espacios como delimitadores/separadores de los valores para identificar hasta donde debe filtrar la información.
+
+> Este fue un uso rapido de awk pero profundizaremos más adelante sobre esto y muchos más comandos.
+
+<br>
+
+Ahora que ya tenemos el comando que nos da solo lo que nos interesa, lo agregaremos a una impresion de pantalla con texto:
+
+`echo "Tu ip local es: $(hostname -I | awk '{print$1}')"`
+
+![img](/assets/images/Linux/shellrc/oneliner.png)
+
+Lo que estamos haciendo aquí es que ya tenemos lo que hará la función que agregaremos al zshrc, y lo que hace esta función es imprimir el texto que dice "Tu ip local es", y justo después de eso agregamos la linea de comando que creamos anteriormente para filtrar la ip local, para indicar que es una instrucción en bash/zsh debemos usar el signo de dolar encerrado en () y dentro meter las instrucciones que creamos, y el resultado de la salida de este comando se ve como se muestra en la imagen.
+
+<br>
+
+Ya ahora que tenemos todo lo que necesita la función simplemente la vamos a crear dentro del zshrc, abriremos el zshrc:
+
+![img](/assets/images/Linux/shellrc/myip.png)
+
+Vemos que creamos una función llamada myip y después definimos su instrucción, que es lo que creamos anteriormente.
+
+Al guardar el archivo, como estamos en nano usaremos ctrl + s, habremos escrito los cambios en el archivo de configuración de la shell zsh.
+
+<br>
+
+Y ahora si abrimos una nueva terminal, y ponemos el comando: `myip` el zsh lo encontrará en su archivo de configuración y ejecutará su función:
+
+![img](/assets/images/Linux/shellrc/function.png)
+
+Y podemos ver que se ha creado y funciona correctamente la función que hemos agregado a el zshrc.
+
+> Esto es un uso muy básico de todo lo que podemos hacer, pero es muy importante saber como funciona esto.
+
+<br>
+
+---
+
+# 
