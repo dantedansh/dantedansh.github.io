@@ -1727,5 +1727,150 @@ Se recomienda reinciar el sistema una vez se actualizó todo el sistema.
 
 ---
 
-# Uso y manejo con Tmux
+# Uso y manejo de tmux (OhMyTmux)
 
+Ohmytmux es una herramienta que nos va a servir para trabajar de una manera mucho más organizada, y ademas muchas funciones extras para un mejor uso de las terminales.
+
+Para instalar ohmytmux primero debemos tener tmux instalado, que se instala con `sudo apt install tmux`.
+
+Una vez instalado, vamos a instalar el ohmytmux que se descarga desde su repositorio en github:
+
+`git clone https://github.com/gpakosz/.tmux`
+
+Después de clonar el repositorio en tu terminal, que clonar un repositorio es descargar el repositorio en tu equipo usando git clone, la url es lo que va a descargar.
+
+Una vez se descargue haremos los siguientes comandos:
+
+![img](/assets/images/Linux/tmux/install.png)
+
+Después de ejecutar estos comandos, tanto como el usuario que usas y como root, ahora ejecutamos el comando:
+
+`tmux new -s Prueba`
+
+Y se nos abrira el tmux con ohmytmux instalado, esto creara una sesión llamada Prueba:
+
+![img](/assets/images/Linux/tmux/tmux.png)
+
+Y en la parte de abajo vemos el nombre de la sesión, las terminales en pestañas abiertas, etc.
+
+<br>
+
+Ahora mencionare los atajos basicos que se deben conocer para manejarse por tmux:
+
+**Renombrar terminal actual**
+
+`ctrl + b + ,`: Renombrar la pestaña actual en la terminal:
+
+![img](/assets/images/Linux/tmux/rename.png)
+
+Vemos que hemos renombrado la terminal actual por "Testing".
+
+**Crear nueva terminal en pestaña**
+
+`ctrl + b + c`: Con esto vamos a crear una nueva terminal:
+
+![img](/assets/images/Linux/tmux/new.png)
+
+Vemos que se ha creado otra terminal que se llama "zsh".
+
+**Cambiar de terminal en pestaña**
+
+`ctrl + b + Numero de la posición de la terminal a la que queremos ir`: Por ejemplo, queremos ir a la primera que creamos que se llama Testing, entonces hacemos ctrl + b + 1:
+
+![img](/assets/images/Linux/tmux/testing.png)
+
+Y ya estaremos en la terminal deseada.
+
+**Eliminar la terminal actual**
+
+`ctrl + b + x`: Con esto podemos eliminar la terminal actualmente posicionada:
+
+![img](/assets/images/Linux/tmux/delete.png)
+
+Podemos ver que hemos eliminado la terminal llamada "Testing".
+
+**Dividir el panel actual en más**
+
+`ctrl + b + %`: Dividir el panel verticalmente:
+
+![img](/assets/images/Linux/tmux/vertical.png)
+
+Podemos ver que la dividimos verticalmente y en cada una podemos ejecutar comandos.
+
+`ctrl + b + "`: Dividir el panel horizontalmente:
+
+![img](/assets/images/Linux/tmux/horizontal.png)
+
+De este modo lo dividimos horizontal en lugar de vertical.
+
+**Viajar de un panel/terminal a otra**
+
+`ctrl + b + dirección`: Ejemplo, si queremos ir a la terminal de arriba en el ejemplo anterior, usaremos: ctrl + b + flecha de arriba:
+
+![img](/assets/images/Linux/tmux/arriba.png)
+
+Ahora estaremos en el panel/terminal de arriba.
+
+De la misma forma podemos usar las flechas en caso de encontrarse en otro lugar, abajo, izquierda, derecha, etc.
+
+**Modo mouse**
+
+Este modo nos va a servir para desplazarnos con el scroll o rueda del mouse en caso de querer ver contenido más arriba de la terminal, ya que si queremos ir para arriba de la terminal para leer algun contenido o algo este nos mostrara el historial de comandos anteriores en lugar de ir hacía arriba con la rueda del mouse, para ello se activa este modo para que nos permita ir hacía arriba:
+
+`ctrl + b + m`: Modo mouse.
+
+De este modo podremos desplazarnos, vuelve a hacer la combinación de teclas cuando hayas terminado de ir a donde querias ir.
+
+**Modo copia**
+
+Este modo nos pone en modo copia para copiar cualquier texto de la terminal, se activa con:
+
+`ctrl + b + [`: Modo copia.
+
+Con la rueda del mouse podemos ir a el inicio de lo que queremos copiar y con las flechas ir a exactamente el punto que queremos copiar, en este caso copiare desde mysql hasta sshd:
+
+![img](/assets/images/Linux/tmux/copiamodo.png)
+
+Vemos que donde esta el cursor es desde donde empezaremos a copiar hasta donde señalamos.
+
+Ahora para seleccionar esto, haremos una selección:
+
+**Selección**
+
+`ctrl + espacio`: Iniciar modo selección y con las flechas ir seleccionando lo que nos interesa copiar.
+
+![img](/assets/images/Linux/tmux/seleccion.png)
+
+Si presionas la tecla fin, te va a seleccionar toda la linea donde se encuentra el cursor actualmente.
+
+**Copiar la selección**
+
+`alt + w`: Copiamos lo que tenemos seleccionado el el modo anterior.
+
+**Pegar la selección**
+
+Ahora para pegar lo que tenemos copiado usamos:
+
+`alt + b + ]`: De este modo pegaremos lo que hemos copiado de la terminal.
+
+> Esto de copiar y pegar solo funciona si es de copiar algo de tmux y pegarlo en otro tmux, ya que usa un portapapeles del propio tmux.
+
+**Cambiar tamaño de las terminales/paneles**
+
+Si tenemos varios paneles y queremos cambiar el tamaño de alguno, simplemente entramos a el modo mouse como ya sabemos con `ctrl + b + m` y justo en la parte de enmedio de las terminales con el mouse podremos redimensionar el tamaño de ellas.
+
+![img](/assets/images/Linux/tmux/redimensionar.png)
+
+En esa parte en el modo mouse, al darle click y arrastrar podremos ir ajustando el tamaño de nuestras terminales, al terminar desactiva el modo mouse para continuar con tu trabajo.
+
+**Otros**
+
+`ctrl + b + {`: Mover el panel actual de posicion a la izquierda.
+
+`ctrl + b + }`: Mover el panel actual de posicion a la derecha.
+
+<br>
+
+---
+
+# 
