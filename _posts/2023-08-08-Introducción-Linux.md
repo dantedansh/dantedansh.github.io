@@ -1839,7 +1839,7 @@ Ahora para seleccionar esto, haremos una selección:
 
 `ctrl + espacio`: Iniciar modo selección y con las flechas ir seleccionando lo que nos interesa copiar.
 
-![img](/assets/images/Linux/tmux/seleccion.png)
+![img](/assets/images/Linux/tmux/selection.png)
 
 Si presionas la tecla fin, te va a seleccionar toda la linea donde se encuentra el cursor actualmente.
 
