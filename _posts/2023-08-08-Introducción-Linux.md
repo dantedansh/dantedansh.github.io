@@ -1873,4 +1873,127 @@ En esa parte en el modo mouse, al darle click y arrastrar podremos ir ajustando 
 
 ---
 
-# 
+# Busquedas a nivel de sistema
+
+Es necesario saber hacer busquedas a profundidad en el sistema ya que esto es importante para encontrar archivos vulnerables cuando veamos pentesting.
+
+**Buscar elementos por nombre**
+
+Si queremos saber donde se ubica un archivo, directorio, ejecutable, etc. Que conocemos su nombre podemos buscarlo desde la raíz del sistema así:
+
+`find / -name whoami 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/whoami.png)
+
+De este modo estamos buscando desde la raíz del sistema, los elementos que se llamen whoami, y redirigir los errores al /dev/null ya que no tendremos acceso a todas las carpetas del sistema como un usuario de bajos privilegios.
+
+Vemos que solo encontramos el binario del comando whoami, y de este modo podemos conocer su ruta absoluta.
+
+**Tratar el output**
+
+Como recordamos podemos tratar el outuput que recibimos, como en este caso queremos hacer un ls -l de cada archivo que encuentre nuestra busqueda, usaremos xargs:
+
+`find / -name whoami 2>/dev/null | xargs ls -l`
+
+![img](/assets/images/Linux/busquedas_sistema/tratar.png)
+
+Y podemos ver que en base al output de cada resputado le aplica un ls -l, pero en este caso solo nos muestra uno ya que es el único que encontramos en el sistema, pero en caso de ser más igual se aplicaría el ls -l.
+
+<br>
+
+**Buscar elementos con permiso especial SUID y SGID**
+
+Para buscar elementos con el permiso especial SUID usaremos:
+
+`find / -perm -4000 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/suid.png)
+
+Vemos que buscamos desde la raíz del sistema el permiso con el valor 4000 el que equivale a el SUID, y redirigimos los errores.
+
+Y podemos ver que nos muestra todos los archivos a los cuales tenemos permisos SUID.
+
+> Recuerda que el valor del SGID es 2000 en caso de que quieras buscar elementos con ese permiso especial asignado.
+
+<br>
+
+**Buscar elementos que sean parte de un grupo en especifico**
+
+Ahora para buscar elementos que formen parte de un grupo hacemos lo siguiente:
+
+`find / -group d4nsh 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/group.png)
+
+Esto nos va a buscar cualquier cosa que pertenezca al grupo d4nsh, ya sea directorio, archivo, ejecutable, etc.
+
+Pero si queremos solo filtrar por archivos:
+
+**Filtrar elementos solo que sean archivos**
+
+`find / -group d4nsh -type f 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/file.png)
+
+Y esto nos va a mostrar solo los que sean archivos, en cambio si queremos que sean solo directorios se cambia el valor del parametro -type por una d de directorio:
+
+**Filtrar elementos solo que sean directorios**
+
+Y con este parametro solo veremos los directorios que pertenezcan al grupo d4nsh:
+
+`find / -group d4nsh -type d 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/dir.png)
+
+<br>
+
+**Filtrar elementos que sean de un usuario en especifico**
+
+Para filtrar elementos que sean de un usuario en especifico, en este caso queremos ver elementos que pertenecen al usuario root podemos usar:
+
+`find / -user root 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/userroot.png)
+
+<br>
+
+Imaginemos que estamos intentando hackear un equipo al que hemos logrado entrar y ahora debemos escalar privilegios, entonces lo que nos interesaria seria encontrar tal vez archivos que pertenecen a root en los cuales tenemos permisos de escritura:
+
+**Filtrar elementos que sean de un usuario en especifico y que tengamos permiso de escritura sobre esos archivos encontrados**
+
+`find / -user root -writable 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/writable.png)
+
+Y podemos ver que nos muestra todo lo que tenemos permiso de escritura, ya podriamos ir viendo en caso de una prueba de pentesting ver cuál archivo esta mal configurado o nos permite escalar privilegios etc.
+
+Pero por ahora solo se muestra el uso del comando find.
+
+> Recuerda que podemos mezclar parametros, por ejemplo si queremos esto mismo pero que solo queremos ver archivos entonces agregariamos el parametro -type -f a el comando quedando: find / -user root -writable -type f 2>/dev/null o como nosotros queramos realizar las busquedas.
+
+<br>
+
+**Más permisos en la busqueda y ejecutables**
+
+No solo podemos buscar archivos con escritura con el parametro -writable, obviamente también estan:
+
+-readable --- Para archivos a los que tenemos permiso de lectura.
+-executable --- Archivos ejecutables a los que tenemos acceso.
+
+Por ejemplo si queremos ver ejecutables del propietario root, los cuales tenemos permiso de lectura, escritura y ejecución entonces usamos:
+
+`find / -user root -executable -writable -readable 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/ewr.png)
+
+Y vemos que nos muestra los resultados, recuerda que algunos directorios tienen permisos de ejecución que significa que los podemos atravesar o estar en ellos, por lo que nos muestra tanto archivos como directorios con permisos de ejecución.
+
+<br>
+
+## Busqueda con expresiones regulares (regex)
+
+Ahora mostraremos un uso básico de busqueda usando expresiones regulares, ya que más adelante profundizaremos en esto más cuando toquemos bash scripting.
+
+Las expresiones regulares son una serie de caracterés que nos van a permitir darle instrucciones a un comando, para que este nos vaya filtrando lo que queremos exactamente.
+
+Por ejemplo, supongamos que queremos encontrar 
