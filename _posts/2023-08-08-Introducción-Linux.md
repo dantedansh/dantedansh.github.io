@@ -1996,4 +1996,43 @@ Ahora mostraremos un uso básico de busqueda usando expresiones regulares, ya qu
 
 Las expresiones regulares son una serie de caracterés que nos van a permitir darle instrucciones a un comando, para que este nos vaya filtrando lo que queremos exactamente.
 
-Por ejemplo, supongamos que queremos encontrar 
+**Buscar por primeras letras**
+
+Por ejemplo, supongamos que queremos encontrar algun archivo o algo que no recordamos su nombre completo, supongamos que del binario "whoami" solo recordamos que iniciaba con "whoa" y no recordamos lo demas por ejemplo.
+
+Aquí es donde entran las expresiones regulares para esto:
+
+`find / -name whoa\* 2>/dev/null`
+
+El * indica que continue con lo que sea, le estamos diciendo que inicie buscando algo que inicie con la palabra whoa y que el resto es lo que sea, entonces nos mostrará todo lo que inicie con whoa:
+
+![img](/assets/images/Linux/busquedas_sistema/regex.png)
+
+> La barra invertida la ponemos para evitar que se tome como parte del nombre que buscamos, y que funcione como expresión.
+
+Y podemos ver que nos ha encontrado en todo el sistema archivos que contienen esa palabra y también nos muestra su ruta donde se ubican.
+
+**Buscar por palabra no especifica sin inicio**
+
+Ahora si no conocemos como inicia algo ni como termina, pero recordamos alguna palabra clave, supongamos que queremos encontrar "d4nsh" pero solo recordamos "4n", entonces usaremos la siguiente expresión regular en la busqueda:
+
+`find / -name \*4n\* 2>/dev/null`
+
+De esta forma buscara cualquier elemento que incluya esa palabra indicada, ya que no conocemos como inicia ni como termina usamos estas expresiones al inicio y al final:
+
+![img](/assets/images/Linux/busquedas_sistema/4n.png)
+
+Vemos que nos filtra la mayoria de cosas de d4nsh y entre otras cosas, y de este modo podemos archivos,directorios, ejecutables, cosas que busquemos.
+
+Recuerda que puedes combinar parametros, como agregar el parametro -type f para filtrar solo archivos, o más parametros como los de permisos, etc.
+
+Como en este ejemplo:
+
+`find / -name \*4n\* -type f -writable 2>/dev/null`
+
+![img](/assets/images/Linux/busquedas_sistema/ejemplo.png)
+
+Que estamos buscando algo que inicie con algo y que contenga "4n" y también que termine con algo, que nos muestre solo archivos con permisos de escritura redirigiendo los errores.
+
+<br>
+
