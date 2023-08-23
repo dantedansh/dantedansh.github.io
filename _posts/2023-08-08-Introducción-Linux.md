@@ -2036,3 +2036,127 @@ Que estamos buscando algo que inicie con algo y que contenga "4n" y también que
 
 <br>
 
+---
+
+# Primer encuentro con Bash scripting
+
+En esta parte crearemos un script en bash ya que con lo que ya sabemos podremos hacer ciertas cosas basicas con bash scripting, y algunas otras cosas más que explicaré ahora.
+
+El script que haré lo explicaré pero si puedes intenta algo distinto siguiendo la misma lógica para que intentes algo nuevo.
+
+En este caso primero crearemos un archivo de tipo bash, su extensión es .sh, por lo que lo crearemos con ese nombre:
+
+`touch scipt.sh`
+
+Y también le agregamos permisos de ejecución, cuando no se asigna especificamente a que conjunto se agregará ese permiso entonces por defecto los agrega en todos:
+
+![img](/assets/images/Linux/scripting/bash.png)
+
+Como vemos en la imagen ya tiene permisos de ejecución.
+
+**¿Y para qué necesitamos que tenga permiso de ejecución?**
+
+Necesitamos que nuestro script contenga este permiso para que podamos ejecutar las instrucciónes, recuerda que este permiso en los directorios indica que podemos atraversarlos, pero en caso de archivos/binarios, es para que nos permita ejecutar sus instrucciones.
+
+<br>
+
+Para iniciar con un script en bash siempre es necesario agregar la cabezera:
+
+`#!/bin/bash`
+
+Esto es para que el sistema detecte que esto será ejecutado con bash.
+
+Y seguido de esto ya podemos ir programando el script, como por ejemplo, una impresión de pantalla:
+
+![img](/assets/images/Linux/scripting/echo.png)
+
+> Estamos usando el editor nano pero puedes usar el que quieras.
+
+Y ahora al guardar este archivo, en este caso estamos con nano así que será con ctrl + s, ahora vamos a ejecutar nuestro script:
+
+![img](/assets/images/Linux/scripting/ejecutar.png)
+
+Ejecutaremos el script con `./script.sh`, el punto y barra es porque estamos ejecutando este archivo en el directorio actual, el cual se representa con un punto y la barra es para seleccionar el script que ejecutaremos.
+
+Y podemos ver que hemos ejecutado las instrucciones de bash en nuestro script simple.
+
+<br>
+
+Ahora modificaremos este script para hacer algo un poco más útil como el que hicimos para saber nuestra ip que agregamos a el zshrc.
+
+Pero en este caso será en el script.
+
+<br>
+
+En este caso haré un script de cuanto tiempo ha durado la PC encendida, para saber esto existe un comando llamado `uptime`:
+
+![img](/assets/images/Linux/scripting/uptime.png)
+
+Pero solo nos interesa el valor que señale con un recuadro rojo en la imagen, el cual indica las horas y minutos que lleva encendida la PC, así que haremos uso de comandos para ir filtrando lo que solo nos interesa.
+
+`uptime | awk '{print$3}'`
+
+![img](/assets/images/Linux/scripting/awk.png)
+
+Vemos que con awk hemos filtrado por el campo 3, ya que como recordamos, awk detecta los espacios como separador de valores, así que seleccionamos el valor 3 que es el que nos interesa, y lo imprimimos con el signo de dolar para apuntar a la posición 3.
+
+Una vez tenemos esto ahora vemos que hay una comilla, podemos removerla con el comando `tr`:
+
+![img](/assets/images/Linux/scripting/tr.png)
+
+Con el comando `tr ',' ' '` estamos cambiando el caracter de comilla por un espacio.
+
+Y nos mostrará como se ve en la imagen el output, vemos que desaparecio la comilla, pero como quedo un espacio en lugar de la comilla, vamos a volver a usar el comando `awk` para esta vez quedarnos con el primer campo tomando como separador el espacio:
+
+![img](/assets/images/Linux/scripting/fin.png)
+
+El output se ve igual que el anterior, pero ahora ya no hay un espacio demas innceserario.
+
+<br>
+
+`uptime | awk '{print$3}' | tr ',' ' ' | awk '{print$1}'`
+
+Ahora que ya tenemos el oneliner que creamos, osea el comando en una sola linea que queremos que nos muestre lo que queremos, ahora lo agregaremos a el script dentro de un mensaje:
+
+![img](/assets/images/Linux/scripting/code.png)
+
+Podemos ver que agregamos el comando que creamos anteriormente en el script, dentro de un mensaje, el cual nos dice que hemos durado cierto tiempo en la PC, recuerda que se usa $(aqui van comandos.....) para que se ejecute un comando de bash y no se tome como texto.
+
+Y al ejecutar este script veremos lo siguiente:
+
+![img](/assets/images/Linux/scripting/funcional.png)
+
+Vemos que nuestro script se ha ejecutado correctamente, ahora si queremos darle colores para que se vea mejor podemos hacer lo siguiente:
+
+**Agregar colores y saltos de linea al script**
+
+Primero copiaremos estas variables en el script:
+
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+Estas variables son colores a nivel de sistema pero para simplificar su uso se crean variables que podamos identificar para hacerlo más rapido.
+
+Una vez los tengamos en el script se verá algo así:
+
+![img](/assets/images/Linux/scripting/colores.png)
+
+Y para usar estos colores en nuestro script, se usan llamando a el contenido de la variable, por ejemplo si queremos llamar al color rojo usamos ${redColour} y pintaremos de color rojo desde donde pusimos el color y hasta donde lo finalizamos que para finalizar un color se usa ${endColour}, así que yo he asignado estos colores:
+
+![img](/assets/images/Linux/scripting/definir.png)
+
+Vemos que hemos asignado el color rojo solo a el output que mostrará el comando ejecutado, y agregamos el paramtero -e a el echo para que nos interprete los colores, pero también puede interpretar saltos de linea entre más cosas que nos serán útil, así que se verá algo así al ejecutarse:
+
+![img](/assets/images/Linux/scripting/rojo.png)
+
+Vemos que se ha coloreado correctamente y se ve mejor de esta forma.
+
+<br>
+
