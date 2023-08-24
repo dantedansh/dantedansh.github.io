@@ -2132,6 +2132,7 @@ Vemos que nuestro script se ha ejecutado correctamente, ahora si queremos darle 
 
 Primero copiaremos estas variables en el script:
 
+```
 #Colours
 greenColour="\e[0;32m\033[1m"
 endColour="\033[0m\e[0m"
@@ -2141,6 +2142,7 @@ yellowColour="\e[0;33m\033[1m"
 purpleColour="\e[0;35m\033[1m"
 turquoiseColour="\e[0;36m\033[1m"
 grayColour="\e[0;37m\033[1m"
+```
 
 Estas variables son colores a nivel de sistema pero para simplificar su uso se crean variables que podamos identificar para hacerlo más rapido.
 
@@ -2160,3 +2162,304 @@ Vemos que se ha coloreado correctamente y se ve mejor de esta forma.
 
 <br>
 
+---
+
+# Uso y configuración de la kitty
+
+Si no te sentiste comodo usando tmux, tal vez kitty te resulte mejor, y yo recomiendo usar kitty ya que tiene más ventajas, pero si te quieres quedar en tmux no hay problema.
+
+Para instalar la kitty desde sistemas basados en debian como kali,parrot,ubuntu etc, podemos instalarla usando:
+
+`sudo apt install kitty`
+
+Y si usas arch:
+
+`sudo pacman -S kitty`
+
+Ya que debian usa el gestor de paquetes apt y arch usa pacman.
+
+<br>
+
+Una vez tengamos la kitty y la ejecutemos desde el menú de programas, veremos la kitty algo así:
+
+![img](/assets/images/Linux/kitty/kitty.png)
+
+Vemos que se ve muy básica a simple vista pero esto no es así, ya que vamos a configurarla a nuestro gusto.
+
+Vamos a ir a la ruta `~/.config/kitty`
+
+> Si no existe esa ruta la creamos.
+
+Kitty tomará esta ruta como los archivos de configuración que debe leer, primero vamos a crear un archivo llamado `kitty.conf`:
+
+![img](/assets/images/Linux/kitty/config.png)
+
+Y dentro de este archivo de configuración meteremos las siguientes configuraciones:
+
+**kitty.conf**
+
+```
+
+enable_audio_bell no
+
+include color.ini
+
+font_family HackNerdFont
+font_size 12
+
+disable_ligatures never
+
+url_color #61afef
+
+url_style curly
+
+map ctrl+left neighboring_window left
+map ctrl+right neighboring_window right
+map ctrl+up neighboring_window up
+map ctrl+down neighboring_window down
+
+map f1 copy_to_buffer a
+map f2 paste_from_buffer a
+map f3 copy_to_buffer b
+map f4 paste_from_buffer b
+
+cursor_shape beam
+cursor_beam_thickness 1.8
+
+mouse_hide_wait 3.0
+detect_urls no
+
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
+
+map ctrl+shift+z toggle_layout stack
+tab_bar_style powerline
+
+inactive_tab_background #e06c75
+active_tab_background #98c379
+inactive_tab_foreground #000000
+tab_bar_margin_color black
+
+map ctrl+shift+enter new_window_with_cwd
+map ctrl+shift+t new_tab_with_cwd
+
+background_opacity 0.95
+
+shell zsh
+
+```
+
+Estas configuraciones son las que quiero en mi kitty, pero tu puedes modificar las que gustes o agregar más, puedes ver todas las configuraciones en su página web: [Kitty Web](https://sw.kovidgoyal.net/kitty/overview/).
+
+Algunas de las configuraciones que asignamos son:
+
+- zsh por defecto.
+- Opacidad al 0.95.
+- Definir atajos para crear nuevas ventanas de terminal.
+- Desactivar las URL que si estan en la terminal te llevan al navegador.
+- Colores.
+- Forma del cursor.
+- Definimos las teclas f1,f2 para que f1 sea copiar y f2 pegar, esto es dentro del portapapeles interno de la kitty.
+- Igual definimos otras teclas iguales para esto pero son f3 y f4.
+- Configuramos la fuente como "HackNerdFont". (Que debes instalarla en caso de no tenerla).
+
+<br>
+
+Estas son unas configuraciones importantes que asignamos a la kitty con el contenido del archivo, cuando metamos las configuraciones a el archivo `~/.config/kitty.conf`:
+
+![img](/assets/images/Linux/kitty/paste.png)
+
+Una vez peguemos las configuraciones en el archivo guardaremos, y ahora vamos a crear otro archivo llamado `color.ini`:
+
+![img](/assets/images/Linux/kitty/color.png)
+
+Y dentro de este archivo meteremos lo siguiente:
+
+```
+
+cursor_shape          Underline
+cursor_underline_thickness 1
+window_padding_width  20
+
+# Special
+foreground #a9b1d6
+background #1a1b26
+
+# Black
+color0 #414868
+color8 #414868
+
+# Red
+color1 #f7768e
+color9 #f7768e
+
+# Green
+color2  #73daca
+color10 #73daca
+
+# Yellow
+color3  #e0af68
+color11 #e0af68
+
+# Blue
+color4  #7aa2f7
+color12 #7aa2f7
+
+# Magenta
+color5  #bb9af7
+color13 #bb9af7
+
+# Cyan
+color6  #7dcfff
+color14 #7dcfff
+
+# White
+color7  #c0caf5
+color15 #c0caf5
+
+# Cursor
+cursor #c0caf5
+cursor_text_color #1a1b26
+
+# Selection highlight
+selection_foreground #7aa2f7
+selection_background #28344a
+
+```
+
+Que son parte de **config.ini**, ya que si vemos en las configuraciones de **config.ini** importamos un archivo llamado **color.ini** el cuál es este.
+
+Una vez guardemos este archivo y ahora abramos una nueva terminal de kitty, se verá algo así:
+
+![img](/assets/images/Linux/kitty/view.png)
+
+Podemos ver que se ve mucho mejor que como estaba anteriormente, y ahora que ya tenemos este emulador de terminal que a mi parecer es mejor que tmux.
+
+Ya que también contiene crear nuevas pestañas de terminales, sesiones, y mucho más.
+
+<br>
+
+## Atajos de la kitty
+
+Ahora que hemos configurado nuestra kitty, mostraremos como se usan las configuraciones que definimos para crear y modificar terminales entre otras cosas.
+
+<br>
+
+**Renombrar ventana actual de trabajo**
+
+`ctrl + shift + alt + t` Con esto vamos a poder renombrar la ventana actual:
+
+![img](/assets/images/Linux/kitty/rename.png)
+
+Al hacer esa combinación de teclas nos mostrara este mensaje diciendo que por que nombre queremos renombrar la ventana actual, una vez le digamos el nombre en este caso le puse "Prueba", damos enter para que se guarden los cambios.
+
+![img](/assets/images/Linux/kitty/nada.png)
+
+Y de primero no veremos nada, ya que no hay otra ventana, así que para ver esto agregaremos otra ventana con:
+
+**Agregar una nueva ventana de trabajo**
+
+`ctrl + shift + t` Con esto agregaremos una nueva ventana de trabajo:
+
+![img](/assets/images/Linux/kitty/ventanas.png)
+
+Y podemos ver que hemos podido agregar una nueva ventana, y ya aparece la que habiamos creado anteriormente.
+
+Podemos ir cambiando de ventana de trabajo dando click en el nombre de la que queremos ir, o si queremos por atajos:
+
+**Cambiar de ventana con atajo de teclado**
+
+`ctrl + shift + izq o derecha` Con esto podremos cambiar de ventana de trabajo rapidamente desde el teclado.
+
+<br>
+
+**Abrir nueva terminal en la ventana actual**
+
+`ctrl + shift + enter` Con esto vamos a crear una nueva terminal en la ventana actual:
+
+![img](/assets/images/Linux/kitty/agregar.png)
+
+Y podemos ver que hemos creado una nueva terminal dentro de la ventana actual.
+
+**Cambiar de posición la terminal actual**
+
+`ctrl + shift + l` Con esto vamos a cambiar de lugar la terminal:
+
+![img](/assets/images/Linux/kitty/mitad.png)
+
+Y podemos ver que se ha cambiado de posición.
+
+<br>
+
+**Cambiar de terminal a otra**
+
+`ctrl + izq o derecha` Con esto vamos a cambiar de terminal actual a otra.
+
+O también haciendo click en la terminal que queremos usar podemos hacerlo.
+
+**Cerrar terminal actual**
+
+`ctrl + shift + w` Con esto cerraremos la terminal actual en uso.
+
+**Cambiar lugar de terminal actual**
+
+`ctrl + shift + f` Con esto podemos cambiar de lugar una terminal, por ejemplo tenemos esta:
+
+![img](/assets/images/Linux/kitty/der.png)
+
+Y al hacer la combinación veremos esto:
+
+![img](/assets/images/Linux/kitty/izq.png)
+
+Vemos que hemos cambiado de lugar la terminal con la otra.
+
+<br>
+
+**Redimensionar tamaño de la terminal actual**
+
+`ctrl + shift + r` Con esto entraremos a el modo de redimensionar de la terminal actual y nos saldra este aviso:
+
+![img](/assets/images/Linux/kitty/red.png)
+
+Y nos dice que con la w,n,t,s podemos cambiar el tamaño en proporciones de la terminal, y con r la restablecemos a su tamaño original, en este caso por ejemplo la redimensioné así:
+
+![img](/assets/images/Linux/kitty/redi.png)
+
+Vemos que la he redimensionado de esta forma, con esc guardamos los cambios.
+
+<br>
+
+**Mover ventana de trabajo actual a otra posición**
+
+`ctrl + shift + ,` Con esto vamos a cambiar la ventana de trabajo actual a la izquierda o si queremos a la derecha es con el punto en lugar de la coma.
+
+**Selección de texto eficaz**
+
+Si queremos seleccionar un texto pero hay un elemento que no queremos copiar, por ejemplo aqui:
+
+![img](/assets/images/Linux/kitty/lines.png)
+
+Podemos ver que queremos copiar solo el contenido pero en la izquierda vemos que se esta copiando también los elementos que cuentan las lineas y eso no lo queremos.
+
+Entonces para solucionar esto podemos usar:
+
+`ctrl + alt + seleccion de texto` Con esto se va a mantener el cursor y lo que seleccionemos en la misma linea:
+
+![img](/assets/images/Linux/kitty/oneline.png)
+
+Y podemos ver que ya podemos seleccionar esto y copiarlo, ya sea en la clipboard/portapapeles del sistema como ya sabemos con `ctrl + shift + c` ya que estamos en terminal, esto para copiarlo a nivel global y pegarlo no solo de terminal a terminal.
+
+Pero si queremos copiar algo y pegarlo de terminal a terminal podemos usar las teclas que asignamos como copiar y pegar de la kitty:
+
+**Copiar y pegar usando el portapapeles/clipboard de kitty**
+
+Ahora si queremos copiar algo dentro de la kitty y lo vamos a pegar dentro de una misma terminal de kitty entonces podemos usar `f1` que asignamos esta tecla en las configuraciones anteriormente. Esto nos permitira copiar algo, y con `f2` lo pegaremos.
+
+La misma funcion tienen las teclas `f3` y `f4` para copiar y pegar 2 contenidos a la vez.
+
+<br>
+
+---
+
+# 
