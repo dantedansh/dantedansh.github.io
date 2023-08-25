@@ -2164,7 +2164,7 @@ Vemos que se ha coloreado correctamente y se ve mejor de esta forma.
 
 ---
 
-# Uso y configuración de la kitty
+# Uso y configuracion de la kitty
 
 Si no te sentiste comodo usando tmux, tal vez kitty te resulte mejor, y yo recomiendo usar kitty ya que tiene más ventajas, pero si te quieres quedar en tmux no hay problema.
 
@@ -2457,6 +2457,179 @@ Pero si queremos copiar algo y pegarlo de terminal a terminal podemos usar las t
 Ahora si queremos copiar algo dentro de la kitty y lo vamos a pegar dentro de una misma terminal de kitty entonces podemos usar `f1` que asignamos esta tecla en las configuraciones anteriormente. Esto nos permitira copiar algo, y con `f2` lo pegaremos.
 
 La misma funcion tienen las teclas `f3` y `f4` para copiar y pegar 2 contenidos a la vez.
+
+<br>
+
+---
+
+# Instalación de nvim(nvchad).
+
+Por defecto en algunos sistemas ya viene instalado nvim, pero vamos a eliminarlo ya que queremos la versión más reciente y no esta.
+
+Lo borraremos con: `sudo apt remove neovim`:
+
+![img](/assets/images/Linux/nvim/remove.png)
+
+Vemos que ya lo hemos eliminado, ahora vamos a la web de instalación de nvchad:
+
+[Nvchad web](https://nvchad.com/docs/quickstart/install)
+
+![img](/assets/images/Linux/nvim/requisites.png)
+
+Vemos que nos pide los siguientes requisitos, primero tener la última versión de nvim o neovim, por lo que al darle al enlace nos llevará a su ultima versión, y una vez estemos dentro del repositorio de nvim,vamos hasta la parte de abajo y descargaremos esto:
+
+![img](/assets/images/Linux/nvim/reciente.png)
+
+Una vez lo tengamos en descargas, vamos a la ruta /opt/ y desde aquí moveremos el archivo comprimido:
+
+![img](/assets/images/Linux/nvim/extraer.png)
+
+Vemos que primero nos convertimos en root, después vamos a la ruta /opt, después movemos el archivo que descargamos hacía el directorio actual, por eso ponemos un punto.
+
+Y usando `tar` vamos a descomprimir el archivo comprimido.
+
+Una vez se descomprima entarmos a la ruta que nos deja el archivo descomprimido, y encontraremos 3 carpetas, iremos a la de bin y encontraremos el binario de nvim más reciente:
+
+![img](/assets/images/Linux/nvim/binario.png)
+
+Ahora lo que haremos es asegurarnos de que el directorio `~/.config/nvim` del usuario que usara nvim en este caso d4nsh, no exista, en este caso migraremos a d4nsh ya que solo ocupmaos root para mover cosas a /opt y vemos que esta ruta no existe:
+
+![img](/assets/images/Linux/nvim/noexiste.png)
+
+Vemos que no existe la ruta de configuración de nvim del usuario que usara nvim.
+
+Una vez aseguremos que ese directorio no exista, clonaremos el repositorio de nvchad:
+
+`git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1`
+
+![img](/assets/images/Linux/nvim/final.png)
+
+Podemos ver que al clonar este repositorio, se clono dentro de la ruta nueva `~/.config/nvim` y esta nueva ruta tiene el contenido que necesitamos, esta vez si ocupamos esta configuración nueva.
+
+Ahora iremos a la ruta del nvim:
+
+![img](/assets/images/Linux/nvim/auto.png)
+
+Y vamos a ejecutar este binario.
+
+Como al ejecutarlo detectará que en su ruta de configuración hay configuraciones entonces las aplicará y nos mostrará un mensaje de que si queremos instalar la configuración, daremos que yes y enter, y empezará a configurarse todo, y al terminal nos pedirá salir , que lo hacemos con `esc + : + teclear "q!" y enter`.
+
+De este modo salimos de nvim.
+
+<br>
+
+Ya estará configurado y ahora simplemente agregaremos esta ruta a la variable de entorno $PATH para que al momento de ejecutar el comando nvim nos detecte este nuevo nvim.
+
+Por lo que vamos a el .zshrc del usuario que tiene nvim:
+
+![img](/assets/images/Linux/nvim/path.png)
+
+Y ubicaremos la variable PATH, y vamos a agregar la ruta donde se encuentra el nuevo nvim:
+
+![img](/assets/images/Linux/nvim/add.png)
+
+Vemos que la hemos agregado, y obviamente respetaremos la separación usando los dos puntos como se ve que lo hicimos.
+
+Y ahora al abrir una nueva terminal y ejecutar nvim, nos abrira nvchad:
+
+![img](/assets/images/Linux/nvim/test.png)
+
+En este caso abrimos un script de bash con nvim y podemos ver que se ve muy bien sus colores y detecta la sintaxis.
+
+<br>
+
+## Uso de Nvim(Nvchad)
+
+Ahora que lo hemos instalado, vamos a a aprender a usarlo:
+
+En vim al entrar nos pondrá en el modo de texto normal:
+
+![img](/assets/images/Linux/nvim/normal.png)
+
+En este modo es donde podemos hacer atajos para ciertas cosas que veremos más adelante que se hacen en este modo, y si queremos poder ingresar datos en el archivo, presionaremos la tecla `i` de este modo entraremos a el modo de insert y ya podremos meter contenido al archivo:
+
+![img](/assets/images/Linux/nvim/insert.png)
+
+Podemos ver que al presionar la tecla "i" entramos a el modo insert y pudimos agregar contenido, si queremos guardar el archivo sin salir de nvim debemos volver a el modo normal, que se hace con: `esc`.
+
+Una vez en el modo normal, lo que haremos será presionar:
+
+<br>
+
+**Todos estos atajos se hacen en el modo NORMAL**
+
+`: + w`: Guardar cambios sin salir.
+
+Pero si queremos guardar y salir hacemos:
+
+`: + wq`: Guardar archivo y salir.
+
+<br>
+
+**Salir**
+
+`: + q`: Salir cuando ya no hay cambios por guardar.
+
+`: + q!`: Salir descartando los cambios sin guardar.
+
+<br>
+
+**Otros importantes atajos**
+
+`Seleccionar texto + y`: Con esto vamos a copiar el texto seleccionado.
+
+`Seleccionar texto + d`: Eliminar texto seleccionado.
+
+`alt + u`: Deshacer cambios recientes.
+
+Si quieres saber todos los atajos que hay puedes visitar la cheat sheet de nvim: [Cheat Sheet Nvim](https://vim.rtorr.com/lang/es_es).
+
+<br>
+
+**Autocompletado de nvim**
+
+Si estamos escribiendo un código y queremos ejecutar algo que el nvim detecta nos dará opción de autocompleatarlo:
+
+![img](/assets/images/Linux/nvim/sugerencia.png)
+
+Vemos que nos da una sugerencia de la posible opción que vayamos a ocupar, pero puede ser molesto, y podemos desactivar esto eliminando la linea en la configuración de ese plugin, iremos a la ruta: `~/.config/nvim/lua/plugins`
+
+Y encontraremos los siguientes archivos:
+
+![img](/assets/images/Linux/nvim/lua.png)
+
+Abriremos el init.lua:
+
+Y vamos a eliminar desde donde dice "  -- load luasnips + cmp related in insert mode only" hasta que termine ese apartado osea hasta acá:
+
+![img](/assets/images/Linux/nvim/parar.png)
+
+Y una vez eliminemos eso quedará esto sin esa parte:
+
+![img](/assets/images/Linux/nvim/quedara.png)
+
+Esto quedará así ya sin ese apartado que eso era lo que nos sugeria el autocompletado, y ahora al guardar esto y volver a abrir nvim ya no te sugerira esas cosas.
+
+**Reparar cursor al cerrar nvim**
+
+Si al cerrar nvim nuestro cursor se cambia a el de bloque, debemos agregar esta función a el zshrc o bashrc depende lo que uses:
+
+```bash
+# Change cursor shape for different vi modes.
+function zle-keymap-select {
+  if [[ $KEYMAP == vicmd ]] || [[ $1 = 'block' ]]; then
+    echo -ne '\e[1 q'
+  elif [[ $KEYMAP == main ]] || [[ $KEYMAP == viins ]] || [[ $KEYMAP = '' ]] || [[ $1 = 'beam' ]]; then
+    echo -ne '\e[5 q'
+  fi
+}
+zle -N zle-keymap-select
+
+# Start with beam shape cursor on zsh startup and after every command.
+zle-line-init() { zle-keymap-select 'beam'}
+```
+
+La vamos a pegar en el **.zshrc** o **.bashrc**, y al guardarlo ya no deberiamos tener ese problema.
 
 <br>
 
