@@ -34,6 +34,12 @@ En este post iré explicando lo fundamental que necesitas saber sobre linux, has
 
 Podemos ver que el usuario que esta ejecutando el sistema actualmente es d4nsh.
 
+## clear
+
+Con este comando vamos a poder limpiar la pantalla de la terminal para no tener en pantalla cosas que ya no queremos y solo hagan espacio.
+
+> Esto solo limpia la pantalla de comandos no elimina archivos.
+
 <br>
 
 ---
@@ -2635,4 +2641,191 @@ La vamos a pegar en el **.zshrc** o **.bashrc**, y al guardarlo ya no deberiamos
 
 ---
 
-# 
+# Conexion por SSH a laboratorios de practica
+
+Ahora que ya sabemos las bases aprenderemos más pero ahora haciendo laboratorios de prueba en forma de retos, para ello iremos a la web que nos proporciona estos niveles: [OverTheWire-Bandit0](https://overthewire.org/wargames/bandit/).
+
+Una vez dentro vamos a elegir "Level 0" veremos lo siguiente:
+
+![img](/assets/images/Linux/ssh/ssh2.png)
+
+Aquí estamos en el nivel 0 donde nos dan instrucciones para conectarnos por ssh.
+
+**¿Qué es ssh?**
+
+La conexión SSH nos sirve para conectarnos a servidores por medio de una terminal, en este caso los creadores de los retos tienen un servidor ssh llamado **bandit.labs.overthewire.org** por el cuál nos vamos a conectar para empezar a hacer los retos.
+
+Este servidor se ejecuta en el puerto **2220**, por lo que para iniciar la conexión con el nivel 0, haremos lo siguiente:
+
+`ssh bandit0@bandit.labs.overthewire.org -p 2220`
+
+Con este comando vamos a conectarnos por ssh, nos conectaremos como el usuario bandit0, ya que así nos dicen las instrucciones del nivel 0, y el arroba indica que entrara ese usuario a el servidor que esta después del arroba.
+
+Y le decimos que se conecte por el puerto 2220 con el parametro -p.
+
+Una vez nos conectemos veremos esto:
+
+![img](/assets/images/Linux/ssh/login.png)
+
+Primero nos pedirá una confirmación si es la primera vez que nos conectamos a este servidor, le diremos yes y daremos enter, luego nos pedira la contraseña, la cuál nos la dan en el nivel 0 para poder empezar desde aquí.
+
+Y una vez la ponemos nos daran una bash como el usuario dentro de ese servidor:
+
+![img](/assets/images/Linux/ssh/bandit0.png)
+
+<br>
+
+**Reparar clear**
+
+Aveces no nos dejará usar el comando clear:
+
+![img](/assets/images/Linux/ssh/clear.png)
+
+Ya que entra en conflicto con el tipo de terminal, así que vamos a modificar la variable de entorno llamada **TERM**:
+
+![img](/assets/images/Linux/ssh/export.png)
+
+Podemos ver que al hacerle un echo a esa varible de entorno nos dice que usamos una "xterm-kitty" así que con el comando `export` vamos a modificar la variable de entorno:
+
+`export TERM=xterm`
+
+De este modo ya no tendremos conflicto al hacer clear, esto paso porque la conexión remota no tiene una xterm-kitty, así que asignamos la que esta por defecto.
+
+<br>
+
+Así que una vez arreglamos esto, leemos en las instrucciones del nivel0 a nivel 1 lo siguiente:
+
+![img](/assets/images/Linux/ssh/0a1.png)
+
+Dice que la contraseña del siguiente nivel esta en un archivo llamado readme dentro del directorio personal de el usuario en este caso es bandit0, y que usemos esa password para conectarnos como bandit1 y hacer el siguiente nivel.
+
+Así que al hacer un ls en el directorio personal de nuestro usuario vemos lo siguiente:
+
+![img](/assets/images/Linux/ssh/file.png)
+
+Vemos que encontramos el archivo llamado **readme** y como recordamos en los permisos, este archivo tiene de propietario a bandit1, pero de grupo tiene a el grupo de bandit0, por lo que tenemos permiso de lectura, así que podemos leer el archivo y contiene la contraseña del siguiente nivel. la cuál es: "NH2SXQwcBdpmTEzi3bvBHMM9H66vVXjL".
+
+<br>
+
+Y podemos ver que salimos de la conexión ssh del usuario bandit0 para acceder al usuario bandit1:
+
+![img](/assets/images/Linux/ssh/bandit1.png)
+
+Podemos ver que ya estamos conectandonos a el siguiente nivel ya que hemos conseguido la contraseña para acceder al siguiente nivel y se la ponemos, y una vez hecho esto nos dará la conexión ssh:
+
+![img](/assets/images/Linux/ssh/next.png)
+
+Vemos que ya estamos en el nivel 1, y ahora debemos encontrar la contraseña para acceder al nivel 2 y así continuamente.
+
+<br>
+
+---
+
+# Bandit 1-2: Lectura de archivos con nombre especial
+
+![img](/assets/images/Linux/ssh/bandit1-2/nivel.png)
+
+Este nivel nos dice que la contraseña se almacena en un archivo llamado "-", pero si le hacemos un cat no podremos:
+
+![img](/assets/images/Linux/ssh/bandit1-2/nocat.png)
+
+Vemos que no nos deja leer el contenido.
+
+**¿Porqué sucede esto?**
+
+Esto sucede porque cat detecta el guion como si fuese un parametro vacio, y no lo entiende como archivo, por esto no nos deja leerlo.
+
+Hay multiples formas de leer estos archivos:
+
+**Desde su ruta absoluta**
+
+`cat /home/bandit1/-`
+
+![img](/assets/images/Linux/ssh/bandit1-2/absolouta.png)
+
+De este modo estaremos indicandole la ruta absoluta del archivo y ya no se confundira como antes, y vemos la contraseña.
+
+<br>
+
+**Indicandole la ruta actual**
+
+`cat ./-`
+
+![img](/assets/images/Linux/ssh/bandit1-2/actual.png)
+
+De este modo le estamos diciendo que en la ruta actual nos lea ese archivo.
+
+<br>
+
+**Con xargs**
+
+`echo $(pwd)/- | xargs cat`
+
+![img](/assets/images/Linux/ssh/bandit1-2/xargs.png)
+
+Con esto primero vemos que estamos usando `echo` e indicandole un comando a nivel de bash, en este caso es pwd, y hacemos esto con echo para poder agregar datos, en este caso estamos agregando a el output esto: /-
+
+Y de este modo nuestro ouptut se verá algo así: /home/bandit1/- y ahora con este output, le diremos a xargs que nos haga un cat en base a la ruta anterior, y le agregamos el /- para apuntar a el archivo llamado guion en la ruta que se encuentra.
+
+Y vemos que de este modo nos muestra la contraseña de igual forma.
+
+También funcionaria si hubiesemos puesto: `cat $(pwd)/-`
+
+Pero la idea es que practiques de muliples formas para no olvidar los comandos ya que hay muchas formas de hacerlo.
+
+Flag: rRGizSaX8Mk1RTb1CNQoXTcYZWU6lgzi
+
+<br>
+
+---
+
+# Bandit 2-3: Lectura de archivos con espacios
+
+Una manera para conectarnos de una forma más rapida es usando `sshpass`:
+
+`sshpass -p "rRGizSaX8Mk1RTb1CNQoXTcYZWU6lgzi" ssh bandit2@bandit.labs.overthewire.org -p 2220`
+
+Esto sirve para ingresar la contraseña ya que el comando sshpass tiene un parametro -p para password y la indicamos en medio de comillas dobles, y ya después de esto se usa ssh con los datos del siguiente nivel, en este caso bandit2.
+
+![img](/assets/images/Linux/ssh/bandit2-3/sshpass.png)
+
+Y ya estaremos dentro de la conexión ssh del serivdor, en este caso vemos un archivo con espacios:
+
+![img](/assets/images/Linux/ssh/bandit2-3/spaces.png)
+
+Y para leer archivos con espacios no se usa: `cat spaces in this filename` ya que nos daría error, porque estaría tomando en cada espacio como un archivo separado y nos daría un error.
+
+En cambio se puede usar:
+
+`cat "spaces in this filename"`
+
+![img](/assets/images/Linux/ssh/bandit2-3/cat.png)
+
+Podemos ver que podemos leerlo si metemos el nombre del archivo entre comillas dobles, ya que de esta forma le indicamos que solo será uno.
+
+**Con escape de espacios**
+
+`cat spaces\ in\ this\ filename`
+
+![img](/assets/images/Linux/ssh/bandit2-3/scape.png)
+
+De esta forma estaremos escapando cada espacio para evitar que se tome como archivo separado.
+
+**Autocompletado**
+
+`cat spa*`
+
+![img](/assets/images/Linux/ssh/bandit2-3/asterisco.png)
+
+Estamos usando el simbolo de asterisco que como recordamos nos sirve para autocompletar automaticamente lo que sigue, como no hay un archivo más aparte de este que se empiece con "spa" entonces nos mostrará el único que hay con ese inicio de letras.
+
+
+Flag: aBZ0W5EmUfAf7kHTQeOwd8bauFJ2lAiG
+
+<br>
+
+---
+
+# Bandit 3-4: Arcivo dentro de directorio oculto
+
+![img](/assets/images/Linux/ssh/bandit3-4/.png)
