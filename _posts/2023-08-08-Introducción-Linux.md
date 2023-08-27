@@ -2741,7 +2741,7 @@ Hay multiples formas de leer estos archivos:
 
 `cat /home/bandit1/-`
 
-![img](/assets/images/Linux/ssh/bandit1-2/absolouta.png)
+![img](/assets/images/Linux/ssh/bandit1-2/absoluta.png)
 
 De este modo estaremos indicandole la ruta absoluta del archivo y ya no se confundira como antes, y vemos la contraseña.
 
@@ -2828,4 +2828,124 @@ Flag: aBZ0W5EmUfAf7kHTQeOwd8bauFJ2lAiG
 
 # Bandit 3-4: Arcivo dentro de directorio oculto
 
-![img](/assets/images/Linux/ssh/bandit3-4/.png)
+Este nivel nos dice que la contraseña para el siguiente nivel esta dentro de un archivo oculto:
+
+![img](/assets/images/Linux/ssh/bandit3-4/hidden.png)
+
+Hemos encontrado el archivo dentro de un directorio llamado inhere, y con ls -a listamos los archivos ocultos y simplemente le hicimos un cat y ya tenemos la contraseña del siguiente nivel.
+
+Flag: 2EW7BBsr6aMMoJ2HjW067dm8EgX26xNe
+
+<br>
+
+---
+
+# Bandit 4-5: Deteccion de tipo de archivo y formato.
+
+En este nivel nos dice que la contraseña de almacena entre uno de los tantos archivos disponibles dentro del directorio inhere.
+
+Vemos que hay los siguientes:
+
+![img](/assets/images/Linux/ssh/bandit4-5/files.png)
+
+Y como nos dice que no todos los vamos a poder leer ya que no todos son texto, lo que haremos será saber que tipo de contenido es ese archivo con el comando `file`:
+
+Lo vamos a mezclar con find, ya que le diremos lo siguiente a find:
+
+![img](/assets/images/Linux/ssh/bandit4-5/find.png)
+
+Primero estamos viendo que con el comando find en la ruta actual nos liste todos los archivos que hay.
+
+Y nos los muestra como podemos ver en la imagen.
+
+Y ahora como por cada archivo nos muestra su ruta del directorio actual, simplemente agregaremos un xargs con el comando file para que nos muestre que tipo de archivo es cada uno:
+
+`find . | xargs file`
+
+![img](/assets/images/Linux/ssh/bandit4-5/file.png)
+
+Y podemos ver que el **-file07** contiene Texto, por lo que le haremos un cat:
+
+![img](/assets/images/Linux/ssh/bandit4-5/next.png)
+
+Y ya tenemos la contraseña del siguiente nivel.
+
+Flag: lrIWWI6bB37kxfiCQZqUdOIYfr6eEeqR
+
+<br>
+
+---
+
+# Bandit 5-6: Detectar archivo por peso
+
+Este nivel nos dice que la contraseña se almacena dentro del directorio inhere y dentro de este directorio hay mas directorios con archivos diferentes, y en uno de ellos esta la contraseña del siguiente nivel, pero nos dan las siguientes pistas:
+
+- human-readable
+- 1033 bytes in size
+- not executable
+
+Nos dice que se entiende en humanos por lo que no es algo diferente a texto o numeros, y que pesa 1033 bytes, y no es ejecutable.
+
+Así que con el comando find haremos lo siguiente:
+
+`find . -type f -readable ! -executable`
+
+![img](/assets/images/Linux/ssh/bandit5-6/filter.png)
+
+Lo que le estamos indicando es que nos encuentre empezando desde el directorio actual, que nos encuentre archivos, y que tengan permiso de lectura, y que no tengan permiso de ejecución, esto se lo indicamos con el signo de exclamación, indicandole que no sea ejecutable, y nos mostrará unos cuantos como se ve en la imagen.
+
+Pero podemos ver que aún son muchos, por lo que aplicaremos el último filtro por tamaño de bytes:
+
+`find . -type f -readable ! -executable -size 1033c`
+
+![img](/assets/images/Linux/ssh/bandit5-6/bytes.png)
+
+Vemos que agregamos el parametro -size a find , le indicamos el tamaño y con "c" le indicamos que serán bytes.
+
+Y vemos que nos mostro un único archivo, así que este es el que buscamos, le haremos un cat:
+
+![img](/assets/images/Linux/ssh/bandit5-6/pass.png)
+
+Y vemos que tenemos la contraseña del siguiente nivel, pero vemos que nos hace muchos espacios y nos mueve la terminal, para evitar esto simplemente agregaremos un xargs vacio al final:
+
+![img](/assets/images/Linux/ssh/bandit5-6/xargs.png)
+
+Y ya hemos terminado este nivel.
+
+Flag: P4L4vucdmLnm8I7Vl7jG1ApGSfjYKqJU
+
+<br>
+
+---
+
+# Bandit 6-7: Busqueda por mas caracteristicas
+
+Nos dice que dentro del sistema existe un archivo con las siguientes caracteristicas:
+
+- owned by user bandit7
+- owned by group bandit6
+- 33 bytes in size
+
+Que el propietario es bandit7, y pertenece al grupo bandit6, y tiene 33 bytes de tamaño.
+
+Como no nos dice en que directorio se encuentra iremos hasta la raíz y desde aquí buscaremos en todo el sistema archivos con estas caracteristicas:
+
+`find . -type f -readable -user bandit7 -group bandit6 -size 33c 2>/dev/null`
+
+Vemos que una vez en la raíz vamos apartir de aquí buscar archivos con permiso de lectura, que pertenezcan al usuario bandit7, y a el grupo bandit6 y por último que que tenga de tamaño 33 bytes, y redirigimos los errores al /dev/null ya que habrá directorios a los que no tendremos acceso ya que no somos root:
+
+![img](/assets/images/Linux/ssh/bandit6-7/find.png)
+
+Y nos muestra la ruta "./var/lib/dpkg/info/bandit7.password" por lo que vamos a leer el contenido:
+
+![img](/assets/images/Linux/ssh/bandit6-7/next.png)
+
+Y vemos que tenemos la contraseña del siguiente usuario, ya que hemos encontrado su ruta en base a los datos que nos dieron sobre el archivo.
+
+Flag: z7WtoNQU2XfjmMtWA8u5rN4vzqu4v99S
+
+<br>
+
+---
+
+# 
