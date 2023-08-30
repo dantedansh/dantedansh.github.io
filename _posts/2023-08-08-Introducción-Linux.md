@@ -2948,4 +2948,58 @@ Flag: z7WtoNQU2XfjmMtWA8u5rN4vzqu4v99S
 
 ---
 
-# 
+# Bandit 7-8: Filtrado de datos con awk
+
+Este nivel nos dice que existe un archivo de texto, pero este archivo contiene demasiado texto que se pierde el que nos interesa.
+
+Pero que esta cerca de la palabra "millionth", por lo que usaremos grep para filtrar esta parte:
+
+`cat data.txt | grep "millionth"`
+
+![img](/assets/images/Linux/ssh/bandit7-8/grep.png)
+
+Y vemos que esta alado de esa palabra la contraseña que nos interesa, así que nos quedaremos con el segundo argumento:
+
+`cat data.txt | grep "millionth" | awk '{print$2}'`
+
+Y vemos que ya nos da la flag para el siguiente nivel.
+
+O también si queremos quedarnos con el último argumento podemos usar:
+
+`cat data.txt | grep "millionth" | awk 'NF{print $NF}'`
+
+![img](/assets/images/Linux/ssh/bandit7-8/nf.png)
+
+De esta forma podemos imprimir el ultimo argumento de una salida de datos.
+
+Flag: TESKZC0XvTetK0S9xNwm25STk5iWrBvP
+
+<br>
+
+---
+
+# Bandit 8-9: Filtrado de datos con sort
+
+En este nivel nos muestra un archivo con demasiado texto:
+
+![img](/assets/images/Linux/ssh/bandit8-9/data.png)
+
+Como podemos ver, y debemos encontrar la linea que no se repita en el texto, primero ordenaremos por orden cada linea usando el comando `sort`:
+
+![img](/assets/images/Linux/ssh/bandit8-9/repet.png)
+
+Y podemos ver que se ordenaron todas las lineas por orden numerico y alfabetico, vemos que inician los que tienen 0 al inicio y después seguiran ordenados en forma ascendente.
+
+Y una vez que tenemos ordenado esto simplemente usaremos el comando `uniq` con el parametro -u para indicarle que nos muestre la linea que no se repite:
+
+![img](/assets/images/Linux/ssh/bandit8-9/uniq.png)
+
+Y podemos ver que nos muestra el único valor que no aparece más de una vez en el texto, y podemos ver que ya tenemos la flag del siguiente nivel:
+
+Flag: EN632PlfYiZbn3PhVK3XOGSlNInNE00t
+
+<br>
+
+---
+
+# Bandit 9-10: 
