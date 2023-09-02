@@ -3002,4 +3002,132 @@ Flag: EN632PlfYiZbn3PhVK3XOGSlNInNE00t
 
 ---
 
-# Bandit 9-10: 
+# Bandit 9-10: Filtrar strings de un binario
+
+En este nivel encontramos el siguiente archivo:
+
+![img](/assets/images/Linux/ssh/bandit9-10/data.png)
+
+Este archivo aparenta ser un .txt pero si vemos con el comando file, nos damos cuenta que no nos muestra que es "ASCII TEXT" ya que no es texto legible lo que contiene, si no que se puede tratar de un binario.
+
+Ya que al hacerle un cat:
+
+![img](/assets/images/Linux/ssh/bandit9-10/nolegible.png)
+
+Podemos ver que no se logra entender esto ya que al ser un binario esto es código que a nivel humano no se puede interpretar.
+
+Pero existe un comando llamado `strings` para que nos muestre las partes del código que son texto y se pueden mostrar que existen entre todo este desorden de caracteres, así que usaremos el comando strings:
+
+![img](/assets/images/Linux/ssh/bandit9-10/strings.png)
+
+Podemos ver que nos ha filtrado las cadenas que son de texto, y aunque en su mayoría no se entiende, podemos ver una que dice "the", y como el nivel nos decia, que la contraseña estaba en un valor con signos de igual, así que filtraremos con grep las lineas que tengan simbolos de igual:
+
+`strings data.txt | grep "======"`
+
+![img](/assets/images/Linux/ssh/bandit9-10/grep.png)
+
+Vemos que estamos filtrando por los valores que contengan 6 simbolos de igual y vemos que nos muestra esos valores, vemos que la contraseña es el último valor así que para quedarnos con el último valor de una salida de datos podemos usar el comando `tail`:
+
+`strings data.txt | grep "======" | tail -n 1`
+
+![img](/assets/images/Linux/ssh/bandit9-10/tail.png)
+
+Y podemos ver que con el comando tail le hemos dicho que en la linea 1 contando desde la última queremos que nos filtre ese contenido, así que ya nos da de salida solo el último valor, y como en esta linea hay 2 argumentos nos quedaremos con el segundo usando awk como ya sabemos:
+
+`strings data.txt | grep "======" | tail -n 1 | awk 'NF{print $NF}'`
+
+![img](/assets/images/Linux/ssh/bandit9-10/awk.png)
+
+Y vemos que ya nos hemos quedado solo con la contraseña así que pasaremos al siguiente nivel.
+
+Flag: G7w8LIi6J3kTb8A7j9LgrywtEUlyyp6s
+
+<br>
+
+---
+
+# Bandit 10-11: decodificacion y codificacion en base64
+
+En este nivel encontramos un archivo que vemos que tiene texto gracias a el tipo de archivo, y al momento de leerlo nos salta esto:
+
+![img](/assets/images/Linux/ssh/bandit10-11/base64.png)
+
+Nos damos cuenta que es un texto codificado en base64, ya que podemos intuirlo al ver que termina con 2 simbolos de igual.
+
+Y para decodificar un base64 a texto normal podemos usar el comando `base64` indicandole que queremos decodificar:
+
+![img](/assets/images/Linux/ssh/bandit10-11/decode.png)
+
+Y podemos ver que ya nos ha decodificado el base64 ya que le hemos pasado la salida del comando cat y con base64 usamos el parametro `-d` indicandole que decodifique esa salida de datos.
+
+<br>
+
+Y por otro lado, para codificar un texto si queremos hacerlo podemos hacerlo de la siguiente manera:
+
+![img](/assets/images/Linux/ssh/bandit10-11/encode.png)
+
+Le pasamos simplemente el comando base64 sin parametros y ya nos ha codificado el texto deseado.
+
+Flag: 6zPeziLdR2RKNdNYFNb6nVCKzphlXHBM
+
+<br>
+
+---
+
+# Bandit 11-12: Cifrado cesar
+
+¿Qué es el cifrado cesar?
+
+Este cifrado es confuso al inicio pero cuando lo entiendes es fácil, consiste en lo siguiente:
+
+Supongamos que tenemos la palabra "Hola", Pero esta palabra cifrada con una rotación de 5 posiciones queda así:
+
+## codificar manualmente un texto con cifrado cesar
+
+Primero como son 5 posiciones para invertir en este caso (pueden ser las posiciones que quieras), haremos lo siguiente:
+
+De la primera letra de la palabra que en este caso es "H", lo que haremos será cambiarla a 5 posiciones a la derecha empezando desde la H y avanzando hacía la derecha en el abecedario dichas posiciones:
+
+![img](/assets/images/Linux/ssh/bandit11-12/codificar_cesar_d4nsh.png)
+
+En esta imagen que he creado, se nota más detalladamente como codificar esto, y así se hará con cada letra de la palabra.
+
+Y al final quedará la palabra "Mtpf", que es "Hola" Pero en su valor cifrado cesar.
+
+## decodificar manualmente un texto con cifrado cesar
+
+Y ahora en este caso será exactamente lo mismo, pará saber lo que significa la palabra "Mtpf" que esta codificada 5 posiciones en este caso, y saber lo que significa haremos exactamente lo mismo pero esta vez contando en dirección contraria, osea a la izquierda:
+
+![img](/assets/images/Linux/ssh/bandit11-12/decodificar_cesar_d4nsh.png)
+
+Y de este modo haremos con el resto de letras, y obtendremos "Hola".
+
+<br>
+
+Así que una vez entendido el cifrado cesar, pasaremos a como hacerlo automatizadamente:
+
+Vemos el siguiente archivo en el bandit:
+
+![img](/assets/images/Linux/ssh/bandit11-12/cesar.png)
+
+Vemos que nos dan el valor: Gur cnffjbeq vf WIAOOSFzMjXXBC0KoSKBbJ8puQm5lIEi
+
+Por lo que haremos lo siguiente:
+
+`cat data.txt | tr '[G-ZA-Fg-za-f]' '[T-ZA-St-za-s]'`
+
+Lo que estamos haciendo en el primer parametro: `[G-ZA-Fg-za-f]` es que primero se tomará la primera letra del texto que se pase como salida de datos, y verá si existe en el rango de la G hasta la Z tanto en minusculas como mayusculas y es G ya que es la primera letra con la que empieza el texto cifrado, y de la , y en caso de que exista, lo que hará el siguiente parametro es lo siguiente:
+
+`[T-ZA-St-za-s]` Como en el primer parametro empezamos desde la G ahora contaremos 13 hacia atrás ya que en este caso son 13 rotaciones, asi que si contamos de la G hacia atrás 13 posiciones llegamos a la T, así que contaremos desde la T hasta la Z y desde la A a la F (antes de nuevamente la T), y de este modo englobaremos todo el abecedario invertido en 13 posiciones, así que simplemente se reemplaza la primera letra por su valor invertido 13 posiciones.
+
+Y así se iran invirtiendo 13 posiciones anteriores por cada letra y será reemplazada por su valor invertido, y esto nos dará la contraseña del siguiente nivel:
+
+![img](/assets/images/Linux/ssh/bandit11-12/flag.png)
+
+Flag: JVNBBFSmZwKKOP0XbFXOoW8chDz5yVRv
+
+<br>
+
+---
+
+# 
