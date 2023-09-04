@@ -3124,10 +3124,80 @@ Y así se iran invirtiendo 13 posiciones anteriores por cada letra y será reemp
 
 ![img](/assets/images/Linux/ssh/bandit11-12/flag.png)
 
+> El valor actual va a ser reemplazado por el valor que esta a 13 rotaciones atrás de nuestro valor actual.
+
 Flag: JVNBBFSmZwKKOP0XbFXOoW8chDz5yVRv
 
 <br>
 
 ---
 
-# 
+# Bandit 12-13: Hexdump y creacion de un script para automatizar el reto
+
+En este nivel nos piden lo siguiente:
+
+"La contraseña para el siguiente nivel se almacena en el archivo data.txt, que es un hexdump de un archivo que se ha comprimido repetidamente. Para este nivel puede resultar útil crear un directorio en /tmp en el que pueda trabajar utilizando mkdir. Por ejemplo: mkdir /tmp/minombre123. Luego copie el archivo de datos usando cp y cámbiele el nombre usando mv (¡lea las páginas de manual!)".
+
+**¿Qué es un hexdump?**
+
+Un hexdump(volcado hexadecimal), es una vista en hexadecimal de los datos de un elemento, como un archivo.
+
+<br>
+
+Ahora al entrar al nivel y lo primero que vemos es un archivo .txt que contiene esto:
+
+![img](/assets/images/Linux/ssh/bandit12-13/hexdump.png)
+
+Vemos que contiene todo este valor, el cual es un tipo de archivo con x contenido.
+
+Primero, para saber que tipo de archivo es esto, revisaremos los magicnumbers.
+
+**¿Qué es un magicnumber?**
+
+Los magicnumber son un conjunto de bytes que indica el tipo de archivo que estamos analizando.
+
+Por ejemplo, en este archivo analizaremos los primeros numeros que describen el tipo de archivo que contiene el resto de datos:
+
+![img](/assets/images/Linux/ssh/bandit12-13/magicnumbers.png)
+
+Podemos ver que este archivo inicia con "1f8b", y al buscar esto en una [web que contiene magicnumbers](https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5) y su tipo de archivo, encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit12-13/table.png)
+
+Y podemos ver que se trata de un archivo comprimido con extensión .gz.
+
+<br>
+
+**Constryendo el hexdump a archivo comprimido**
+
+Como ya vimos que este hexdump es de un archivo comprimido .gz, lo que haremos es transformarla en eso:
+
+Primero copiaremos el contenido del archivo que contiene el hexdump:
+
+![img](/assets/images/Linux/ssh/bandit12-13/copy.png)
+
+y lo pegaremos en un nuevo archivo en nuestro equipo local, y una vez ya tengamos un archivo con el hexdump pegado en nuestro equipo se verá así:
+
+![img](/assets/images/Linux/ssh/bandit12-13/paste.png)
+
+Aquí hemos creado un archivo llamado data y con nano le metemos el contenido anteriormente copiado del hexdump.
+
+Y ya tendremos este archivo:
+
+![img](/assets/images/Linux/ssh/bandit12-13/data.png)
+
+Ahora que ya tenemos el archivo como estaba en el nivel de bandit, lo que haremos ahora será meter el valor hexadecimal pero de forma interpretada, por lo que de cierta forma se transforma en el archivo que en realidad es, y esto lo haremos así:
+
+`cat data | xxd -r | sponge data`
+
+![img](/assets/images/Linux/ssh/bandit12-13/create.png)
+
+Lo que hacemos es que le pasamos el contenido de data a el comando `xxd -r` que lo que hace esto es convertirnos el hexadecimal pasado a su valor transformado, y con `sponge` lo que hacemos es reemplazar el valor que tenia ese archivo por el nuevo valor, que en este caso será el binario ya transformado de hexdump a .gz.
+
+Y podemos ver que ya hemos convertido el hexdump en un binario que en este caso es un archivo comprimido .gz.
+
+> La herramienta sponge se instala con: sudo apt install moreutils si estas en sistema basado en debian. O pacman -S moreutils si tu sistema esta basado en arch Linux.
+
+<br>
+
+Y ahora que ya tenemos el archivo .gz listo, lo que haremos 
