@@ -3200,4 +3200,60 @@ Y podemos ver que ya hemos convertido el hexdump en un binario que en este caso 
 
 <br>
 
-Y ahora que ya tenemos el archivo .gz listo, lo que haremos 
+Y ahora que ya tenemos el archivo .gz listo, lo que haremos será crear un script ya que el nivel nos dice que este archivo comprimido contiene dentro otro comprimido el cual contiene otro comprimido y así hasta llegar a un archivo final que es la contraseña.
+
+Para ahorrarnos este trabajo vamos a crear un script.
+
+Primero le cambiaremos el nombre al archivo data ya que sabemos que es un .gz y se lo asignamos tal y como es:
+
+![img](/assets/images/Linux/ssh/bandit12-13/compressed.png)
+
+Ahora, con la herramienta `7z` podemos saber más sobre el archivo comprimido y saber que contiene antes de extraerlo.
+
+**Listar contenido sin extraer**
+
+`7z l data.gz`
+
+![img](/assets/images/Linux/ssh/bandit12-13/data2.png)
+
+Con el parametro l de 7z podemos listar lo que contiene el archivo data.gz pero solo veremos el nombre del contenido que existe no el contenido en si.
+
+**Extraer contenido**
+
+Y ahora para extraer el contenido del data.gz lo que haremos será:
+
+`7z x data.gz`
+
+![img](/assets/images/Linux/ssh/bandit12-13/extract.png)
+
+De este modo ya hemos extraido el contenido del data.gz y vemos que nos dejo un archivo llamado "data2.bin", el cual es un archivo ahora comprimido en bzip2.
+
+<br>
+
+Y al leer su contenido vemos que contiene otro archivo:
+
+![img](/assets/images/Linux/ssh/bandit12-13/datab.png)
+
+Y vemos que contiene un archivo llamado "data", y este archivo será un comprimido que contendra otro tipo de comprimido etc.
+
+> 7z nos permite extraer muchos formatos de comprimido por eso al hacer 7z x nos extrae comprimidos que no necesariamente son .gz.
+
+Y como seguramente ese archivo será un comprimido que contendrá otro:
+
+![img](/assets/images/Linux/ssh/bandit12-13/otro.png)
+
+y asi sucesivamente extraer y extraer hasta llegar a el archivo final que es la contraseña, pero haremos un script para automatizar esto y no hacerlo de esta forma tan cansada.
+
+<br>
+
+## Creacion de un script para automatizar la extraccion de archivos recursivamente
+
+Primero eliminaremos los archivos menos el original:
+
+![img](/assets/images/Linux/ssh/bandit12-13/delete.png)
+
+Una vez eliminados, crearemos un archivo shell, en este caso será "extractor.sh":
+
+![img](/assets/images/Linux/ssh/bandit12-13/extractorsh.png)
+
+Y ya le dimos permisos de ejecución y podremos empezar a escribir nuestro script.
