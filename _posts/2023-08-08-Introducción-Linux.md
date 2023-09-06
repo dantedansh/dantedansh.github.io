@@ -2138,7 +2138,7 @@ Vemos que nuestro script se ha ejecutado correctamente, ahora si queremos darle 
 
 Primero copiaremos estas variables en el script:
 
-```
+```sh
 #Colours
 greenColour="\e[0;32m\033[1m"
 endColour="\033[0m\e[0m"
@@ -3257,3 +3257,233 @@ Una vez eliminados, crearemos un archivo shell, en este caso será "extractor.sh
 ![img](/assets/images/Linux/ssh/bandit12-13/extractorsh.png)
 
 Y ya le dimos permisos de ejecución y podremos empezar a escribir nuestro script.
+
+<br>
+
+## Creando la funcion de salida
+
+Primero vamos a crear una función que nos permita salir del programa en caso de que no queramos que se siga ejecutando, para ello hacemos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit12-13/trap.png)
+
+
+```sh
+#!/bin/bash
+
+function ctrl_c(){
+  echo -e "\n\n[!] Saliendo...\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+sleep 10
+```
+
+Primero agregamos la cabecera, después definimos la función que se llama **ctrl_c** en este caso, y dentro del contenido de esta función hacemos un echo con el parametro **-e** para que nos lea caracteres especiales como los saltos de linea. Y lo que hará este echo será mostrarnos el texto "[!] Saliendo..." pero con 2 saltos de linea al inicio y al final que se definen con **\n**.
+
+Y despúes de imprimir el aviso, hacemos el comando para cerrar el programa, en este caso hacemos exit con el estado de error 1, ya que no fue una ejecución exitosa del script.
+
+`trap ctrl_c INT` Esto lo pusimos para que cuando se presione ctrl + c se va a llamar la función **ctrl_c** que definimos anteriormente.
+
+`sleep 10` Esto no forma parte del código pero lo agregamos para probar que nos funcione la funcion que queremos, ya que si no hacemos una pausa el script se ejecutara en menos de un segundo y no tendremos tiempo de probar hasta ahora si el **ctrl_c** funciona, así que lo agregamos temporalmente solo para verificar que funcione nuestra función.
+
+Y cuando ejecutemos el script esperara 10 segundos que podemos aprovechar para presionar ctrl + c y ver si funciona la función:
+
+![img](/assets/images/Linux/ssh/bandit12-13/saliendo.png)
+
+Podemos ver que ha funcionado correctamente.
+
+## Agregando colores al script
+
+Ahora agregaremos colores para que se vea mucho mejor nuestro script, ya hicimos esto antes en un script pequeño que creamos anteriormente, y como recordamos usamos la siguiente paleta de colores en variables:
+
+```sh
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+```
+
+Y una vez los agreguemos a el script vamos a llamarlos como recordamos:
+
+```sh
+#!/bin/bash
+
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+function ctrl_c(){
+  echo -e "\n\n${redColour}[!] Saliendo...${endColour}\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+sleep 10
+```
+
+![img](/assets/images/Linux/ssh/bandit12-13/colours.png)
+
+Vemos que hemos agregado esto, recordamos que llamamos a un color llamandolo en su variable con ${redColour} y lo cerramos con {endColour} en este caso usamos el rojo pero puedes usar el que quieras.
+
+Y el resultado será algo así:
+
+![img](/assets/images/Linux/ssh/bandit12-13/red.png)
+
+Vemos que se ve mucho mejor.
+
+<br>
+
+## Definiendo las variables
+
+Como recordamos el objetivo del script, que es descomprimir multiples veces un archivo, primero crearemos una variable que almacene el nombre del archivo, recordamos que se llama "data.gz" por lo que haremos una variable con ese nombre para después ir manejando el archivo con ese nombre.
+
+`primer_archivo="data.gz"`
+
+Una vez agregamos esta variable llamada **primer_archivo** almacenamos el nombre del archivo.
+
+Y esto lo hacemos para después saber si este archivo contiene otro archivo dentro, recordamos el comando 7z con el parametro -l que nos lista y ver si existe un archivo dentro de ese comprimido en ser el caso.
+
+![img](/assets/images/Linux/ssh/bandit12-13/recordar.png)
+
+Como recordamos el archivo que contiene el archivo principal se puede ver como acabo de decir, con **7z l data.gz**, pero como será un script entonces nos interesa quedarnos con el puro nombre del siguiente archivo, para ello usaremos comandos para ir filtrando lo que nos interesa:
+
+![img](/assets/images/Linux/ssh/bandit12-13/tail.png)
+
+Podemos ver que con el comando `tail` y su parametro -n 3 lo que hicimos fue ir a la ultima linea y que nos muestre las ultimas 3 lineas en este caso, y ahora ya solo tenemos las 3 ultimas lineas pero nos interesa quedarnos con el purno nombre, por lo que ahora:
+
+Nos vamos a quedar con la primera linea usando `head` con su parametro -n 1 que head es lo contrario a tail, nos muestra desde la primera linea las que le indiquemos para abajo, en este caso nos interesa solo la linea 1:
+
+![img](/assets/images/Linux/ssh/bandit12-13/head.png)
+
+Y ya simplemente nos quedaremos con el último argumento usando awk:
+
+![img](/assets/images/Linux/ssh/bandit12-13/awk.png)
+
+Y ahora ya nos hemos quedado con el valor que nos interesa.
+
+Ahora esta linea creada de comandos la meteremos a una variable que nos almacene el nombre del siguiente archivo a descomprimir en caso de haberlo, y la función quedaría algo así:
+
+```sh
+function ctrl_c(){
+  echo -e "\n\n${redColour}[!] Saliendo...${endColour}\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+primer_archivo="data.gz"
+siguiente_archivo="$(7z l $primer_archivo | tail -n 3 | head -n 1 | awk 'NF{print $NF}')"
+```
+
+Vemos que creamos la variable **siguiente_archivo** que va a almancenar en forma de string/cadena de texto, el valor que obtengamos de la salida de comando ejecutado usando bash a nivel de sistema el cuál explicamos anteriormente, y lo almacenamos en una string gracias a que guardamos entre comillas dobles la ejecución del comando, osea su salida que será el nombre del siguiente archivo en caso de haberlo.
+
+Y vemos que en la variable **siguiente_archivo** usamos 7z l $primer_archivo en lugar de 7z l data.gz ya que ahora estamos usando la variable **primer_archivo** ya que por algo la creamos, y para llamar al contenido de una variable se usa el signo de dolar como cuando llamamos a los colores.
+
+Y el código se verá algo así:
+
+![img](/assets/images/Linux/ssh/bandit12-13/variables.png)
+
+Vemos que agregamos un echo solo para comprobar que las variables estan correctamente definidas en la ejecución del script:
+
+![img](/assets/images/Linux/ssh/bandit12-13/correct.png)
+
+Y vemos que funciona, esta linea que nos imprime el contenido de las variables solo lo hicimos para comprobar que funcionará , y ahora que vemos que todo esta bien, quitaremos ese echo y ahora seguiremos con el script.
+
+<br>
+
+## Extraer el primer archivo comprimido
+
+Ahora vamos a extraer el primer archivo comprimido , por lo que agregaremos esta instrucción, y redirigiremos el stderr y el stdout a el /dev/null para que no nos muestre nada en pantalla sobre esta ejecución.
+
+`7z x $primer_archivo &>/dev/null`
+
+![img](/assets/images/Linux/ssh/bandit12-13/23.png)
+
+Vemos que le indicamos que queremos descomprimir el primer archivo, y apartir de este vamos a realizar un ciclo while que nos  va a extraer el resto de archivos:
+
+```sh
+while [ $siguiente_archivo ]; do
+  echo -e "\nEl archivo actual descomprimido es: $siguiente_archivo\n"
+  7z x $siguiente_archivo &>/dev/null
+  siguiente_archivo="$(7z l $siguiente_archivo 2>/dev/null | tail -n 3 | head -n 1 | awk 'NF{print $NF}')" 
+done
+```
+
+Primero, usamos `while` que esto es un ciclo que nos va a repetir las instrucciones dentro del while, siempre y cuando una condicion sea verdadera, en este caso la condicion es: [ $siguiente_archivo ]; que lo que hace esto es que si le pasamos solo una variable, quiere decir que se va a repetir en ciclo mientras la variable $siguiente_archivo tenga contenido.
+
+Y después con el primer echo, mostramos en pantalla que el archivo actual que se va a descomprimir es el que esta en la variable siguiente archivo.
+
+Y después con 7z extraemos ese archivo actual.
+
+Y por último vamos a actualizar la variable **siguiente_archivo**, ya que ahora va a guardar el nombre del siguiente archivo y como el while se va a repetir, ahora comprueba que $siguiente archivo contenga datos, como acabamos de guardar un valor entonces pasará y ahora imprimira de nuevo pero ahora nos mostrará el siguiente archivo y ahora extraera ese nuevo archivo, y por ultimo vuelve a actualizar el nombre del siguiente archivo.
+
+Y así sucesivamente hasta llegar a el último archivo que no es un comprimido, entonces dará error y ya no guardará un valor dentro de la variable **siguiente_archivo**, por lo que el while se dentendra justo en el último archivo.
+
+Y así se ve el script terminado:
+
+![img](/assets/images/Linux/ssh/bandit12-13/terminado.png)
+
+```sh
+#!/bin/bash
+
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+function ctrl_c(){
+  echo -e "\n\n${redColour}[!] Saliendo...${endColour}\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+primer_archivo="data.gz"
+siguiente_archivo="$(7z l $primer_archivo | tail -n 3 | head -n 1 | awk 'NF{print $NF}')"
+
+7z x $primer_archivo &>/dev/null
+
+while [ $siguiente_archivo ]; do
+  echo -e "\n${greenColour}El archivo actual descomprimido es:${endColour} $siguiente_archivo\n"
+  7z x $siguiente_archivo &>/dev/null
+  siguiente_archivo="$(7z l $siguiente_archivo 2>/dev/null | tail -n 3 | head -n 1 | awk 'NF{print $NF}')" 
+done
+```
+
+Y en su ejecución se verá algo así (Yo le he agregado colores):
+
+![img](/assets/images/Linux/ssh/bandit12-13/end.png)
+
+Y podemos ver que ha funcionado correctamente, como el último archivo fue data9.bin entonces ese es el final que no es un comprimido.
+
+En pocas palabras lo que hace el while es ir extrayendo el archivo actual en base a su variable, e ir actualizando el siguiente archivo en la varible para que se extraiga el siguiente en la siguiente repeticion del while y así hasta llegar al que no es un comprimido.
+
+Podemos agregar al final del script la siguiente linea:
+
+`rm *.bin data2 data6 &>/dev/null`
+
+Para que al terminar nos borre los comprimidos que no necesitamos y no hacerlo manualmente, esto va a elminar cualquier archivo que termine en .bin y eliminara data2 y data6.
+
+Flag: wbWdlBxEir4CaE8LaPhauuOo6pwRmrDw
+
+<br>
+
