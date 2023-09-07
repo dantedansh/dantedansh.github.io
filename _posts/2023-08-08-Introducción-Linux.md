@@ -3477,13 +3477,174 @@ Y podemos ver que ha funcionado correctamente, como el último archivo fue data9
 
 En pocas palabras lo que hace el while es ir extrayendo el archivo actual en base a su variable, e ir actualizando el siguiente archivo en la varible para que se extraiga el siguiente en la siguiente repeticion del while y así hasta llegar al que no es un comprimido.
 
-Podemos agregar al final del script la siguiente linea:
-
-`rm *.bin data2 data6 &>/dev/null`
-
-Para que al terminar nos borre los comprimidos que no necesitamos y no hacerlo manualmente, esto va a elminar cualquier archivo que termine en .bin y eliminara data2 y data6.
-
 Flag: wbWdlBxEir4CaE8LaPhauuOo6pwRmrDw
 
 <br>
 
+---
+
+# Bandit 13-14: Uso de pares de claves y conexiones SSH
+
+Ahora aprenderemos a hacer uso de las conexiones ssh, que sabemos que es para conectarnos a un servidor o maquina.
+
+Si queremos conectarnos a una maquina por medio de SSH, podemos hacerlo de la siguiente forma:
+
+Primero debemos encender el servicio ssh:
+
+`sudo systemctl start ssh`
+
+![img](/assets/images/Linux/ssh/bandit13-14/active.png)
+
+De este modo estamos encendiendo el puerto 22(ssh), para poder tener conexiones por medio de esta.
+
+Y vemos que al activar el servicio vemos su status y nos dice que esta activo.
+
+Así que ya podremos hacer una conexión normal.
+
+<br>
+
+## Conexion normal
+
+Supongamos que queremos hacer una conexión normal, entonces haremos lo siguiente:
+
+`ssh f4r@localhost`
+
+Estamos intentando acceder a una shell del usuario f4r en la red "localhost", que es mi propia red local pero en caso real se usaría una IP del objetivo a donde quieres conectarte y al hacerlo te pedirá la contraseña del dicho usuario en este caso f4r, y al ingresarla obtendremos una shell por medio de ssh:
+
+![img](/assets/images/Linux/ssh/bandit13-14/shell.png)
+
+Podemos ver que hemos establecido una conexión con ese usuario, ya que la maquina actual es la que existe ese usuario y tiene el puerto ssh habilitado.
+
+Para cerrar una conexión ssh simplemente ejecutamos "exit".
+
+## Conexion SSH por medio de la clave publica
+
+Esta conexión nos sirve para conectarnos a un equipo que tenga almacenada nuestra clave publica en su servidor y podrmeos acceder sin proporcionar contraseña ya que estaremos identificados dentro del sistema destino.
+
+Osea en pocas palabras, si existe nuestra llave en el servidor al que queremos conectarnos, entonces podremos hacerlo sin proporcionar contraseña.
+
+Por ejemplo, primero iremos a la ruta oculta: "/home/d4nsh/.ssh" y una vez dentro de aquí, vamos a generar una par de claves usando:
+
+`ssh-keygen`
+
+![img](/assets/images/Linux/ssh/bandit13-14/llaves.png)
+
+Al generarlas, dejaremos todo por defecto por lo que solo damos enter a lo que nos muestre hasta que se generen y una vez generadas vemos que nos dejo 2 archivos.
+
+Uno llamado **id_rsa** y otro llamado **id_rsa.pub**.
+
+En este caso empezaremos con id_rsa.pub, ya que esta es la llave pública.
+
+![img](/assets/images/Linux/ssh/bandit13-14/pub.png)
+
+Al final de la llave podemos ver que esta llave publica permite al usuario d4nsh conectarse a este equipo.
+
+Para que esto funcione el archivo de llave publica debe llamarse **authorized_keys** y debe estar en el directorio "/home/d4nsh/.ssh" que sabemos que se encuentra oculto dentro de nuestra carpeta personal en este caso.
+
+Así que hacemos una copia que se llame authorized_keys:
+
+![img](/assets/images/Linux/ssh/bandit13-14/save.png)
+
+Y vemos que ya hemos creado una copia de id_rsa.pub por authorized_keys.
+
+Y ahora como ya tenemos nuestra clave publica que generamos y esta dentro del directorio ssh oculto, entonces ya podremos acceder a esta maquina, que en este caso es la misma pero ya no nos pedirá contraseña:
+
+![img](/assets/images/Linux/ssh/bandit13-14/publica.png)
+
+Podemos ver que nos ha dejado ingresar sin proporcionar la contraseña ya que como dije, anteriormente hemos generado nuestra llave publica y almacenamos en el servidor al cual queremos conectarnos sin proporcionar contraseña, en este caso el servidor es nuestra propia maquina.
+
+<br>
+
+## Otro ejemplo mas descriptivo
+
+Supongamos que queremos que el usuario f4r se conecte sin proporcionar contraseña a el usuario d4nsh y nos muestre una shell, para ello usaremos la llave publica.
+
+Primero, como el usuario f4r, vamos a generar nuestras llaves:
+
+![img](/assets/images/Linux/ssh/bandit13-14/f4rkeys.png)
+
+Hemos generado nuestras llaves, ahora vamos a copiar el contenido de esta llave publica, y almacenarlo en el directorio `~/.ssh` del usuario d4nsh.
+
+Para ello vamos a crear un archivo llamado **authorized_keys** dentro del directorio `~/.ssh` de d4nsh, y le meteremos los datos de la llave publica de f4r:
+
+![img](/assets/images/Linux/ssh/bandit13-14/llave.png)
+
+Vemos que ya tenemos el archivo con la llave de f4r, así que f4r podrá acceder a d4nsh por medio de ssh y desplegar una shell como el usuario d4nsh:
+
+![img](/assets/images/Linux/ssh/bandit13-14/ssh.png)
+
+Y podemos ver que entablamos una conexión en la maquina con el usuario d4nsh ya que en su usuario, en su directorio .ssh se encuentra nuestra llave publica, por lo que logramos la conexión sin proporcionar la contraseña.
+
+> Recuerda eliminar las llaves que no vayas a usar.
+
+<br>
+
+## Conexion SSH por medio de la clave publica
+
+Ahora si queremos que por medio de una llave que nosotros tengamos puedan acceder a nuestro equipo las personas que tengan esta llave ya sea porque se las pasamos o por otra razón.
+
+Para eso usaremos la llave que se llama **id_rsa**:
+
+![img](/assets/images/Linux/ssh/bandit13-14/privada.png)
+
+Usaremos esta ya que queremos que los que tengan esta llave se conecten a nuestro equipo como el usuario d4nsh.
+
+Y para habilitar esto debemos hacer lo siguiente:
+
+`ssh-copy-id -i id_rsa d4nsh@localhost`
+
+![img](/assets/images/Linux/ssh/bandit13-14/autorized.png)
+
+Una vez habilitamos esto, ahora cualquiera que tenga el archivo id_rsa, podrá conectarse a nuestro equipo como d4nsh.
+
+Por ejemplo copiaremos el contenido del id_rsa de d4nsh:
+
+![img](/assets/images/Linux/ssh/bandit13-14/id_rsa.png)
+
+Copiamos el contenido del id_rsa que tiene el usuario d4nsh dentro de su llave privada, y como ya habiliamos que cualquiera que tenga esta llave privada pueda conectarse a la maquina como el usuario d4nsh, ya que autorizamos la llave id_rsa.
+
+Entonces ahora si estamos como otro usuario como f4r y creamos un archivo que se llame id_rsa y contenga esto que copiamos:
+
+![img](/assets/images/Linux/ssh/bandit13-14/create.png)
+
+Y ahora como el usuario f4r, creamos el archivo id_rsa con el contenido que copiamos del id_rsa de d4nsh, una vez lo hayamos creado, cambiaremos su permiso a 600:
+
+`chmod 600 id_rsa`
+
+Esto es ya que el 600 es el permiso que tienen las llaves id_rsa para que funcionen, y ahora simplemente usaremos ssh llamando a esa llave y diciendo el usuario al cual nos queremos conectar, como en este caso d4nsh admite esta llave ya que el la creo, nos conectaremos sin contraseña y solo con su llave privada:
+
+![img](/assets/images/Linux/ssh/bandit13-14/ready.png)
+
+Y vemos que ya ha funcionado, y estas han sido las 2 explicaciones de la conexión por llaves usando SSH.
+
+> Recuerda eliminar las llaves si no las usaras y detener el servicio ssh si no se usara con: sudo systemctl stop ssh.
+
+<br>
+
+## Resolviendo el nivel
+
+Ahora que ya entendimos esto, era fundamental aprender esto ya que este bandit trata sobre ssh, nos dicen que al entrar no habrá contraseña pero si habrá una llave privada para acceder al siguiente nivel.
+
+Al entrar encontramos la siguiente llave:
+
+![img](/assets/images/Linux/ssh/bandit13-14/private.png)
+
+Vemos que se trata de una llave privada, por lo que intuimos que es del usuario bandit 14 y usamos esta llave para ingresar:
+
+![img](/assets/images/Linux/ssh/bandit13-14/acceder.png)
+
+Y podemos ver que ya nos ha entrado a el usuario bandit14:
+
+![img](/assets/images/Linux/ssh/bandit13-14/14.png)
+
+Recuerda que en niveles donde se salte leer la flag podemos leerla desde la ruta:
+
+`cat /etc/bandit_pass/bandit14`
+
+Flag: fGrHPx402xGC7U7rXKDaxiWFTOiF0ENq
+
+<br>
+
+---
+
+# Bandit 14-15: 
