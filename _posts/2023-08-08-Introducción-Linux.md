@@ -3601,7 +3601,7 @@ Por ejemplo copiaremos el contenido del id_rsa de d4nsh:
 
 ![img](/assets/images/Linux/ssh/bandit13-14/id_rsa.png)
 
-Copiamos el contenido del id_rsa que tiene el usuario d4nsh dentro de su llave privada, y como ya habiliamos que cualquiera que tenga esta llave privada pueda conectarse a la maquina como el usuario d4nsh, ya que autorizamos la llave id_rsa.
+Copiamos el contenido del id_rsa que tiene el usuario d4nsh dentro de su llave privada, y como ya habilitamos que cualquiera que tenga esta llave privada pueda conectarse a la maquina como el usuario d4nsh, ya que autorizamos la llave id_rsa.
 
 Entonces ahora si estamos como otro usuario como f4r y creamos un archivo que se llame id_rsa y contenga esto que copiamos:
 
@@ -3611,7 +3611,9 @@ Y ahora como el usuario f4r, creamos el archivo id_rsa con el contenido que copi
 
 `chmod 600 id_rsa`
 
-Esto es ya que el 600 es el permiso que tienen las llaves id_rsa para que funcionen, y ahora simplemente usaremos ssh llamando a esa llave y diciendo el usuario al cual nos queremos conectar, como en este caso d4nsh admite esta llave ya que el la creo, nos conectaremos sin contraseña y solo con su llave privada:
+Esto es ya que el 600 es el permiso que tienen las llaves id_rsa para que funcionen, y ahora simplemente usaremos ssh llamando a esa llave usando el parametro -i y pasandole la llave privada, y diciendo el usuario al cual nos queremos conectar, como en este caso d4nsh admite esta llave ya que el la creo, nos conectaremos sin contraseña y solo con su llave privada:
+
+`ssh -i id_rsa d4nsh@localhost`
 
 ![img](/assets/images/Linux/ssh/bandit13-14/ready.png)
 
@@ -3647,4 +3649,126 @@ Flag: fGrHPx402xGC7U7rXKDaxiWFTOiF0ENq
 
 ---
 
-# Bandit 14-15: 
+# Bandit 14-15: Conexiones TCP/UDP con netcat
+
+Netcat nos sirve para realizar conexiones TCP(Transfiere los datos más lentos pero seguro), Y UDP (Transfiere los datos más rapido pero con mayor riesgo de perder paquetes).
+
+Y este nivel nos dice que desde la maquina del usuario actual osea bandit14, debemos hacer una conexión con el servidor usando netcat por medio del puerto 30000.
+
+Y que para hacer esta conexión y obtener una respuesta debemos enviar la contraseña del usuario actual para recibir la del siguiente nivel.
+
+Así que al entrar al nivel actual, usaremos netcat de la siguiente forma:
+
+`nc bandit.labs.overthewire.org 30000`
+
+![img](/assets/images/Linux/ssh/bandit14-15/waiting.png)
+
+`nc` es netcat y le estamos indicando que atienda a la conexión que esta en el servidor, y el puerto el cual nos indico el nivel que esta habilitado para recibir un valor, en este caso este valor es la contraseña del usuario actual, ya que recordamos que debemos ingresarla para recibir la del siguiente nivel.
+
+Por eso vemos en la imagen que se queda en espera , y esto es porque detecta que necesita un valor para responder, así que meteremos la contraseña del usuario actual:
+
+![img](/assets/images/Linux/ssh/bandit14-15/recibida.png)
+
+Y vemos que se ha realizado la conexión por netcat por lo cúal recibimos la respuesta del servidor y tenemos la contraseña.
+
+Flag: jN2kgmIXJ6fShzhT2avhotn4Zcka6tnt
+
+<br>
+
+## Contenido extra: Como saber que puertos estan abiertos en mi equipo
+
+Para esto hay multiples formas, supongamos que tenemos el servicio ssh habilitado, por lo que nos debe abrir el puerto 22 ssh, lo activaremos:
+
+`sudo systemctl start ssh`
+
+![img](/assets/images/Linux/ssh/bandit14-15/22.png)
+
+Y vemos que con el comando: `ss -nltp` podemos ver los puertos abiertos en nuestra red.
+
+Y vemos que el puerto 22 esta abierto.
+
+<br>
+
+Otra forma de ver los puertos abiertos es leyendo el archivo de sistema que se encuentra en la ruta `/proc/net/tcp`, le haremos un cat y veremos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit14-15/open.png)
+
+Y podemos ver una serie de elementos en hexadecimal, los puertos en hexadecimal son los que estan encerrados en el recuadro rojo.
+
+## Creando un one-liner para traducir los puertos hexadecimal a sus valores en texto claro
+
+Primero hemos separado los puertos hexadecimal en lineas separadas:
+
+![img](/assets/images/Linux/ssh/bandit14-15/echo.png)
+
+Ahora vamos a usar el ciclo `while` para ir iterando sobre cada linea:
+
+![img](/assets/images/Linux/ssh/bandit14-15/while_line.png)
+
+Lo que esta haciendo el while:
+
+`while read line; do echo "[*] Puerto actual $line"; done`
+
+Es que este ciclo se va a repetir mientras haya algo que leer en la linea actual, y después si hay algo que leer entonces ejecutará las instrucciones después de do, y lo que hará esto es que lo que hay en la linea actual, que en este caso es el primer valor que pasamos en la primera linea, lo guarda en la variable line, y después mostramos un mensaje que diga que puerto es el actual y para mostrar esto en pantalla mandamos a llamar a la variable line con $line, y terminamos con done. Y así seguira con las siguientes lineas hasta que no haya que leer va a terminar.
+
+Y podemos ver en la ejecución que nos mostro todo correctamente cada linea, ya que este ciclo while read line, va iterando sobre cada linea del texto pasado como parametro.
+
+Ahora pasaremos esto pero para traducir su valor hexadecimal a texto claro.
+
+<br>
+
+Ahora que ya entendimos el while read line, veamos esta linea que con bash nos traduce elementos en hexadecimal:
+
+` echo "obase=10; ibase=16; "0050"" | bc`
+
+Lo que hace es establecer los valores que maneja hexadecimal y después le pasamos el valor que queremos traducir, en este caso es "0050", y por ultimo usamos el bc para que nos interprete lo que le hemos indicado:
+
+![img](/assets/images/Linux/ssh/bandit14-15/hex.png)
+
+Y vemos que nos traduce el valor, así que agregaremos esto a el one-liner que teniamos anteriormente quedandonos así:
+
+```sh
+echo "01BB
+0050
+01BB" | while read line; do echo "[*] Puerto $line -> $(echo "obase=10; ibase=16; $line" | bc) - ABIERTO"; done
+```
+
+![img](/assets/images/Linux/ssh/bandit14-15/trad.png)
+
+Podemos ver que usamos la variable de la linea actual para pasarsela a la instruccion ejecutada por bash que nos traduce el valor hexadecimal, y mostramos un mensaje en pantalla de el puerto normal y el traducido con una flechita.
+
+Recuerda usar sort -u al final si no quieres que se vean puertos repetidos y solo te muestre los unicos:
+
+![img](/assets/images/Linux/ssh/bandit14-15/unico.png)
+
+<br>
+
+Y con el comando `lsof -i:22` podemos ver en este ejemplo que servicio esta corriendo el puerto 22, pero puedes poner el que deseas y ver.
+
+---
+
+# Bandit 15-16: Conexion TCP/UDP con encriptacion SSL usando ncat
+
+Ahora nos piden mandar la contraseña del usuario actual a el servidor por el puerto 30001 pero ahora de forma que la informacion que mandemos este encriptada en SSL.
+
+Para ello usaremos ncat, no netcat.
+
+Podemos instalar ncat usando `sudo apt install ncat`.
+
+Y lo haremos de la siguiente forma desde el nivel actual de bandit:
+
+`ncat --ssl bandit.labs.overthewire.org 30001`
+
+Y de este modo la información viajara protegida con la encriptacion SSL, así que al meter la contraseña del usuario actual recibimos la del siguiente nivel:
+
+![img](/assets/images/Linux/ssh/bandit15-16/siguiente.png)
+
+Y hemos recibido la respuesta del servidor.
+
+Flag: JQttfApK4SeyHwDlI9SXGR50qclOAil1
+
+<br>
+
+---
+
+# 
