@@ -3771,4 +3771,140 @@ Flag: JQttfApK4SeyHwDlI9SXGR50qclOAil1
 
 ---
 
-# 
+# Bandit 16-17: Creando un script para detectar puertos abiertos
+
+Primero, para saber que puerto esta abierto en un host, podemos enviar un paquete y en base a su respuesta saber si esta abierto o cerrado, para ello usaremos un one liner que nos permita hacer esto.
+
+Primero abriremos el puerto 22 en nuestro equipo para hacer la prueba:
+
+`sudo systemctl start ssh`
+
+Y ahora que lo hemos abierto vamos a ver como podemos saber si este puerto esta abierto.
+
+<br>
+
+Primero ocupamos la IP a donde mandaremos una consulta y en este caso como es nuestro propio equipo, con el comando `hostname -I` podremos ver nuestra propia IP:
+
+![img](/assets/images/Linux/ssh/bandit16-17/hostname.png)
+
+En este caso la IP privada de mi equipo es: 192.168.1.68
+
+Y ahora vamos a hacer el one-liner que nos permitira saber si el puerto esta cerrado o abierto, migraremos a una bash para evitar un error que provoca zsh en este caso.
+
+Y lo que haremos será lo siguiente:
+
+`echo '' > /dev/tcp/192.168.1.68/22`
+
+De este modo estamos enviando una cadena vacia a el host de nuestra ip por el puerto 22 en este caso:
+
+![img](/assets/images/Linux/ssh/bandit16-17/open.png)
+
+Y vemos que al hacer esto no nos muestra nada, pero esto significa que ese puerto en el host esta abierto, ya que el paquete vacio se ha enviado correctamente, ya que si ponemos un puerto que no este abierto como el 40:
+
+![img](/assets/images/Linux/ssh/bandit16-17/closed.png)
+
+Vemos que inmediatamente nos arroja un error de que no se pudo conectar a ese puerto, lo que indica que esta cerrado.
+
+<br>
+
+Y sabiendo esto vamos a crear un script que indique que puertos estan abiertos en un host.
+
+Como en total existen 65535 puertos, usaremos una utilidad llamada `seq` que nos permite crear secuencias de un numero a otro, tal que así:
+
+`seq 1 30`
+
+![img](/assets/images/Linux/ssh/bandit16-17/seq.png)
+
+Y esto lo que hará es imprimirnos en lineas separadas una secuencia de numeros del 1 hasta el 30 en este caso.
+
+Pero obviamente en el script pondremos el numero total de puertos (65535).
+
+Y como ya vimos esta utilidad vamos a pasar a el one liner, por ejemplo:
+
+`(echo '' > /dev/tcp/192.168.1.68/22) &>/dev/null && echo "[!] El puerto esta abierto" || echo "[x] El puerto esta cerrado"`
+
+Primero enviamos una cadena vacia a el host deseado junto con el puerto deseado en este caso el host es el 192.168.1.68 y el puerto es el 22, y esto esta encerrado en parentesis para separar la primera instruccion del resto, y redirigimos tanto el stderr y el stdout a el /dev/null, y en caso de que la instrucción anterior sea verdadera entoces se ejecutara el operador AND(&&), y lo que hará es mostrarnos un mensaje que imprime en pantalla que ese puerto esta abierto, y de lo contrario si no se cumple la condición del AND, entonces pasaremos a el OR (||) que nos muestra en pantalla que el puerto esta cerrado ya que no hemos recibido una respuesta con valor verdadero(true) en la primera instrucción.
+
+Y esto se vería algo así en ejecución:
+
+![img](/assets/images/Linux/ssh/bandit16-17/ejecucion.png)
+
+Vemos que funciona la lógica del one-liner en bash, si el puerto responde la cadena vacia enviada con echo entonces nos muestra el mensaje que esta abierto ya que el operador AND ha detectado que esa instruccion anterior fue correcta por lo que ejecutara la siguiente que es mostrar el aviso de que esta abierto, de lo contrario si no se cumple entonces pasará a el OR que nos imprime que el puerto esta cerrado.
+
+<br>
+
+Y ahora pasaremos esta misma lógica pero ahora en un script y englobando los 35535 puertos existentes.
+
+Primero creamos un archivo bash en este caso lo llamaré **scanner.sh** y recuerda darle permisos de ejecución:
+
+![img](/assets/images/Linux/ssh/bandit16-17/file.png)
+
+Vemos que ya lo hemos creado y ahora pasaremos a programar el script.
+
+Primero haremos un test de como lo haremos:
+
+![img](/assets/images/Linux/ssh/bandit16-17/test.png)
+
+Primero definimos la función ctrl_c que sabemos que hace y como funciona, pero aquí lo nuevo es el `for`, que el for es un ciclo que se va a repetir una determinada cantidad de veces que le indiquemos, pero en este caso estamos usando un for que va a tomar como veces que se ve a repetir cada linea que hay en la ejecucion del comando a nivel de sistema: $(seq 1 15), recordemos que esto nos va a mostrar una lista en lineas separadas del 1 hasta el 15, así que este ciclo se va a repetir 15 veces, pero aparte de eso, nos va a guardar el valor de cada linea actual en la variable **puerto**, y nos va a mostrar el mensaje en pantalla del puerto actual gracias a la variable que almacena dicho puerto.
+
+Por ejemplo en la primera ejecucion guardara el valor "1" en la variable **puerto** y nos va a mostrar en pantalla: "Soy el puerto numero 1", y cuando se ejecute esto ahora se va a repetir pero ahora con el siguiente valor de la siguiente linea del comando seq, por lo que ahora tomara el "2", y mostrara en pantalla "Soy el puerto numero 2", y así irá con la cantidad de lineas restantes del comando ejecutado a nivel de sistema seq.
+
+<br>
+
+Y ahora lo que haremos es adaptarlo:
+
+![img](/assets/images/Linux/ssh/bandit16-17/new.png)
+
+```sh
+#!/bin/bash
+
+function ctrl_c (){
+  echo -e "\n\n[!] Saliendo...\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+for puerto in $(seq 1 65535); do
+  (echo '' > /dev/tcp/192.168.1.68/$puerto) &>/dev/null && echo "El puerto $puerto esta ABIERTO"
+done
+```
+
+Lo que hicimos fue ahora si agregar la cantidad existente de puertos que son 65535 en el ciclo for.
+
+Y ahora indicamos la instrucción que nos permite saber si el puerto esta abierto, y en este caso en el lugar donde va el puerto ponemos el valor de la variable **puerto** esto para que en cada iteracion vaya probando cada uno de los puertos, y en los casos que la instruccion ejecutada a nivel de sistema sea verdadera, quiere decir que el puerto esta abierto, entonces va a tomar el operador AND (&&) y mostrarnos en pantalla el puerto actual que esta abierto.
+
+<br>
+
+Este script en teoria funciona, pero como son muchas consultas las que debe hacer, haremos uso de threads (Hilos), para acelerar mucho más el proceso.
+
+Y esto lo hacemos agregando al script lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit16-17/hilos.png)
+
+```sh
+#!/bin/bash
+
+function ctrl_c (){
+  echo -e "\n\n[!] Saliendo...\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+for puerto in $(seq 1 65535); do
+  (echo '' > /dev/tcp/192.168.1.68/$puerto) &>/dev/null && echo "El puerto $puerto esta ABIERTO" &
+done; wait
+```
+
+Esto lo que significa es que nos va a ejecutar multiples consultas a la vez, y de este modo va a ir mucho más rapido ya que una consulta no va a esperar a que una se ejecute para después seguir ella, lo que hace esto es que se lanzan multiples a la vez acelerando el proceso.
+
+![img](/assets/images/Linux/ssh/bandit16-17/run.png)
+
+Y al ejecutar el script podemos ver que funciona correctamente y nos detecta que el puerto 22 esta abierto, no muestra más ya que en mi equipo solo tengo el puerto 22 abierto.
+
+<br>
+
+Ahora en este conexto, vamos a ejecutar este script pero en el nivel de bandit que nos dice que debemos enviar un valor a la red por el puerto que esta abierto pero no nos dicen cual, por lo que usando este scanner podremos saberlo.
+
+Así que 
