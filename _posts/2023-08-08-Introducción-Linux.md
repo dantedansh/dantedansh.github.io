@@ -3661,6 +3661,8 @@ Así que al entrar al nivel actual, usaremos netcat de la siguiente forma:
 
 `nc bandit.labs.overthewire.org 30000`
 
+> Podemos poner su DNS que es bandit.labs.overthewire.org, o la ip del localhost 127.0.0.1.
+
 ![img](/assets/images/Linux/ssh/bandit14-15/waiting.png)
 
 `nc` es netcat y le estamos indicando que atienda a la conexión que esta en el servidor, y el puerto el cual nos indico el nivel que esta habilitado para recibir un valor, en este caso este valor es la contraseña del usuario actual, ya que recordamos que debemos ingresarla para recibir la del siguiente nivel.
@@ -3905,6 +3907,243 @@ Y al ejecutar el script podemos ver que funciona correctamente y nos detecta que
 
 <br>
 
-Ahora en este conexto, vamos a ejecutar este script pero en el nivel de bandit que nos dice que debemos enviar un valor a la red por el puerto que esta abierto pero no nos dicen cual, por lo que usando este scanner podremos saberlo.
+Ahora en este conexto, vamos a ejecutar este script pero en el nivel de bandit que nos dice que debemos enviar un valor a la red por el puerto que esta abierto pero no nos dicen cual solo que esta en el rango del puerto 31000 al 32000, y que debemos enviar la contraseña a dicho puerto para recibir la del siguiente nivel, y debemos hacerlo usando la encriptación SSL por lo que será con ncat, pero primero debemos saber que puertos estan abiertos y usaremos este scanner que hemos creado anteriormente para saberlo.
 
-Así que 
+Así que una vez dentro del nivel, tenemos que crear el script, como no tenemos permiso de escritura en nuestro directorio personal, lo que haremos será crear un directorio temporal:
+
+`mktemp -d`
+
+![img](/assets/images/Linux/ssh/bandit16-17/mktemp.png)
+
+Y nos ha dado una ruta donde esta el directorio temporal creado, así que iremos y aqui vamos a crer el script:
+
+![img](/assets/images/Linux/ssh/bandit16-17/create.png)
+
+Y una vez esto vamos a copiar el script que creamos anteriormente:
+
+![img](/assets/images/Linux/ssh/bandit16-17/script.png)
+
+En el for la parte del seq es en el rango del puerto 31000 hasta el 32000 ya que esto nos lo indica el nivel, que el puerto que nos interesa se encuentra entre este rango.
+
+Como queremos detectar los puertos abiertos de este mismo host usamos 127.0.0.1 que es lo mismo que localhost.
+
+Y al ejecutarlo vemos los siguientes puertos abiertos:
+
+![img](/assets/images/Linux/ssh/bandit16-17/5.png)
+
+Nos detecto 5 puertos abiertos:
+
+- 31046
+- 31518
+- 31691
+- 31790
+- 31960
+
+Y uno de estos debe ser el cual enviaremos una cadena y nos va a responder la contraseña del siguiente nivel.
+
+Y después de intentar con cada puerto descubrimos que el 31790 es el que responde:
+
+![img](/assets/images/Linux/ssh/bandit16-17/ncat.png)
+
+Vemos que recibimos una clave privada, así que creamos un archivo llamado id_rsa y metimos el contenido de la llave:
+
+![img](/assets/images/Linux/ssh/bandit16-17/id_rsa.png)
+
+> Recuerda darle los permisos 600 con chmod a esta llave id_rsa.
+
+Y ahora la usaremos:
+
+`ssh -i id_rsa bandit17@localhost -p 2220`
+
+![img](/assets/images/Linux/ssh/bandit16-17/conect.png)
+
+Recuerda que con el parametro `-i` de ssh indicamos la clave privada, después le indicamos como que usuario queremos ingresar así que suponemos que esta llave es para ingresar como el usuario bandit17, y accederemos a el servidor local, como estamos por ssh en el usuario bandit16 entonces el localhost en este contexto es **bandit.labs.overthewire.org** por eso solo indicamos localhost, o bien podriamos 127.0.0.1 que es el localhost en su valor ip.
+
+Y al hacer esto obtenemos una conexión del siguiente nivel:
+
+![img](/assets/images/Linux/ssh/bandit16-17/17.png)
+
+> Recuerda que algunos niveles al llegar no es por medio de su flag, así que la sacamos manualmente de la ruta /etc/bandit_pass/bandit17 con cat.
+
+Flag: VwOSWtCA7lRKkTfbr2IDh6awj9RNZM5e
+
+<br>
+
+---
+
+# Contenido extra: Creando un script para detectar que host estan en la red
+
+Para saber si un host esta activo en la red podemos saberlo con un `ping` que esto envia un paquete icmp a el host y si hay respuesta quiere decir que esta activo ese host.
+
+Recordamos que nuestra ip la podemos ver con `hostname -I` y es la primera:
+
+![img](/assets/images/Linux/ssh/bandit16-17/hn.png)
+
+"192.168.1.68" , Vemos que esta 192.168.1. y el 68, en este caso el numero final indica el equipo actual, el limite es 255 equipos , ahora haremos un ping a nuestro propio host:
+
+![img](/assets/images/Linux/ssh/bandit16-17/ping.png)
+
+Y vemos que el servidor en este caso nosotros mismos, responde al ping que hicimos, y se eviaron varios paquetes y en cada uno nos da detalles como el tiempo que tardo en responder, el ttl que luego veremos para que puede servirnos, etc.
+
+Así que vemos que lanza varios paquetes pero solo queremos lanzar 1 ya que si responde quiere decir que ese host esta abierto.
+
+así que podemos hacerlo usando:
+
+`ping -c 1 192.168.1.68`
+
+![img](/assets/images/Linux/ssh/bandit16-17/1.png)
+
+Y como esta ip este host esta activo en la red vemos que nos muestra que se envio 1 paquete y recibimos 1, por lo que hay conexión.
+
+Y de lo contrario si ponemos un host que no esta activo:
+
+![img](/assets/images/Linux/ssh/bandit16-17/1.png)
+
+Vemos que nos responde que se envio un paquete pero no recibimos una respuesta, por lo que ese host esta inactivo.
+
+Y como al mandar un ping responde muy rapido pero cuando no hay tarda un par de segundos en mostrarnos error, así que si tarda más de 1 segundo indica que no hay conexión.
+
+Así que podemos hacer lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit16-17/oneliner.png)
+
+`timeout 1 bash -c "ping -c 1 192.168.1.68 &>/dev/null" && echo "[+] El host esta activo" || echo "[x] El host esta apagado"`
+
+Lo que hicimos fue agregar un limite de tiempo de 1 segundo usando `timeout 1` y después la instrucción que le damos 1 segundo de ejecución es en bash y con el parametro -c indicamos dentro el ping que envia 1 paquete a una ip, y mandamos tanto el stderr como el stdin al /dev/null ya que no queremos ver eso en pantalla.
+
+Y con el operador AND (&&) en caso de que la instrucción anterior sea exitosa osea que haya respondido al ping nos va a mostrar el mensaje en pantalla de que el host esta abierto, de lo contrario nos muestra que esta cerrado como se ve en la imagen con un host que no esta activo.
+
+<br>
+
+Así que ahora que ya entendimos esto, vamos a crear un script que por medio de un ciclo vaya ejecutando esto y que lo haga por cada ip diferente del ultimo digito de la ip.
+
+Primero crearemos el script:
+
+![img](/assets/images/Linux/ssh/bandit16-17/progr.png)
+
+Y ahora vamos a empezar defindiendo la función ctrl c que ya conocemos y agregar el one liner adaptado:
+
+![img](/assets/images/Linux/ssh/bandit16-17/code.png)
+
+```sh
+#!/bin/bash
+
+function ctrl_c(){
+  echo -e "\n\n[!] Saliendo...\n\n"
+  exit 1
+}
+
+trap ctrl_c INT
+
+for i in $(seq 1 254); do
+  timeout 1 bash -c "ping -c 1 192.168.1.$i &>/dev/null" && echo "[!] El host 192.168.1.$i esta ACTIVO" &
+done; wait
+```
+
+Primero definimos la función ctrl + c, después iniciamos un bucle for que nos va a guardar en la variable "i" , el valor de la linea actual del output del comando ejecutado a nivel de sistema seq del 1 al 254, que establecemos este rango ya que el limite es 255 de hosts que pueden haber en el primer segmento de red.
+
+Y en cada iteración lo que hará es con 1 segundo de limite ejecutar la instrucción en bash que envia un paquete ICMP a el host actual, ya que la ip queda igual y lo unico que cambia son los ultimos digitos que son los que van a ir iterando, derigimos errores y stdin al /dev/null, y en caso de ser exitoso vamos a mostrar el host actual que esta activo con un echo.
+
+Y también usamos threads (hilos) en este script para que vaya mucho más rapido.
+
+Y al ejecutar el script vemos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit16-17/hosts.png)
+
+En este caso encontramos 2 host en la red que estan activos en este momento.
+
+Y terminaremos este script de practica.
+
+<br>
+
+---
+
+# Bandit 17-18: Encontrar diferencias entre 2 archivos
+
+En este nivel nos dice que existen 2 archivos uno llamado passwords.old y otro passwords.new, y que la contraseña del siguiente nivel es la única diferencia entre los 2 archivos:
+
+![img](/assets/images/Linux/ssh/bandit17-18/files.png)
+
+Y vemos estos archivos, y para encontrar diferencias entre estos 2 archivos usaremos el comando `diff`:
+
+![img](/assets/images/Linux/ssh/bandit17-18/diff.png)
+
+Y podemos ver que nos muestra que se ha removido < el valor "glZreTEH1V3cGKL6g4conYqZqaEj0mte" y se ha agregado en su lugar el valor > "hga5tuuCLF6fFzUpnagiMN8ssu9LFrdg".
+
+Y como nos dice que el valor es el nuevo, entonces la contraseña es la del valor agregado.
+
+Flag: hga5tuuCLF6fFzUpnagiMN8ssu9LFrdg
+
+<br>
+
+---
+
+# Bandit 18-19: Ejecutar comandos por medio de SSH
+
+Al intentarnos conectar a bandit 18 ocurre lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit18-19/ssh.png)
+
+Y al intentar entrar:
+
+![img](/assets/images/Linux/ssh/bandit18-19/closed.png)
+
+Vemos que nos expulsa automaticamente del SSH.
+
+Y esto el nivel nos dice que sucede porque el .bashrc del sistema esta configurado para que cuando ingresemos nos expulsen automaticamente.
+
+<br>
+
+Intentaremos inyectar un comando que se ejecute antes de que nos expulsen agregandolo a el ssh:
+
+![img](/assets/images/Linux/ssh/bandit18-19/whoami.png)
+
+vemos que lo hemos agregado al final y al dar enter:
+
+![img](/assets/images/Linux/ssh/bandit18-19/command.png)
+
+Podemos ver que antes de que la conexión se cierre nos ha ejecutado el comando, esto es buena señal.
+
+Ya que ahora en lugar de whoami, vamos a spawnear una bash:
+
+![img](/assets/images/Linux/ssh/bandit18-19/spawn.png)
+
+Y vemos que al ejecutar esto se quedo en espera, pero esto es porque la bash se invoco correctamente y podemos ejecutar comandos, en este caso encontramos un readme y al leer el contenido vemos la contraseña del siguiente nivel.
+
+Flag: awhqfNnAbc1naukrpqDYcF95h7HoMTrC
+
+<br>
+
+---
+
+# Bandit 19-20: Abusando de un privilegio SUID para migrar de usuario
+
+Ahora al entrar a este nivel, encontramos un archivo llamado bandit20-do, y al ver sus permisos vemos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit19-20/suid.png)
+
+Podemos ver que este archivo tiene un permiso SUID, que como recordamos, este permiso permite que el que lo ejecute pueda ejecutar el binario en el contexto del usuario propietario de este archivo, en este caso se ejecutará en el contexto de bandit20 ya que el es el propietario.
+
+Y al ejecutar este binario nos dice lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit19-20/binario.png)
+
+Este binario nos dice que podemos ejecutar comandos como otro usuario, osea bandit20, así que le pasaremos como parametro de entrada el comando bash para que nos de una bash como bandit20:
+
+![img](/assets/images/Linux/ssh/bandit19-20/p.png)
+
+Vemos que ejecutamos el comando pero le agregamos un parametro -p, este parametro nos permite poder atender al SUID y obtener la bash como el bandit20, si no ponemos este parametro, por seguridad no nos va a dejar migrar al usuario 20, así que debemos asignarlo.
+
+> También podemos spawnear una sh o alguna otra terminal en caso de que este instalada.
+
+![img](/assets/images/Linux/ssh/bandit19-20/flag.png)
+
+Y podemos leer la flag del siguiente nivel que aunque ya tenemos una bash como bandit20 igual pondré la flag:
+
+Flag: VxCazJaVykI6W36BkBU0mJTCM8rR95XT
+
+<br>
+
+---
+
+# Bandit 20-21: 
