@@ -4146,4 +4146,65 @@ Flag: VxCazJaVykI6W36BkBU0mJTCM8rR95XT
 
 ---
 
-# Bandit 20-21: 
+# Bandit 20-21: Entablando conexion con un puerto en escucha usando netcat
+
+Este nivel nos dice que hay un binario el cuál al ejecutarlo nos pide un puerto como argumento, y lo que hará este binario es enviar una petición a ese puerto, y en esa petición si se pone la contraseña del nivel actual entoces recibiremos la del siguiente nivel.
+
+Así que primero entraremos y vemos el binario:
+
+![img](/assets/images/Linux/ssh/bandit20-21/binario.png)
+
+Podemos ver que ejecutamos el binario y le dimos como argumento el puerto 80 pero como no esta abierto nos da error.
+
+Así que usando netcat vamos a abrir un puerto y dejarlo en escucha, para ello abriremos otra terminal igual conectada por ssh a este nivel:
+
+![img](/assets/images/Linux/ssh/bandit20-21/2.png)
+
+Vemos que abajo hemos abierto otra sesión de ssh hacía este mismo nivel.
+
+Esto lo hacemos para que en una terminal abramos el puerto y lo dejemos en escucha en espera de algo, esto lo haremos con:
+
+`nc -nlvp 4040`
+
+![img](/assets/images/Linux/ssh/bandit20-21/wait.png)
+
+Vemos que al abrir el puerto 4040 con netcat, se queda en espera de una conexión.
+
+> El -n del comando de netcat indica que no aplique resolución DNS, esto para evitar lentitud, el -l es para dejar en escucha ese puerto (listening), el parametro -v es para verbose que indica que veamos en pantalla lo que va sucediendo a tiempo real, y la -p es para indicar el puerto, en este caso el 4040.
+
+Y ahora que ya tengamos abierto el puerto en el localhost del nivel actual, con la otra terminal ejecutaremos el binario y le pasaremos como argumento el puerto que hemos abierto:
+
+![img](/assets/images/Linux/ssh/bandit20-21/recibida.png)
+
+Podemos ver que ha llegado una conexión hacía el puerto que dejamos en escucha, así que ahora que tenemos la conexión con netcat, pasaremos la password del nivel actual y en teoria recibiremos la del siguiente nivel:
+
+![img](/assets/images/Linux/ssh/bandit20-21/next.png)
+
+Vemos que hemos enviado la contraseña del nivel actual y recibimos como respuesta la del siguiente nivel.
+
+Por lo que hemos logrado este nivel.
+
+> Si pones en escucha puertos inferiores a el puerto 1024 te pedira permisos root, por lo que intenta siempre poner en escucha puertos arriba del puerto 1024.
+
+Flag: NvEJF7oVjkddltPSrdKEFOllh9V1IBcq
+
+<br>
+
+---
+
+# Bandit 21-22: Tareas Cron
+
+## ¿Qué es una tarea cron?
+
+Cron es un servicio que utiliza linux para ejecutar ciertas instrucciones en cada cierto tiempo.
+
+Por ejemplo, podemos tener una tarea cron que ejecute cierto comando a cada hora de cada dia por ejemplo.
+
+## Lectura de las tareas cron
+
+Podemos ver en la siguiente imagen la sintaxis de las tareas cron:
+
+![img](/assets/images/Linux/ssh/bandit21-22/cron_fig.png)
+
+Por ejemplo:
+
