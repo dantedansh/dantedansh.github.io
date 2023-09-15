@@ -4206,5 +4206,102 @@ Podemos ver en la siguiente imagen la sintaxis de las tareas cron:
 
 ![img](/assets/images/Linux/ssh/bandit21-22/cron_fig.png)
 
-Por ejemplo:
+Por ejemplo, en la tarea cron de la imagen se va a ejecutar tiene la siguiente sintaxis:
 
+`55 23 * * 0 root comando`
+
+Se va a ejecutar un comando como el usuario root, a las 23:55, de cada dia de cada mes, pero solamente los dias que sean domingos.
+
+> El asterisco indica todo sobre ese valor, por ejemplo vemos que hay 2 asteriscos en el valor del dia de mes y mes, por lo que se ejecutara todo el año ya que estamos indicando que cada dia del mes, y como indicamos todos los meses será todo el año.
+
+Recuerda que el primer valor es el minuto, seguido de la hora, después el dia del mes, y el mes, y al final el dia de la semana.
+
+Por ejemplo en este otro:
+
+`* 14 15 9 5 root apt update && parrot-upgrade`
+
+Lo que hará es que cada minuto de cuando sean las 14 horas, de cada 15 de septiembre que caiga en el dia 5 de la semana que es viernes, entonces va a ejecutar las instrucciones que es actualizar el sistema.
+
+Si el 15 de septiembre no cae en viernes entonces no se va a ejecutar.
+
+<br>
+
+Veamos otro ejemplo:
+
+`15 21 * 1 * root comando`
+
+En este, a el minuto 15 de las 21 horas, de todos los dias del mes de enero y como pusimos un asterisco en el dia de la semana entonces será en todos los dias de la semana de enero, va a ejecutar un comando como root.
+
+<br>
+
+## Tarea cron con valores de paso
+
+Ahora si queremos que una tarea cron se ejecute cada algo, podemos usar el valor "/" de este modo:
+
+`*/5 14 * * * root comando`
+
+Esto lo que hará es que cada 5 minutos de las 14 se ejecutará algo, osea ahora con el / le estamos indicando que cada cuando, ya no que a ese valor especifico, ya que sin el / le estariamos diciendo que nos ejecute algo a el minuto 5 de las 14 horas, pero como le pusimos el guion, significa que cada 5 minutos mientras sean las 14 horas va a ejecutarse algo todos los dias del mes cada mes y cada dia de la semana.
+
+Otro ejemplo:
+
+`* */2 * 12 1 root comando`
+
+Esto va a ejecutar en todos los minutos(59), de cada 2 horas del mes de diciembre los dias que sean lunes, ejecutará algo. lógicamente cuando deje de ser lunes dejará de ejecutar esto.
+
+Así que cuando pasen 2 horas va a ejecutar la tarea durante todos los minutos que son 59, y después de esto al pasar estos minutos esperara 2 horas para volver a hacer lo mismo, obviamente solamente en el mes de diciembre los dias lunes.
+
+[Web para practicar tareas cron](https://www.site24x7.com/es/tools/crontab/cron-generator.html)
+
+<br>
+
+Ahora que entendimos la sintaxis de las tareas cron vamos a el nivel de bandit, que nos dice que atraves de una tarea cron descubriremos la contraseña.
+
+La ruta donde estan las tareas cron por defecto es `/etc/cron.d/` así que al ir a esa ruta encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit21-22/cron.png)
+
+encontramos todas estas tareas cron, nos llama la atencion la que se llama "cronjob_bandit22" ya que ese es el usuario al que queremos migrar.
+
+Y al hacer un ls -l:
+
+![img](/assets/images/Linux/ssh/bandit21-22/bandit22.png)
+
+Podemos ver que tenemos permiso de lectura a ese archivo, por lo que leeremos esa tarea cron para ver que es lo que hace:
+
+![img](/assets/images/Linux/ssh/bandit21-22/tarea.png)
+
+Podemos ver que lo que hace esta tarea es que al iniciar por primera vez el equipo se ejecuta algo, por esto se usa @reboot, lo que indica que se ejecute algo cada que el equipo se encienda.
+
+Y también ejecuta lo mismo en la siguiente linea:
+
+`* * * * * bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null`
+
+Pero esta vez ejecuta algo cada minuto de cada hora de cada dia de cada mes de cada semana, lo que hará es ejecutar como el usuario bandit22, un script el cual esta en la ruta "/usr/bin/cronjob_bandit22.sh".
+
+Así que veremos que contiene ese script que se ejecuta:
+
+![img](/assets/images/Linux/ssh/bandit21-22/script.png)
+
+Vemos que este script de bash, lo que hace es asignar el permiso 644 a el archivo t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv que esta dentro de la ruta /tmp/.
+
+Y luego en la siguiente linea lo que hace es hacerle un cat a la contraseña de bandit22, y redirige el output a este mismo archivo anterior.
+
+Y como el permiso 644 es:
+
+-rw-r--r--
+
+![img](/assets/images/Linux/ssh/bandit21-22/ls.png)
+
+Podemos ver que tenemos permiso de lectura, así que vamos a leer ese archivo:
+
+![img](/assets/images/Linux/ssh/bandit21-22/next.png)
+
+Y vemos que ya hemos conseguido la flag del nivel 22.
+
+Flag: WdDozAdTM2z9DiFEQ2mGlwngMfj4EZff
+
+<br>
+
+---
+
+# Bandit 22-23: 
