@@ -4304,7 +4304,7 @@ Flag: WdDozAdTM2z9DiFEQ2mGlwngMfj4EZff
 
 ---
 
-# Bandit 22-23: Abusando de una tarea cron para seguir la contraseña
+# Bandit 22-23: Abusando de una tarea cron para seguir la password
 
 En este nivel nos dice que también trataremos con una tarea cron, por lo que al entrar iremos a la ruta donde se almacenan las tareas cron `/etc/cron.d/` y veremos lo que hay:
 
@@ -4456,7 +4456,7 @@ Y esto se va a repetir con cada archivo que este en la lista del directorio actu
 
 Así que si ya sabemos como funciona el script, vamos a abusar de que sabemos como funciona para intentar obtener la contraseña del siguiente nivel.
 
-## Creando un script ejecutado por la tarea cron de bandit24 para obtener su contraseña
+## Creando un script ejecutado por la tarea cron de bandit24 para obtener su password
 
 Como sabemos que la tarea cron anterior ejecuta el script mostrado anteriormente como el usuario bandit24, entonces intentaremos algo.
 
@@ -4502,4 +4502,71 @@ Flag: VAfGXJ1PBSsPSnvsjI8p759leLZ9GGar
 
 ---
 
-# 
+# Bandit 24-25: Aplicando fuerza bruta a una conexion por netcat hacia un puerto
+
+Este nivel nos dice que existe un demonio corriendo en el puerto 30002, un demonio es un proceso del sistema que se ejeecuta en segundo plano, y nos dice que este va a responder con la contraseña de bandit25 siempre y cuando se le pase la contraseña del bandit actual osea bandit24 y también un pin de 4 digitos que no sabemos cual es pero nos dicen que se encuentra en el rango de 0000 hasta 9999 y que el pin esta en uno de esos rangos.
+
+Primero haremos la prueba para ver que necesita un pin:
+
+`nc localhost 30002`
+
+![img](/assets/images/Linux/ssh/bandit24-25/nc.png)
+
+Vemos que entablamos una conexión con ese puerto y nos salta el mensaje: "I am the pincode checker for user bandit25. Please enter the password for user bandit24 and the secret pincode on a single line, separated by a space." nos dice que debemos introducir la contraseña del usuario actual y el pin separado de un espacio.
+
+Y como vemos en la imagen eso hicimos pero obviamente el pin no es 1234.
+
+Una manera más rapida de entablar la conexión y no tener que esperar a meter los datos podemos hacerlo con un echo:
+
+`echo "VAfGXJ1PBSsPSnvsjI8p759leLZ9GGar 1234" | nc localhost 30002`
+
+![img](/assets/images/Linux/ssh/bandit24-25/auto.png)
+
+Podemos ver que de esta forma se toma la salida del output del echo como input para el siguiente comando con netcat.
+
+<br>
+
+
+Así que lo que haremos ahora será lo siguiente:
+
+`for pin in $(seq 0000 9999); do echo "VAfGXJ1PBSsPSnvsjI8p759leLZ9GGar $pin"; done`
+
+Con esto vamos a imprimir toda la secuencia desde 0 hasta 9999 en orden con la contraseña también. y se verá algo así:
+
+![img](/assets/images/Linux/ssh/bandit24-25/conteo.png)
+
+Y vemos que con el for nos ha imprimido en pantalla la password seguido del valor del pin actual.
+
+Ahora lo que haremos será meter todo esto en un archivo de texto:
+
+![img](/assets/images/Linux/ssh/bandit24-25/temp.png)
+
+Vemos que redigiremos la salida del bucle for hacía un archivo .txt, debemos estar en un directorio temporal para poder escribir en la ruta y crear el archivo.
+
+Una vez tengamos el archivo con los pines en secuencia, lo que haremos será listar con cat la lista de pines y con netcat que pruebe cada intento dado:
+
+`cat pines.txt | nc localhost 30002`
+
+![img](/assets/images/Linux/ssh/bandit24-25/errors.png)
+
+Pero al ver esto vemos que nos responde todos los errores y nosotros no queremos ver esto, por lo que vamos a filtrar para remover lo que no nos interesa, en este caso no queremos que nos muestre las lineas que digan la palabra "Wrong!", así que usando awk agregaremos un filtro para que no nos muestre esta palabra, y para ello usamos el parametro -v:
+
+`cat pines.txt | nc localhost 30002 | grep -v "Wrong"`
+
+![img](/assets/images/Linux/ssh/bandit24-25/grep.png)
+
+Ahora vemos que nos ha dejado de mostrar ya que con el parametro -v indicamos que NO nos muestre lo que contenga ciertas palabras, pero ahora tampoco queremos que nos muestre el primer mensaje que se ve arriba, por lo que lo eliminaremos igual con el grep -v.
+
+Pero para no hacer otro pipe de grep, podemos agregar el parametro -E para indicar que serán multiples cosas que queremos filtrar para que no nos muestre, y hacemos la separacion con un simbolo de "|":
+
+`cat pines.txt | nc localhost 30002 | grep -vE "Wrong|Please enter"`
+
+![img](/assets/images/Linux/ssh/bandit24-25/clear.png)
+
+Le indicamos que tampoco queremos que nos muestre lo que contenga la palabra "Please enter". y solo toca esperar la respuesta del demonio y deberiamos recibir la flag.
+
+<br>
+
+---
+
+#
