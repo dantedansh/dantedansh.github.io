@@ -4304,4 +4304,202 @@ Flag: WdDozAdTM2z9DiFEQ2mGlwngMfj4EZff
 
 ---
 
-# Bandit 22-23: 
+# Bandit 22-23: Abusando de una tarea cron para seguir la contraseña
+
+En este nivel nos dice que también trataremos con una tarea cron, por lo que al entrar iremos a la ruta donde se almacenan las tareas cron `/etc/cron.d/` y veremos lo que hay:
+
+![img](/assets/images/Linux/ssh/bandit22-23/crons.png)
+
+Vemos que estan todas estas tareas cron, como el siguiente nivel es el 23, nos llama la atención esa tarea, por lo que vemos que tenemos permisos de lectura y la leeremos:
+
+![img](/assets/images/Linux/ssh/bandit22-23/cronjob.png)
+
+Y podemos ver que esta tarea cron nos esta ejecutando en cada que se inicia el sistema y después cada minuto, un script que se aloja en la ruta "/usr/bin/cronjob_bandit23.sh" este script es ejecutado por el usuario bandit23, que es el que nos interesa migrar.
+
+![img](/assets/images/Linux/ssh/bandit22-23/group.png)
+
+Como vemos este script pertenece al grupo bandit22 el usuario que estamos actualmente, por lo que tenemos permiso de lectura y ejecución.
+
+Primero leeremos lo que contiene:
+
+![img](/assets/images/Linux/ssh/bandit22-23/script.png)
+
+Vemos que contiene este pequeño script en bash:
+
+```sh
+#!/bin/bash
+
+myname=$(whoami)
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+
+echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"
+
+cat /etc/bandit_pass/$myname > /tmp/$mytarget
+```
+
+Lo que esta haciendo esto es que primero guarda en una variable llamada "myname" el output del comando whoami, como este script se ejecutará como bandit23 entonces el whoami almacenará bandit23.
+
+Después en otra variable llamada "mytarget" guarda el oputput de un comando ejecutado a nivel de sistema, este comando es un echo el cual imprime la palabra "I am user $myname" como el valor de esa variable es bandit23 entonces dirá "I am user bandit23".
+
+Pero también vemos que se usa un pipe para usar md5sum, y veamos un ejemplo de md5sum y que es, por ejemplo tengo el texto:
+
+![img](/assets/images/Linux/ssh/bandit22-23/md5sum.png)
+
+Lo que hace es mostrarnos un valor hash, que por medio de este valor podremos saber si algo ha sido modificado, si por ejemplo tienes un archivo y le haces un md5sum pero luego es modificado y le haces un md5sum este hash ya no será el mismo y te podrás dar cuenta que ha sido aletrado.
+
+Y con el otro pipe de cut simplemente se estaba quedando con el primer argumento así:
+
+![img](/assets/images/Linux/ssh/bandit22-23/cut.png)
+
+Esto es para que se almaecene el hash sin el guion que salia antes de hacerlo sin cut.
+
+<br>
+
+Ahora que entendimos esto, vemos que al final del script ejecuta 2 ultimas lineas, la primera es:
+
+`echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"`
+
+Que lo que hace es mostrar en pantalla que esta copiando el valor del archivo /etc/bandit_pass/$myname como la variable myname es bandit23 entonces se leerá como /etc/bandit_pass/bandit23 y también muestra otro mensaje que es to /tmp/$mytarget, y como ya sabemos que la variable de mytarget almacena un hash entonces sabemos que es.
+
+Y por último en la ultima linea nos dice `cat /etc/bandit_pass/$myname > /tmp/$mytarget`, esto esta haciendo un cat del archivo de contraseña donde se almacenan en este caso será de bandit23, y redigira la salida del cat a la ruta /tmp/$mytarget , y como el target descubrimos que es "8ca319486bfbbc3663ea0fbe81326349", gracias a que copiamos las instrucciones en nuestra terminal.
+
+entonces sabemos que en /tmp/ hay un archivo con el nombre del hash que contiene la contraseña del siguiente nivel.
+
+![img](/assets/images/Linux/ssh/bandit22-23/passwd.png)
+
+Vemos que hemos encontrado el archivo, y tenemos permisos de lectura, por lo que leeremos la contraseña:
+
+![img](/assets/images/Linux/ssh/bandit22-23/next.png)
+
+Flag: QYw0Y2aiA672PsMmh9puTQuhoz8SyR2G
+
+<br>
+
+---
+
+# Bandit 23-24: Abusando de una tarea cron con seguimiento de script
+
+En este nivel es similar, vamos a la ruta de `/etc/cron.d` y vemos los siguientes archivos:
+
+![img](/assets/images/Linux/ssh/bandit23-24/cron.png)
+
+Como el siguiente nivel es el bandit24, leeremos su tarea cron:
+
+![img](/assets/images/Linux/ssh/bandit23-24/script.png)
+
+Nuevamente vemos que ejecuta en cada inicio del sistema y cada minuto ejecuta el script como el usuario bandit24 que se aloja en la ruta "/usr/bin/cronjob_bandit24.sh".
+
+Veamos lo que contiene este script:
+
+![img](/assets/images/Linux/ssh/bandit23-24/bash.png)
+
+```sh
+#!/bin/bash
+
+myname=$(whoami)
+
+cd /var/spool/$myname/foo || exit 1
+echo "Executing and deleting all scripts in /var/spool/$myname/foo:"
+for i in * .*;
+do
+    if [ "$i" != "." -a "$i" != ".." ];
+    then
+        echo "Handling $i"
+        owner="$(stat --format "%U" ./$i)"
+        if [ "${owner}" = "bandit23" ]; then
+            timeout -s 9 60 ./$i
+        fi
+        rm -rf ./$i
+    fi
+done
+```
+
+Primero almacena el output del comando whoami, lo almacena en la bariable "myname", en este caso como es bandit24 quien ejecuta el script ya que así esta en la tarea cron entonces se almacenará el valor "bandit24" en la variable myname.
+
+Después vamos a la ruta "/var/spool/$myname/foo" recuerda que $myname es bandit24 así que el script nos posiciona en la ruta "/var/spool/bandit24/foo", y en caso de que no exista la ruta sale del script, en caso de que la ruta exista entonces no saldra y seguira con la ejecución del script, mostrará el mensaje en pantalla "Executing and deleting all scripts in /var/spool/$myname/foo:". que significa que va a ejecutar y borrar todos los archivos dentro de la ruta "/var/spool/bandit24/foo".
+
+Ahora crea un bucle for, que es el siguiente: `for i in * .*;` esto lo que hace es que por cada variable i, se utiliza para almacenar cada elemento de la lista que se está iterando, en este caso la lista por la cual vamos a recorrer elementos es la que le indicamos con "in", que primero es un asterisco * que engloba todos los archivos del directorio actual en el que estamos, y también de los archivos ocultos .* recuerda que los ocultos inician con un punto por lo cual también los contemplamos.
+
+<br>
+
+Y ahora por cada archivo en la lista lo que hará es lo siguiente: `if [ "$i" != "." -a "$i" != ".." ];` comprobará si el elemento actual de la lista, recuerda que se almacena en la variable "i", va a comprobar si el nombre del archivo actual es diferente a un "." y también si es diferente a un "..", el parametro -a indica un && en bash, y el operador != indica que no sea igual a algo, entonces si el archivo actual no tiene de nombre "." ni "..", entonces lo que hará es entrar a el if y ejecutar lo siguiente:
+
+```sh
+echo "Handling $i"
+        owner="$(stat --format "%U" ./$i)"
+        if [ "${owner}" = "bandit23" ]; then
+            timeout -s 9 60 ./$i
+        fi
+        rm -rf ./$i
+```
+
+Primero mostrará en pantalla el mensaje "Handling $i" recuerda que la variable "i" almacena el nombre del archivo actual.
+
+Y después crea una variable llamada **owner**, la cuál almacenará el output de un comando ejecutado a nivel de sistema en forma de cadena(string), por eso esta entre comillas dobles, y lo que hace la ejecución de ese comando: `stat --format "%U" ./$i` simplemente es obtener el nombre del propietario de este archivo actual, usando la herramienta stat y filtrando por el usuario del archivo actual, algo que así por ejemplo:
+
+
+![img](/assets/images/Linux/ssh/bandit23-24/user.png)
+
+Podemos ver que hace lo que habiamos dicho.
+
+Así que en el script, almacena el nombre del propietario del archivo actual en la variable **owner**, después hace un if:
+
+`if [ "${owner}" = "bandit23" ]; then`
+
+Si el valor de la variable owner, es igual a bandit23 osea nuestro usuario en este nivel, entones entrará a el if y ejecutará sus instrucciones, que en este caso es esto: `timeout -s 9 60 ./$i` que esto lo que hace es ejecutar el archivo actual en un intervalo de tiempo. el parametro -s 9 indica que si después de 60 segundos no se completa la ejecucion del archivo actual, entonces se va a cancelar la ejecucion.
+
+Y por último al salir de if, va a borrar el archivo actual: `rm -rf ./$i`.
+
+Y esto se va a repetir con cada archivo que este en la lista del directorio actual que agregamos con el for in.
+
+<br>
+
+Así que si ya sabemos como funciona el script, vamos a abusar de que sabemos como funciona para intentar obtener la contraseña del siguiente nivel.
+
+## Creando un script ejecutado por la tarea cron de bandit24 para obtener su contraseña
+
+Como sabemos que la tarea cron anterior ejecuta el script mostrado anteriormente como el usuario bandit24, entonces intentaremos algo.
+
+![img](/assets/images/Linux/ssh/bandit23-24/foo.png)
+
+Podemos ver que el directorio foo al cual nos lleva el script anterior, tenemos permisos de escritura y ejecucion, como no tenemos lectura no podremos ver lo que hay dentro de ese directorio, pero si crear archivos y ejecutarlos.
+
+Primero crearemos un directorio temporal para crearnos un script, y el objetivo es que este script envie la password de bandit24 a una ruta a la que si tengamos permiso de lectura, y como en la ruta foo se ejecuta cada archivo que hay ahí gracias a la tarea cron, entonces aprovecharemos esto.
+
+Primero crearemos el directorio temporal:
+
+![img](/assets/images/Linux/ssh/bandit23-24/mktemp.png)
+
+Y vemos que le damos permisos a el directorio temporal que hemos creado, estos permisos permiten a otros escribir y atravesar el directorio que recien creamos, esto para que cuando el usuario bandit24 ejecute el script con la tarea cron, pueda tener permiso de atravesar este directorio para escribir la contraseña que le indicaremos en el script que crearemos.
+
+Una vez dentro del directorio temporal, vamos a crear el script:
+
+![img](/assets/images/Linux/ssh/bandit23-24/x.png)
+
+Cuando usamos chmod sin asignarle especificamente a que conjunto queremos asignarle el permiso, por defecto se les asigna a todos, tanto a propietario, grupos y otros. ya que no estamos indicandole uno en especifico y solo ponemos +x.
+
+Ahora vamos a escribir el script:
+
+![img](/assets/images/Linux/ssh/bandit23-24/scripting.png)
+
+Como el usuario bandit24 va a ejecutar este script gracias a la tarea cron, entonces va a poder leer la password que se almacena en la ruta de las contraseñas, y redirigiremos la salida del cat de esa password a nuestro directorio temporal y la va a meter a un archivo que se llamará password.txt.
+
+Una vez tenemos el script creado, vamos a enviar una copia del script, a la ruta donde se ejecutan todos los scripts de esa ruta gracias al script de la tarea cron:
+
+![img](/assets/images/Linux/ssh/bandit23-24/cp.png)
+
+Vemos que hemos copiado el script a esa ruta, y solo toca esperar a que pase 1 minuto ya que ese es el intervalo de tiempo en el que se ejecuta la tarea cron y la tarea cron ejecuta el script que ejecuta todos los elementos de esa ruta.
+
+Y esperando un minuto vemos que se ha creado el archivo password.txt:
+
+![img](/assets/images/Linux/ssh/bandit23-24/password.png)
+
+Y vemos que ha funcionado lo que hemos planeado, así que tenemos la contraseña del siguiente nivel.
+
+Flag: VAfGXJ1PBSsPSnvsjI8p759leLZ9GGar
+
+<br>
+
+---
+
+# 
