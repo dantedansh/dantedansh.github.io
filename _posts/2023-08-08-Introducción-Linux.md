@@ -4638,7 +4638,7 @@ Y al dar enter habremos creado la variable shell, la cual contiene el valor de u
 
 Y ahora que dimos enter, pulsaremos `esc` y luego `shift + :` y escribiremos "shell" y daremos enter, esto lo que hará es llamar a la variable que creamos y nos spawneara una bash:
 
-![img](/assets/images/Linux/ssh/bandit25-26/bash.png)
+![img](/assets/images/Linux/ssh/bandit25-26/spawn.png)
 
 Y vemos que ya tenemos una bash como bandit26.
 
