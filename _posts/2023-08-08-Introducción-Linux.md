@@ -4563,10 +4563,105 @@ Pero para no hacer otro pipe de grep, podemos agregar el parametro -E para indic
 
 ![img](/assets/images/Linux/ssh/bandit24-25/clear.png)
 
-Le indicamos que tampoco queremos que nos muestre lo que contenga la palabra "Please enter". y solo toca esperar la respuesta del demonio y deberiamos recibir la flag.
+Le indicamos que tampoco queremos que nos muestre lo que contenga la palabra "Please enter". y solo toca esperar la respuesta del demonio y deberiamos recibir la flag:
+
+![img](/assets/images/Linux/ssh/bandit24-25/flag.png)
+
+Si tuviste problemas al hacer este nivel, prueba a probar en 2 partes, por ejemplo en lugar de que el archivo llegue del 0000 hasta el 9999 prueba que llegue del 0000 hasta el 5555 luego intenta y si no esta en ese rango entonces vuelve a intentar pero ahora desde el 5555 hasta el 9999, esto es para dividir el trabajo y el servidor no responda mal ya que es muy probable que falle al poner tantas peticiones de una sola ejecucion y el servidor se sature.
+
+Flag: p7TaowMYrmu23Ol8hiZh9UvD0O9hpx8d
+
 
 <br>
 
 ---
 
-#
+# Bandit 25-26: Escapando del contexto de un comando
+
+Ahora este nivel nos dice que al ingresar a el bandit 26 desde bandit25, ya que solo podemos acceder por medio de la llave privada que nos dejan en bandit25 pero al conectarnos sucede lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit25-26/ssh.png)
+
+Y vemos que al intentar entrar nos saca:
+
+![img](/assets/images/Linux/ssh/bandit25-26/closed.png)
+
+Nos expulsa del ssh.
+
+Pero esta vez ya no podemos inyectar comandos:
+
+![img](/assets/images/Linux/ssh/bandit25-26/inject.png)
+
+Y vemos que se queda congelado y no nos responde nada.
+
+Esto es a que este nivel no usa una bash como terminal, usa esto:
+
+![img](/assets/images/Linux/ssh/bandit25-26/showtext.png)
+
+Usa algo llamado "showtext", que no es una bash ni alguna terminal útil.
+
+Y al leer lo que contiene ese valor vemos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit25-26/sh.png)
+
+Vemos que nos inicia un script de shell, el cual cambia el valor de la variable de entorno TERM y la cambia por linux.
+
+Y después ejecuta un archivo llamado text.txt que esta en el directorio personal de bandit26.
+
+Y por último sale.
+
+<br>
+
+Lo que hace el comando more es como un cat pero en proporciones, nos muestra algo que se esta leyendo pero si la pantalla no esta completa te dará opcion para deslizar, pero esto es algo que nos servira.
+
+Primero haremos la ventana pequeña antes de conectarnos nuevamente por ssh y ser expulsados:
+
+![img](/assets/images/Linux/ssh/bandit25-26/corta.png)
+
+Una vez tenemos la ventana más pequeña de la terminal, lo que haremos será volver a conectarnos por ssh a el siguiente nivel:
+
+![img](/assets/images/Linux/ssh/bandit25-26/more.png)
+
+Y vemos que no nos expulsa aún ya que aún se esta ejecutando el more ya que nos esta mostrando primero el banner en letras grandes que dice BANDIT26, recuerda que more es como el cat, y vemos que nos muestra 33% del contenido, por lo que si damos para abajo ira aumentando, pero a nosotros nos interesa quedarnos estaticos aquí.
+
+Ya que more tiene un modo visual, que al pulsar la tecla "v" se activará, y una vez hayamos entrado al modo visual, vamos a pulsar la tecla `esc` y luego `shift + :` y se nos abrira este modo:
+
+![img](/assets/images/Linux/ssh/bandit25-26/mode.png)
+
+Aquí vamos a crear una variable llamada shell, la cual valdra /bin/bash:
+
+`set shell=/bin/bash`
+
+![img](/assets/images/Linux/ssh/bandit25-26/set.png)
+
+Y al dar enter habremos creado la variable shell, la cual contiene el valor de una bash.
+
+Y ahora que dimos enter, pulsaremos `esc` y luego `shift + :` y escribiremos "shell" y daremos enter, esto lo que hará es llamar a la variable que creamos y nos spawneara una bash:
+
+![img](/assets/images/Linux/ssh/bandit25-26/bash.png)
+
+Y vemos que ya tenemos una bash como bandit26.
+
+# Bandit 26-27: Abusando de un binario suid
+
+Ahora como entramos aquí a este nivel por medio del bandit anterior ya que no hay una bash así que obtener la contraseña de este nivel será inutil por lo que obtendremos la del siguiente nivel.
+
+Vemos que en el inicio hay un binario con permiso suid:
+
+![img](/assets/images/Linux/ssh/bandit26-27/suid.png)
+
+Y vemos que nos permite ejecutar comandos como el usuario bandit27 como vemos en el whoami ejecutado.
+
+Así que simplemente haremos un cat de la contraseña de bandit27:
+
+![img](/assets/images/Linux/ssh/bandit26-27/password.png)
+
+Y ya hemos sacado la password del siguiente nivel.
+
+Flag: YnQpBuifNMas1hcUFk70ZmqkhUU2EuaS
+
+<br>
+
+---
+
+# 
