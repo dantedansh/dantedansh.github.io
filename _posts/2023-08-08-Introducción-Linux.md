@@ -4664,4 +4664,211 @@ Flag: YnQpBuifNMas1hcUFk70ZmqkhUU2EuaS
 
 ---
 
-# 
+# Bandit 27-28: Clonar repositorios desde git
+
+Git es una herramienta que funciona para el manejo de repositorios y de versiones, puedes tener un proyecto en git y manejar mucho más rapido ciertas cosas.
+
+En este nivel nos dice que debemos bajar un repositorio que se encuentra alojado en la misma maquina local.
+
+Y que la ruta donde se aloja el archivo git esta en: "ssh://bandit27-git@localhost/home/bandit27-git/" por el puerto 2220.
+
+Así que usando `git clone` vamos a clonar un repositorio, en este caso esa ruta del git:
+
+Primero iremos a un directorio temporal ya que vamos a descargar algo del servidor. así que una vez en la ruta temporal, vamos a clonar el repositorio:
+
+`git clone ssh://bandit27-git@localhost:2220/home/bandit27-git/repo`
+
+Le estamos indicando que vamos a clonar un repositorio de git y la ruta de este repositorio se encuentra en la conexión dada por el puerto 2220.
+
+![img](/assets/images/Linux/ssh/bandit27-28/git_clone.png)
+
+Nos pedirá la contraseña del servicio ssh del cual obtiene el recurso y en este caso es la misma que la que ingresamos al nivel actual.
+
+Y vemos que nos dejo un directorio con un archivo llamado README:
+
+![img](/assets/images/Linux/ssh/bandit27-28/password.png)
+
+El cual al leerlo vemos que contiene la contraseña del siguiente nivel.
+
+Flag: AVanL161y9rsbcJIsFHuw35rjaOM19nR
+
+<br>
+
+---
+
+# Bandit 28-29: Descubriendo cambios en el repositorio por medio de logs de commits
+
+Un commit en git es un cambio en el repositorio que hubo y ahora es otra versión ya que ha sido modificada, pero estos cambios suelen guardarse en un registro.
+
+En este nivel igual nos pidio clonar un repositorio desde "ssh://bandit28-git@localhost:2220/home/bandit28-git/repo" por el puerto 2220, así que lo hicimos, y ahora nos dejo el siguiente archivo:
+
+`git clone ssh://bandit28-git@localhost:2220/home/bandit28-git/repo`
+
+![img](/assets/images/Linux/ssh/bandit28-29/clone.png)
+
+Vemos que nos dejo un directorio llamado repo y dentro de el encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit28-29/md.png)
+
+Encontramos este archivo que contiene un nombre de usuario y la contraseña tapada, pero veremos el registro de logs para ver si en alguna versión anterior esta contraseña no estaba cubierta usando:
+
+`git log -p`
+
+Esto nos permite ver los registros de cambios:
+
+![img](/assets/images/Linux/ssh/bandit28-29/log.png)
+
+Y podemos ver que estaba la contarseña anteriormente así que hemos obtenido la flag del siguiente nivel.
+
+Flag: tQKvmcwNYcFS6vmPHIUSI3ShmsrQZK8S
+
+<br>
+
+---
+
+# Bandit 29-30: ramas de un repositorio en git
+
+Nuevamente nos piden clonar un repositorio y encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit29-30/repo.png)
+
+Y vemos que hay un archivo nuevamente como el nivel anterior, así que miraremos los registros con `git log -p`:
+
+![img](/assets/images/Linux/ssh/bandit29-30/nada.png)
+
+Pero ahora no vemos nada interesante, así que pasaremos a ver en que rama del repositorio estamos con:
+
+`git branch`
+
+![img](/assets/images/Linux/ssh/bandit29-30/branch.png)
+
+Vemos que estamos en la rama "Master", veremos que otras hay con:
+
+`git branch -r`
+
+![img](/assets/images/Linux/ssh/bandit29-30/branch-r.png)
+
+Y vemos que hay otras rutas, para viajar a alguna otra como por ejemplo dev, hacemos lo siguiente:
+
+`git checkout dev`
+
+![img](/assets/images/Linux/ssh/bandit29-30/checkout.png)
+
+Y vemos que hemos cambiado de rama satisfactoriamente, y aquí encontramos el mismo archivo pero aquí si esta la password:
+
+![img](/assets/images/Linux/ssh/bandit29-30/next.png)
+
+Y hemos completado este nivel.
+
+Flag: xbhV3HpNGlTIdnjUrdAlPzc2L6y9EOnS
+
+<br>
+
+---
+
+# Bandit 30-31: tags en git
+
+En este nivel nuevamente nos piden clonar un repositorio y al hacerlo encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit30-31/nada.png)
+
+Nos da un archivo pero al leerlo solo hay un mensaje pero no hay ninguna contraseña, ni en logs, ni en branchs.
+
+Vemos 2 directorios de branch pero los 2 es en el mismo que estamos actualmente y entonces no hay nada mas de esto.
+
+Algo que podriamos ver en git son las etiquetas con:
+
+`git tag`
+
+![img](/assets/images/Linux/ssh/bandit30-31/tag.png)
+
+Y para leer el contenido de esta etiqueta usamos:
+
+`git show secret`
+
+![img](/assets/images/Linux/ssh/bandit30-31/pass.png)
+
+Y encontramos la password del siguiente nivel gracias a esta etiqueta.
+
+Flag: OoffzGDlzhAlerFJ2cAiz1D41JW1Mhmt
+
+<br>
+
+---
+
+# Bandit 31-32: Subiendo un cambio del repositorio con git
+
+Nuevamente clonamos un repositorio en este nivel y encontramos lo siguiente:
+
+![img](/assets/images/Linux/ssh/bandit31-32/read.png)
+
+Y nos dice el archivo que debemos hacer un cambio agregando un archivo llamado key.txt, que contenga el texto "May I come in?" y que el branch sea Master.
+
+Primero comprobamos que estamos en master:
+
+![img](/assets/images/Linux/ssh/bandit31-32/master.png)
+
+Vemos que lo estamos, ahora crearemos el key.txt y le meteremos el contenido:
+
+![img](/assets/images/Linux/ssh/bandit31-32/create.png)
+
+Vemos que hemos creado lo que nos piden, ahora para subir un cambio haremos lo siguiente:
+
+`git add key.txt` key.txt es el cambio que queremos subir:
+
+![img](/assets/images/Linux/ssh/bandit31-32/err.png)
+
+Nos dice que no se puede subir ya que en git cuando hay un archivo oculto llamado .gitignore esto va a ignorar los archivos que le digamos, vemos el contenido de .gitignore:
+
+![img](/assets/images/Linux/ssh/bandit31-32/gitignore.png)
+
+Podemos ver que el archivo ignorara todos los que sean .txt, por lo que como tenemos permiso de escritura vamos a eliminarlo, e intentar nuevamente subir el key.txt:
+
+![img](/assets/images/Linux/ssh/bandit31-32/exito.png)
+
+Vemos que ahora no nos arrojo error, por lo que se agrego correctamente y ahora toca ponerle un nombre a ese cambio con:
+
+`git commit -m "agregamos un txt"`
+
+![img](/assets/images/Linux/ssh/bandit31-32/commit.png)
+
+Vemos que se ha guardado correctamente, ahora subiremos este cambio a origin master con:
+
+`git push origin master`
+
+![img](/assets/images/Linux/ssh/bandit31-32/passwd.png)
+
+Y vemos que hemos hecho esto de forma correcta y recibimos la contraseña del siguiente nivel.
+
+Flag: rmCBvG56y58BXzv98yZGdO7ATVL5dW8y
+
+<br>
+
+---
+
+# Bandit 32-33: Escapando de una shell trampa
+
+En este nivel al entrar nos da una shell extraña que nos convierte todo a mayusculas y no podemos hacer nada:
+
+![img](/assets/images/Linux/ssh/bandit32-33/shell.png)
+
+Y vemos que no podemos ejecutar nada, pero recordemos algo:
+
+![img](/assets/images/Linux/ssh/bandit32-33/bash.png)
+
+Podemos ver el valor de la shell en uso leyendola con echo $0, pero no solo esto ya que si ponemos solo el $0 sin el echo entonces le estamos indicando que nos spawnee una bash, así que haremos esto en el nivel:
+
+![img](/assets/images/Linux/ssh/bandit32-33/spawn.png)
+
+Y sacamos la flag de bandit33:
+
+![img](/assets/images/Linux/ssh/bandit32-33/end.png)
+
+
+<br>
+
+Y vemos que hemos logrado spawnear una bash, y hemos terminado este nivel y todos los retos que hay por ahora de overthewire.
+
+![img](/assets/images/Linux/ssh/bandit32-33/credits.png)
+
+<br>
