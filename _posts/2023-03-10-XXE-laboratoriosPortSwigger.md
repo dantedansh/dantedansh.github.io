@@ -1,7 +1,7 @@
 ---
 layout: single
 title: XXE - Laboratorios de PortSwigger
-excerpt: "En esta segunda parte resolveremos los laboratorios sobre ataques XXE de la plataforma PortSwigger."
+excerpt: "En esta segunda parte sobre la vulnerabilidad XXE, resolveremos los laboratorios sobre ataques XXE de la plataforma PortSwigger, recuerda que primero va el post anterior que trata sobre introducción a esta vulnerabilidad web para poder entenderla con mucha más claridad."
 date: 2023-03-10
 classes: wide
 header:

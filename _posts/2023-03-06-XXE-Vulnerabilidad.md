@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Vulnerabilidad XXE - ¿Qué es y como se explota?
-excerpt: "En este post explicaremos que es una vulnerabilidad XXE, Y como se puede explotar."
+excerpt: "En este post explicaremos que es una vulnerabilidad XXE, Y como se puede explotar, utilizaremos un ejemplo en local para enetnder un poco mejor, y después de entender esto podemos pasar al siguiente post de la vulnerabilidad XXE para seguir practicando."
 date: 2023-03-06
 classes: wide
 header:

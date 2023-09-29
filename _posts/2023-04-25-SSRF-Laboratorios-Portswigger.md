@@ -1,7 +1,7 @@
 ---
 layout: single
 title: SSRF - Laboratorios de PortSwigger
-excerpt: "En este post, explicaremos ¿Qué es? y como se realiza un ataque SSRF, server side request forgery."
+excerpt: "En este post explicaremos ¿Qué es? y como se realiza un ataque SSRF, server side request forgery, así también veremos algunos de los tipos de SSRF más comunes que se suelen encontrar dentro de páginas web."
 date: 2023-04-25
 classes: wide
 header:

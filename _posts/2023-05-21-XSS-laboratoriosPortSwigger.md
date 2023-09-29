@@ -1,7 +1,7 @@
 ---
 layout: single
 title: XSS - Laboratorios de PortSwigger
-excerpt: "Como se acontece una vulnerabilidad XSS, tipos y laboratorios de PortSwigger."
+excerpt: "Explicación sobre XSS desde cero, mostraremos ¿qué es un XSS?, cross site scripting, y también sus tipos y resolveremos laboratorios de practica en la plataforma portswigger para practicar esta vulnerabilidad web."
 date: 2023-05-21
 classes: wide
 header:

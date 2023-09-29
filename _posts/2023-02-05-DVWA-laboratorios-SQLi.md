@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Laboratorios de DVWA inyecciones SQL - SQLi
-excerpt: "En este post explicaremos la resolución del laboratorio SQLi del laboratorio de pruebas DVWA."
+excerpt: "En este post explicaremos como resolver los retos de inyecciones SQL, del laboratorio de pruebas DVWA, DVWA contiene una serie de niveles para practicar vulnerabilidades web, pero nos vamos a centrar en las inyecciones SQL."
 date: 2023-02-05
 classes: wide
 header:
