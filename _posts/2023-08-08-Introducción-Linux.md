@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Introducción a Linux (Completo).
-excerpt: "Introducción completa para comenzar a usar sistemas GNU/Linux, comenzaremos desde las bases como comandos sencillos, hasta tocar bash scripting, al terminar debemos seguir practicando bash para no olvidar lo aprendido, así mismo para ir avanzando conforme encontremos nuevas cosas de jugar con bash."
+excerpt: "Introducción completa para comenzar a usar sistemas GNU/Linux."
 date: 2023-08-08
 classes: wide
 
@@ -4872,3 +4872,4 @@ Y vemos que hemos logrado spawnear una bash, y hemos terminado este nivel y todo
 ![img](/assets/images/Linux/ssh/bandit32-33/credits.png)
 
 <br>
+

@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Inyección SQL - SQLi - Laboratorios de PortSwigger
-excerpt: "Dentro de este post vamos a dar una explicación de como resolver todos los laboratorios de la plataforma PortSwigger sobre SQL injection SQLi, Para esto ya debemos tener lo básico sobre bases de datos que vimos en el primero post de inyecciones SQL."
+excerpt: "Dentro de este post vamos a dar una explicación de como resolver todos los laboratorios de la plataforma PortSwigger sobre SQL injection SQLi, Para esto ya debemos tener lo básico sobre bases de datos que vimos en el primer post de inyecciones SQL."
 date: 2022-11-13
 classes: wide
 header:
