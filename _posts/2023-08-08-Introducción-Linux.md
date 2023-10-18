@@ -4873,3 +4873,132 @@ Y vemos que hemos logrado spawnear una bash, y hemos terminado este nivel y todo
 
 <br>
 
+# Scripting en Bash - buscador de maquinas en hack the box (script de s4vitar)
+
+Finalmente hemos llegado a el scripting en bash, donde practicaremos todo lo aprendido en un proyecto en bash.
+
+En este caso vamos a crear un **buscador de información de maquinas en hack the box**.
+
+Todo esto para practicar, y lo que hará este script es filtrarnos información de determinadas maquinas, ya sea filtrar maquinas por dificultad, nombre, etc.
+
+<br>
+
+## Creando la funcion de salida
+
+Vamos a iniciar y separar por partes el script para que se entienda mejor.
+
+Primero crearemos un archivo .sh donde vamos a escribir nuestro código, obviamente también le damos permisos de ejecución:
+
+![img](/assets/images/Linux/bash/file.png)
+
+Una vez creado, empezaremos agregando las primeras lineas, primero nos interesa una manera de salir del script por cualquier motivo como vimos en scripts anteriores, así que primero crearemos la función que al capturar la combinación de teclas "ctrl + c" esta detenga el programa:
+
+```sh
+#!/bin/bash
+
+#Colores
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+
+function ctrl_c(){
+  echo -e "\n${redColour}[!] Saliendo del script...${endColour}\n"
+  exit 1
+}
+
+#Ctrl+c
+trap ctrl_c INT
+```
+
+Vemos que igual agregamos colores, y en la función **ctrl_c** lo que hará es que cuando se presione ctrl + c, se va a ejecutar esa función y mostrara un mensaje en pantalla de que esta saliendo del script y finalmente hacemos un exit 1, que indica una salida no exitosa.
+
+<br>
+
+## Obtener datos de las maquinas
+
+Ahora lo que ocupamos primero es obtener los datos de todas las maquinas, para ello usaremos una web de s4vitar que es la siguiente: [HtbMachines](https://htbmachines.github.io/):
+
+![img](/assets/images/Linux/bash/web.png)
+
+Ahora lo que haremos será obtener los datos que se muestran en la web y almacenarlos en un archivo para tratarlo.
+
+Primero vamos a obtener una captura de esos datos, para ello usaremos la herramienta **curl**:
+
+`curl -s -X GET https://htbmachines.github.io/`
+
+Estamos haciendo una petición en modo silent -s (para no ver output de curl), y por el metodo GET usando el parametro -X. Y esta petición se tramita a la web mencionada anteriormente.
+
+Y en la respuesta vemos:
+
+![img](/assets/images/Linux/bash/data.png)
+
+vemos que aquí no estan las maquinas ya que es muy poca información y no vemos ninguna maquina, pero vemos en el recuadro que se esta obteniendo un recurso javascript de la misma web, así que haremos la petición a ese recurso ya que ahí se alojan las maquinas:
+
+`curl -s -X GET https://htbmachines.github.io/bundle.js`
+
+![img](/assets/images/Linux/bash/js.png)
+
+Vemos demasiados datos de javascript, y todo esta junto y no podemos ver bien, por lo que usaremos la herramienta **js-beautify** y para instalarla tenemos estos comandos:
+
+![img](/assets/images/Linux/bash/install-js.png)
+
+o si te dan error esos usa estos:
+
+```sh
+sudo pip3 install jsbeautifier
+udo apt install node-js-beautify
+```
+
+Una vez la tengamos, agregaremos con un pipe esa herramienta a la petición de curl y vemos que ahora se ve mejor:
+
+`curl -s -X GET https://htbmachines.github.io/bundle.js | js-beautify`
+
+![img](/assets/images/Linux/bash/js-beautify.png)
+
+Vemos que ya tiene un mejor formato, y ahora podemos trabajar con esto.
+
+<br>
+
+Ahora este output lo queremos en un archivo, así que redirigiremos el output a un archivo llamado "bundle.js":
+
+`curl -s -X GET https://htbmachines.github.io/bundle.js > bundle.js`
+
+Y ya tendriamos el archivo en nuestra ruta actual:
+
+![img](/assets/images/Linux/bash/bundle_js.png)
+
+Esto lo hacemos para evitar que cada que ocupemos tratar la información de las maquinas no hacerle tantas peticiones a la web ya que esto realentizaria el script, así que es mejor tener los datos de las maquinas en un archivo y tratarlo.
+
+Y vemos que el archivo esta en este formato:
+
+![img](/assets/images/Linux/bash/amontonado.png)
+
+Vemos que nuevamente esta todo amontonado, así que lo que haremos será aplicarle el formato de **js-beautify** y volver a guardar el archivo en si mismo, pero hay que tener cuidado, ya que no se debe hacer así:
+
+![img](/assets/images/Linux/bash/err.png)
+
+Ya que nos arrojará un error y al leer el archivo este se habrá quedado vacío:
+
+![img](/assets/images/Linux/bash/empty.png)
+
+Vemos que no hay nada ya que lo anterior ha provocado esto, así que tendriamos que crear nuevamente el bundle.js con curl y eso, pero para evitar este error, podemos usar la herramienta **sponge**, que se instala con `sudo apt install moreutils`.
+
+Y volveremos a intentar lo anterior pero ahora usando la herramienta sponge:
+
+`cat bundle.js | js-beautify | sponge bundle.js`
+
+Y ahora podemos ver que así si pudimos guardar algo de ese mismo archivo en si mismo:
+
+![img](/assets/images/Linux/bash/formato.png)
+
+Y que ahora si se mantiene el formato sin perder los datos.
+
+<br>
+
+Ahora lo que haremos será ...
