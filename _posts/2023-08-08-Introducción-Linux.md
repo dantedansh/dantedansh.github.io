@@ -5001,4 +5001,98 @@ Y que ahora si se mantiene el formato sin perder los datos.
 
 <br>
 
-Ahora lo que haremos será ...
+## Definiendo y entendiendo el flujo del programa
+
+Ahora lo que haremos será crear el flujo del programa, primero usaremos **while getopts** para el manejo de los parametros que tendrá nuestro script.
+
+En este caso para empezar primero pondremos 2 parametros, el primero será el -m que nos servirá para buscar una maquina y el segundo será -h para mostrar un panel de ayuda en caso de no saber usar el script o ejecutarlo mal.
+
+```sh
+function helpPanel(){
+  echo "estamos en la Funcion helpPanel" 
+}
+
+function buscarMaquina(){
+  nombre=$1
+  echo "La maquina pasada por el argumento de la función es $nombre"
+}
+
+#Manejo de parametros
+declare -i parameter_counter=0
+
+while getopts "m:h" arg; do
+  case $arg in
+    m) nombreMaquina=$OPTARG; let parameter_counter+=1;;
+    h) ;;
+  esac
+done
+
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+else
+  helpPanel
+fi
+```
+
+Lo que hicimos primero fue declarar 2 funciones, la primera se llama **helpPanel**, la cuál más adelante declararemos, en este caso solamente muestra un echo de que se encuentra en la función de ayuda.
+
+Y la otra función es similar solo que se llama **buscarMaquina** ya que esa función es la que nos buscará la información de una maquina pero por ahora solamente le metí un echo del parametro recibido como argumento, vemos que recibimos el primer argumento que se le paso a esta función cuando se llamo, y este argumento lo guardamos dentro de la variable **nombre**.
+
+Después declaramos una vaariable entera `declare -i parameter_counter=0` vemos que con el parametro -i indicamos que es int, osea un valor entero, no cadena/string(texto), y la igualamos a cero, esta variable nos servirá pará algo que veremos en lo siguiente que explicaré.
+
+Ahora sigue lo del while getopts: `while getopts "m:h" arg;` En esto le estamos diciendo que nos vaya recorriendo cada parametro que tendrá el script, en este caso por ahora solo son 2 parametros, si el parametro tendrá argumentos al momento de usar su parametro se le ponen dos puntos a su derecha, es decir, si el parmetro -m tendrá argumentos en su ejecución, supongamos que se ejecuta así: `./script.sh -m "Maquina"` vemos que el parametro -m tendrá un argumento que en este caso es "Maquina", entonces como si tendrá argumento el parametro ponemos dos puntos ":" a la derecha en su declaracion el el while getopts. Y el parametro -h no tendrá por lo que lo dejamos sin dos puntos a la derecha.
+
+Y seguido de eso vemos que ponemos "arg", que esta es una variable que almacenará cada parametro uno por uno en cada ejecución, para lo siguiente:
+
+```sh
+while getopts "m:h" arg; do
+  case $arg in
+    m) nombreMaquina=$OPTARG; let parameter_counter+=1;;
+    h) ;;
+  esac
+done
+```
+
+En el script una vez que entra a el while, primero revisa que si en caso de que el argumento actual que esta dentro de la variable **arg** en este momento se encuentré dentro de lo que esta abajo, entonces sucederá algo.
+
+Supongamos que ejecutamos el script: `./script.sh -m "Maquina"` , entonces al llegar al while getopts, lo que hará el script es que tomará el parametro -m y comprobará que existe, entonces como existe, lo que hará es obtener el argumento de dicho parametro usando "$OPTARG", y lo va a guardar dentro de la variable **nombreMaquina**, así que la variable nombreMaquina tendrá el valor del argumento que se paso en el parametro -m, entonces en este caso el valor de la variable nombreMaquina será "Maquina", ya que guardamos el valor de su argumento dentro de esa variable usando $OPTARG.
+
+Y seguido de eso aumentaremos en un valor la variable **parameter_counter**  que definimos anteriormente, usamos let para aumentar su valor en 1, ya que con esto nos permitirá más adelante saber que ha entrado en un parametro valido y no en el panel de ayuda.
+
+Ya que como vemos en el parametro que definimos de h vemos que no ponemos nada ni aumenta el **parameter_counter** esto es intencional, para saber que si **paramter_counter** vale 0, quiere decir que no entro a ningun parametro valido por lo que se ejecutará la función helpPanel.
+
+Y para que el script maneje estas funciones correctamente usamos las siguientes condicionales:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+else
+  helpPanel
+fi
+```
+
+Aquí es donde gracias a la variable **parameter_counter** podemos manejar el flujo del programa, en la primera condicion decimos que si el valor de **parameter_counter** es igual (-eq) a 1, quiere decir que el script en el while getopts entro a un paramtero valido, y el parametro valido que tenemos aumenta en un valor esa variable, por lo que entonces quiere decir que se va a ejecutar la función **buscarMaquina** que en este caso es la única que tenemos por ahora valida aparte del panel de ayuda.
+
+Y se va a llamar a la función pasandole como parametro el valor de la variable **nombreMaquina** que recordamos que en esa variable se almacena el argumento que se paso en la ejecución del script, y esto se pasa ya que en la función **buscarMaquina** necesitamos este nombre para después buscar la información de dicha maquina. Recordemos que en la declaración de la función **buscarMaquina** hemos recibido el parametro que se enviaría por aquí al llamar a la función junto con el argumento(valor de la variable nombreMaquina).
+
+Y en caso de que el valor de **parameter_counter** no sea igual a 1, quiere decir que no entro a ningún parametro valido, por lo que se llamará automaticamente a la función **helpPanel** para mostrarle al usuario como se debe ejecutar el script.
+
+<br>
+
+Y ahora esto en la ejecución se ve así:
+
+![img](/assets/images/Linux/bash/-m.png)
+
+Podemos ver que se ejecuto correctamente y entro a la función **buscarMaquina** correctamente y nos ejecuto lo que hay en esa función.
+
+Y en caso de ejecutar algo que no exista o incorrecto vemos que igual nos funciona el flujo que definimos del panel de ayuda:
+
+![img](/assets/images/Linux/bash/helpPanel.png)
+
+Vemos que nos ha llevado a la función de ayuda al momento de hacer algo que no existe en el script.
+
+<br>
+
+# 
