@@ -4944,15 +4944,10 @@ vemos que aquí no estan las maquinas ya que es muy poca información y no vemos
 
 ![img](/assets/images/Linux/bash/js.png)
 
-Vemos demasiados datos de javascript, y todo esta junto y no podemos ver bien, por lo que usaremos la herramienta **js-beautify** y para instalarla tenemos estos comandos:
-
-![img](/assets/images/Linux/bash/install-js.png)
-
-o si te dan error esos usa estos:
+Vemos demasiados datos de javascript, y todo esta junto y no podemos ver bien, por lo que usaremos la herramienta **js-beautify** y para instalarla debemos ejecutar:
 
 ```sh
-sudo pip3 install jsbeautifier
-udo apt install node-js-beautify
+sudo apt install node-js-beautify
 ```
 
 Una vez la tengamos, agregaremos con un pipe esa herramienta a la petición de curl y vemos que ahora se ve mejor:
@@ -5095,4 +5090,141 @@ Vemos que nos ha llevado a la función de ayuda al momento de hacer algo que no 
 
 <br>
 
-# 
+### Definiendo las funciones
+
+Ahora que ya definimos el flujo de el programa, lo que toca ahora es escribir lo que hará cada función.
+
+Primero la función de **helpPanel** la modificamos con colores y instrucciones de uso quedando así:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Indicamos con colores las instrucciones de los parametros y su función de cada una, y el help panel ahora se verá mucho mejor:
+
+![img](/assets/images/Linux/bash/colorhelp.png)
+
+Podemos ver que se ve mucho mejor.
+
+Ahora antes de escribir lo que ejecutará la función **buscarMaquina** , vamos a definir otra función antes, esta función nueva se llamará **actualizarArchivos** y lo que hará es descargarnos el archivo javascript más reciente de la web donde se alojan todas las maquinas.
+
+la vamos a definir en el script:
+
+```sh
+function actualizarArchivos(){
+  echo -e "\n${greenColour}[!] ${turquoiseColour}Actualizando archivos...${endColour}"
+}
+```
+
+Por el momento solo le indicamos un mensaje de que se actualizará los archivos, esta función la agregamos cerca de las demas funciones.
+
+<br>
+
+### Agregando la funcion actualizarArchivos a el getopts
+
+Ahora que ya tenemos la función creada llamada **actualizarArchivos** la agregaremos a el while getopts para que nuestro script reconozca un parametro que llame a esta función en caso de que el usuario haya usado dicho parametro:
+
+```sh
+#Manejo de parametros
+declare -i parameter_counter=0
+
+while getopts "m:uh" arg; do
+  case $arg in
+    m) nombreMaquina=$OPTARG; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    h) ;;
+  esac
+done
+```
+
+En este caso editamos el while getopts para agregar un nuevo parametro, en este caso será el parametro -u (no necesita parametros por lo que se agrega sin dos puntos a la derecha al igual que el parametro h), y vemos que en caso de que se use el parametro -u, lo que hará es aumentar en 2 la variable **parameter_counter**, esto se hace para saber que en caso de que esa variable valda 2, sabremos que se esta usando ese parametro, por lo que en el manejo de funciones sabremos si se ejecutará esa función.
+
+### Definiendo el flujo de la nueva funcion
+
+Ahora que ya esta creada la función **actualizarArchivos** y está en el while getopts para manejar el parametro, lo que queda ahora es llamar a la función en caso de que se use ese parametro, y como recordamos que en caso de que se use, la variable **parameter_counter** valdría 2, entonces haremos otra condición en el manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+else
+  helpPanel
+fi
+```
+
+Vemos que agregamos un elif, que esto indica que en caso de que el primer if no se cumpla, entonces siga con la siguiente condición, que en este caso es que si la variable **parameter_counter** es igual a 2, entonces se llamará a la función **actualizarArchivos**, de este modo ya hemos creado el flujo de ese parametro. Recuerda que el 2 es porque si la variable entro a el valor del parametro u) en el while getopts, indica que el usuario ingreso ese parametro y como pusimos el 2 para darnos cuenta de que se trata de ese parametro, y esa es la lógica del manejo de las funciones.
+
+<br>
+
+Así que ahora que definimos esto, ejecutaremos el script con este nuevo parametro para ver que funciona:
+
+![img](/assets/images/Linux/bash/update.png)
+
+Vemos que nos muestra lo que escribimos que se hiciera en la función **actualizarArchivos**, obviamente aún no sucede algo más que mostrar el mensaje ya que aún no definimos las instrucciones pero ya tenemos el flujo de ese paremtro definido.
+
+Y por último no olvidemos agregar lo que hace ese parametro en la función **helpPanel**:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que hemos agregado la linea del parametro -u, y ahora el helpPanel se vería así:
+
+![img](/assets/images/Linux/bash/helppanelu.png)
+
+<br>
+
+## Definiendo las instrucciones de la funcion **actualizarArchivos**
+
+Recordemos que primero debemos descargar el archivo y pasarle el js-beautify, así que agreagaremos esos comandos para descargar el archivo.
+
+Primero crearemos una variable global con la URL de la web donde se aloja el archivo que contiene las maquinas:
+
+`htbweb="https://htbmachines.github.io/bundle.js"`
+
+Esta variable la agregamos casi hasta el inicio del script, para que sea global y no solo de una función.
+
+Una vez tengamos esta variable global definida, lo que haremos sera escribir las instrucciones de la función **actualizarArchivos**, primero definiremos en caso de que sea la primera vez y el archivo bundle.js no exista:
+
+```sh
+function actualizarArchivos(){ 
+  if [ ! -f bundle.js ]; then
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Actualizando archivos...${endColour}"
+    curl -s -X GET $htbweb > bundle.js
+    js-beautify bundle.js | sponge bundle.js
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
+  fi
+}
+```
+
+Primero en el if estamos comprobando si el archivo bundle.js no existe, usamos el parametro -f para indicar un archivo "file" y el signo ! indica lo contrario, es decir si no estuviera ese signo la condicion sería "Si existe el archivo bundle.js entonces ...." Pero como en este caso tiene el signo entonces es "Si el archivo bundle.js NO existe entonces...", así que lo que hará en caso de que el archivo bundle.js no exista es lo siguiente:
+
+Primero muestra el mensaje de que se estan actualizando los archivos, después hace una petición con curl a la URL que se almacena en la variable global **htbweb**, por el metodo GET, y almacenamos el output dentro de un archivo llamado bundle.js , Y en la siguiente linea usamos la herramienta **js-beautify** para darle mejor formato a el archivo, y por último reemplazamos el formato anterior con el nuevo usando **sponge**.
+
+Y mostramos un mensaje de que los archivos se han descargado correctamente.
+
+Y si ejecutamos el script así:
+
+![img](/assets/images/Linux/bash/existe.png)
+
+Vemos que no nos ejecuto nada ya que la condición no se cumplio, ya que el archivo si existe, y la condicion solo se ejecutará si el archivo no existia, pero si lo eliminamos y ejecutamos nuevamente veremos que ahora si se descarga:
+
+![img](/assets/images/Linux/bash/noexiste.png)
+
+Así que la primera parte esta hecha.
+
+<br>
+
+Pero ahora queremos que si ya existe el archivo bundle.js, buscar si existe alguna actualizacion en el archivo para cambiarlo por este nuevo, así que para esto agregaremos otra condición en caso de exista el archivo ya, lo que haremos será lo siguiente:
+
