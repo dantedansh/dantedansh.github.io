@@ -5226,5 +5226,92 @@ Así que la primera parte esta hecha.
 
 <br>
 
-Pero ahora queremos que si ya existe el archivo bundle.js, buscar si existe alguna actualizacion en el archivo para cambiarlo por este nuevo, así que para esto agregaremos otra condición en caso de exista el archivo ya, lo que haremos será lo siguiente:
+Pero ahora queremos que si ya existe el archivo bundle.js, buscar si existe alguna actualizacion en el archivo para cambiarlo por este nuevo, así que para esto agregaremos otra condición en caso de exista el archivo ya, lo que haremos será lo siguiente.
+
+### Definiendo la actualizacion del archivo usando (md5sum)
+
+**md5sum** Es una herramienta que nos servirá para en este caso saber si se han agregado cosas nuevas a el archivo bundle.js que tenemos, pero primero entenderemos que es md5sum.
+
+En este caso dijimos que nos servirá para saber si el contenido de 2 archivos es igual o distinto, si es distinto significa que se ha actualizado, veamos un ejemplo.
+
+He creado 2 archivos de texto llamados **texto1.txt** y **texto2.txt** pero ambos tienen el mismo contenido el cual eso es "Hello friend" como podemos ver:
+
+![img](/assets/images/Linux/bash/txts.png)
+
+Vemos que contienen el mismo contenido, así que deben tener el mismo hash de huella de archivo, ya que cada archivo contiene un valor hash en base a el contenido, como en este caso el contenido es el mismo, vermos sus valores md5:
+
+![img](/assets/images/Linux/bash/md5.png)
+
+Y vemos que es el mismo valor ya que tienen el mismo contenido, pero si modificamos algun archivo aunque sea un solo un valor vemos que el hash va a cambiar completamente:
+
+![img](/assets/images/Linux/bash/cambio.png)
+
+Podemos ver que el valor del archivo 1 ha cambiado  ya que agregamos un valor y ya no es el mismo hash.
+
+<br>
+
+Así que usaremos esta metodología en el script y nos servirá para comparar el archivo actual con uno nuevo y en caso de que no sean igual reemplazar el antiguo por el nuevo.
+
+Así que en caso de que el archivo **bundle.js** ya se encuentre en el equipo, entonces lo que sucederá es esta siguiente condición **else** que agregamos a la función **actualizarArchivos**:
+
+```sh
+function actualizarArchivos(){ 
+  if [ ! -f bundle.js ]; then
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Actualizando archivos...${endColour}"
+    curl -s -X GET $htbweb > bundle.js
+    js-beautify bundle.js | sponge bundle.js
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
+  else
+    curl -s -X GET $htbweb > bundle_new.js
+    js beautify bundle_new.js | sponge bundle_new.js
+    md5_newhash=$(md5sum bundle_new.js | awk '{print $1}')
+    md5hash=$(md5sum bundle.js | awk '{print $1}')
+  fi
+}
+```
+
+la parte del else es la que nos interesa, vemos que primero obtenemos el contenido de el bundle.js de la web y lo guardamos dentro de un nuevo archivo llamado **bundle_new.js** , ahora le aplicamos el js-beautify para darle el formato más legible, después con sponge reemplazamos el contenido antiguo desordenado con el nuevo ordenado.
+
+Y después creamos 2 variables, estas contienen el valor del hash del comando que arroja md5sum y las guarda cada una en una variable, en este caso en una variable guardamos el hash de el archivo **bundle_new.js** y en la otra en el archivo que ya teniamos.
+
+Y usamos awk y print $1 ya que al hacer md5sum vemos que el valor 1 es el hash:
+
+![img](/assets/images/Linux/bash/hash1.png)
+
+Vemos que nos interesa quedarnos con el primer valor no con toda la linea.
+
+Así que una vez ya tengamos los hash de los 2 archivos en las variables vamos a comprobar si son distintas o no, para ello agregaremos la siguiente condicional:
+
+```sh
+function actualizarArchivos(){
+  tput civis
+
+  if [ ! -f bundle.js ]; then
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Actualizando archivos...${endColour}"
+    curl -s -X GET $htbweb > bundle.js
+    js-beautify bundle.js | sponge bundle.js
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
+  else
+    curl -s -X GET $htbweb > bundle_new.js
+    js beautify bundle_new.js | sponge bundle_new.js
+    md5_newhash=$(md5sum bundle_new.js | awk '{print $1}')
+    md5hash=$(md5sum bundle.js | awk '{print $1}')
+
+    if [ "$md5_newhash" == "$md5hash" ]; then
+      echo -e "${turquoiseColour}[!] Los archivos estan actualizados${endColour}"
+      rm bundle_new.js
+    else
+      echo -e "${yellowColour}[!] Iniciando con las actualizaciones...${endColour}"
+      rm bundle.js && mv bundle_new.js bundle.js
+    fi
+  tput cnorm
+  fi
+}
+```
+
+Primero agregamos una condición que dice que si el contenido de la variable **md5_newhash** es igual a el contenido de la variable **md5hash** entonces lo que ocurrira será que  mostrará un mensaje que los archivos estan actualizados y eliminará el nuevo que se creo para comparar pero como son el mismo entonces se elimina para no tener 2 iguales.
+
+Y en caso de que no sean iguales entonces se irá a el else y ejecutará un mensaje que diec que iniciaron las actualizaciones y lo que sucede es que eliminamos el archivo antiguo osea el **bundle.js** y lo reemplazamos por el nuevo cambiandolo de nombre a **bundle.js** para que este sea el mas nuevo.
+
+Y también en el codigo agregamos **tput civis** que sirve para ocultar el cursor durante la ejecución del código y también al final agregamos **tput cnorm** para restablecer el cursor una vez termine de ejecutarse la función.
 
