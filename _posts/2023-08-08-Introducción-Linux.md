@@ -4947,7 +4947,7 @@ vemos que aquí no estan las maquinas ya que es muy poca información y no vemos
 Vemos demasiados datos de javascript, y todo esta junto y no podemos ver bien, por lo que usaremos la herramienta **js-beautify** y para instalarla debemos ejecutar:
 
 ```sh
-sudo apt install node-js-beautify
+apt-get install jsbeautifier
 ```
 
 Una vez la tengamos, agregaremos con un pipe esa herramienta a la petición de curl y vemos que ahora se ve mejor:
@@ -5263,7 +5263,7 @@ function actualizarArchivos(){
     echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
   else
     curl -s -X GET $htbweb > bundle_new.js
-    js beautify bundle_new.js | sponge bundle_new.js
+    js-beautify bundle_new.js | sponge bundle_new.js
     md5_newhash=$(md5sum bundle_new.js | awk '{print $1}')
     md5hash=$(md5sum bundle.js | awk '{print $1}')
   fi
@@ -5293,7 +5293,7 @@ function actualizarArchivos(){
     echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
   else
     curl -s -X GET $htbweb > bundle_new.js
-    js beautify bundle_new.js | sponge bundle_new.js
+    js-beautify bundle_new.js | sponge bundle_new.js
     md5_newhash=$(md5sum bundle_new.js | awk '{print $1}')
     md5hash=$(md5sum bundle.js | awk '{print $1}')
 
@@ -5303,15 +5303,30 @@ function actualizarArchivos(){
     else
       echo -e "${yellowColour}[!] Iniciando con las actualizaciones...${endColour}"
       rm bundle.js && mv bundle_new.js bundle.js
+      echo -e "${yellowColour}[+] Los archivos se han actualizado correctamente${endColour}"
     fi
-  tput cnorm
   fi
+
+  tput cnorm
 }
 ```
 
-Primero agregamos una condición que dice que si el contenido de la variable **md5_newhash** es igual a el contenido de la variable **md5hash** entonces lo que ocurrira será que  mostrará un mensaje que los archivos estan actualizados y eliminará el nuevo que se creo para comparar pero como son el mismo entonces se elimina para no tener 2 iguales.
+Primero agregamos una condición if que dice que si el contenido de la variable **md5_newhash** es igual a el contenido de la variable **md5hash** entonces lo que ocurrira será que  mostrará un mensaje que los archivos estan actualizados y eliminará el nuevo que se creo para comparar pero como son el mismo entonces se elimina para no tener 2 iguales.
 
-Y en caso de que no sean iguales entonces se irá a el else y ejecutará un mensaje que diec que iniciaron las actualizaciones y lo que sucede es que eliminamos el archivo antiguo osea el **bundle.js** y lo reemplazamos por el nuevo cambiandolo de nombre a **bundle.js** para que este sea el mas nuevo.
+Y en caso de que no sean iguales entonces se irá a el else y ejecutará un mensaje que dice que iniciaron las actualizaciones y lo que sucede es que eliminamos el archivo antiguo osea el **bundle.js** y lo reemplazamos por el nuevo cambiandolo de nombre a **bundle.js** para que este sea el mas nuevo y por último mostramos un mensaje que dice que se ha actualizado correctamente.
 
 Y también en el codigo agregamos **tput civis** que sirve para ocultar el cursor durante la ejecución del código y también al final agregamos **tput cnorm** para restablecer el cursor una vez termine de ejecutarse la función.
 
+Y en este punto esto estaría listo, y probaremos primero:
+
+![img](/assets/images/Linux/bash/ejecucion.png)
+
+Y en caso de que haya una actualización en el archivo sucederá esto:
+
+![img](/assets/images/Linux/bash/actualizacion.png)
+
+Y habremos terminado de definir esta función.
+
+<br>
+
+## 
