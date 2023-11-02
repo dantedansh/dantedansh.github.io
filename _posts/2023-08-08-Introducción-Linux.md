@@ -4867,11 +4867,15 @@ Y sacamos la flag de bandit33:
 
 <br>
 
+---
+
 Y vemos que hemos logrado spawnear una bash, y hemos terminado este nivel y todos los retos que hay por ahora de overthewire.
 
 ![img](/assets/images/Linux/ssh/bandit32-33/credits.png)
 
 <br>
+
+---
 
 # Scripting en Bash - buscador de maquinas en hack the box (script de s4vitar)
 
@@ -4882,6 +4886,8 @@ En este caso vamos a crear un **buscador de información de maquinas en hack the
 Todo esto para practicar, y lo que hará este script es filtrarnos información de determinadas maquinas, ya sea filtrar maquinas por dificultad, nombre, etc.
 
 <br>
+
+---
 
 ## Creando la funcion de salida
 
@@ -4919,6 +4925,8 @@ trap ctrl_c INT
 Vemos que igual agregamos colores, y en la función **ctrl_c** lo que hará es que cuando se presione ctrl + c, se va a ejecutar esa función y mostrara un mensaje en pantalla de que esta saliendo del script y finalmente hacemos un exit 1, que indica una salida no exitosa.
 
 <br>
+
+---
 
 ## Obtener datos de las maquinas
 
@@ -4960,6 +4968,8 @@ Vemos que ya tiene un mejor formato, y ahora podemos trabajar con esto.
 
 <br>
 
+---
+
 Ahora este output lo queremos en un archivo, así que redirigiremos el output a un archivo llamado "bundle.js":
 
 `curl -s -X GET https://htbmachines.github.io/bundle.js > bundle.js`
@@ -4995,6 +5005,8 @@ Y ahora podemos ver que así si pudimos guardar algo de ese mismo archivo en si 
 Y que ahora si se mantiene el formato sin perder los datos.
 
 <br>
+
+---
 
 ## Definiendo y entendiendo el flujo del programa
 
@@ -5076,6 +5088,8 @@ Y en caso de que el valor de **parameter_counter** no sea igual a 1, quiere deci
 
 <br>
 
+---
+
 Y ahora esto en la ejecución se ve así:
 
 ![img](/assets/images/Linux/bash/-m.png)
@@ -5089,6 +5103,8 @@ Y en caso de ejecutar algo que no exista o incorrecto vemos que igual nos funcio
 Vemos que nos ha llevado a la función de ayuda al momento de hacer algo que no existe en el script.
 
 <br>
+
+---
 
 ### Definiendo las funciones
 
@@ -5123,6 +5139,8 @@ function actualizarArchivos(){
 Por el momento solo le indicamos un mensaje de que se actualizará los archivos, esta función la agregamos cerca de las demas funciones.
 
 <br>
+
+---
 
 ### Agregando la funcion actualizarArchivos a el getopts
 
@@ -5162,6 +5180,8 @@ Vemos que agregamos un elif, que esto indica que en caso de que el primer if no 
 
 <br>
 
+---
+
 Así que ahora que definimos esto, ejecutaremos el script con este nuevo parametro para ver que funciona:
 
 ![img](/assets/images/Linux/bash/update.png)
@@ -5184,6 +5204,8 @@ Vemos que hemos agregado la linea del parametro -u, y ahora el helpPanel se ver�
 ![img](/assets/images/Linux/bash/helppanelu.png)
 
 <br>
+
+---
 
 ## Definiendo las instrucciones de la funcion **actualizarArchivos**
 
@@ -5226,6 +5248,8 @@ Así que la primera parte esta hecha.
 
 <br>
 
+---
+
 Pero ahora queremos que si ya existe el archivo bundle.js, buscar si existe alguna actualizacion en el archivo para cambiarlo por este nuevo, así que para esto agregaremos otra condición en caso de exista el archivo ya, lo que haremos será lo siguiente.
 
 ### Definiendo la actualizacion del archivo usando (md5sum)
@@ -5249,6 +5273,8 @@ Y vemos que es el mismo valor ya que tienen el mismo contenido, pero si modifica
 Podemos ver que el valor del archivo 1 ha cambiado  ya que agregamos un valor y ya no es el mismo hash.
 
 <br>
+
+---
 
 Así que usaremos esta metodología en el script y nos servirá para comparar el archivo actual con uno nuevo y en caso de que no sean igual reemplazar el antiguo por el nuevo.
 
@@ -5329,4 +5355,72 @@ Y habremos terminado de definir esta función.
 
 <br>
 
-## 
+---
+
+## Creando un one-liner para obtener los datos de una maquina que nos interesa
+
+Esto lo haremos para definir una función que nos muestre los datos de una maquina, para ello primero buscaremos una maquina en el **bundle.js** para ver como esta estructurada la información:
+
+![img](/assets/images/Linux/bash/info.png)
+
+En este caso nos interesa desde el nombre de la maquina osea el texto **"name:"** hasta el texto **"resuelta:"**, Ya que en ese rango nos interesa los valores name, ip, so, dificultad, etc. hasta llegar a resuelta.
+
+Primero ocupamos crear una cadena de comandos para filtrar los valores que nos interesan:
+
+`cat bundle.js | grep "name: \"Tentacle\"" -A 10`
+
+![img](/assets/images/Linux/bash/tentacle.png)
+
+En este caso estamos viendo que debajo de el valor name se encuentra el resto de valores que nos interesan, en este caso usamos grep y escapamos las comillas dobles dentro de las comillas dobles para evitar una confusion de sintaxis y provocar un error, recuerda que el parametro -A en grep es para ver ciertas lineas hacía abajo de un determinado elemento, en este caso queremos que nos muestre 10 lineas debajo de lo que filtramos.
+
+Pero ahora para este proposito usaremos **awk** no grep, ya que awk nos permite lo siguiente:
+
+`cat bundle.js | awk "/name: \"Tentacle\"/,/resuelta:/"`
+
+En este caso estamos filtrando el valor name: "Tentacle" hasta el valor resuelta: , aquí igual se escapan las comillas dobles, y para filtrar hasta un determinado valor se usa una comilla segudido del valor al cual es hasta donde debemos filtrar, y cada valor debe estar entre barras //, la sintaxis es algo así para que la entiendas mejor:
+
+`awk "/inicio/,/final/"`
+
+Vemos que primero va de donde queremos empezar a filtrar y hasta donde queremos llegar.
+
+Y esto se verá algo así:
+
+![img](/assets/images/Linux/bash/awk.png)
+
+Obviamente en el script el valor del nombre de la maquina será relativo ya que le pediremos a el usuario el nombre de la maquina y através de una variable recibiremos ese valor y lo utilizaremos.
+
+Ahora vamos a eliminar valores que no nos interesan, como id, sku, resuelta, para ello ahora si usaremos grep para remover esos elementos:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep -vE "id|sku|resuelta"`
+
+Y vemos que ya se han removido los elementos que no nos interesan:
+
+![img](/assets/images/Linux/bash/grepvE.png)
+
+Ahora vamos a hacer la información lo mas limpia posible, en este caso removeremos las comillas dobles y comas que tiene la información:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,'`
+
+En este caso usamos **tr** para eliminarlo, y nos quedará así:
+
+![img](/assets/images/Linux/bash/cleanInfo.png)
+
+Ahora lo único que queda por limpiar son los espacios extras que se agregan a el output.
+
+Para ello usaremos **sed**: `sed 's/^ *//'` indicamos que queremos sustituir por eso usamos el valor "s", queremos sustituir los espacios que se representan con '^' y queremos sustituir todos los espacios seguidos que existen, osea si hay 2 espacios seguidos los cambiara por nada por lo que los va a eliminar, por eso pa parte final son 2 barras vacias ya que no hay contenido que reemplazar porque solo queremos eliminar esos espacios.
+
+Y quedará así:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'`
+
+![img](/assets/images/Linux/bash/clean.png)
+
+<br>
+
+---
+
+## Definiendo la funcion **buscarMaquina**
+
+Recordemos que esta función ya la agregamos a el while getopts y también ya la creamos, ahora queda definir las instrucciones, primero 
+
+6:50
