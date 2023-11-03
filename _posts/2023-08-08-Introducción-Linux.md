@@ -5419,8 +5419,95 @@ Y quedará así:
 
 ---
 
-## Definiendo la funcion **buscarMaquina**
+### Definiendo la funcion **buscarMaquina**
 
-Recordemos que esta función ya la agregamos a el while getopts y también ya la creamos, ahora queda definir las instrucciones, primero 
+Recordemos que esta función ya la agregamos a el while getopts y también ya la creamos, ahora queda definir las instrucciones, primero vamos a agregar mensaje en pantalla de lo que esta sucediendo y poner el one-liner que hemos creado anteriormente para mostrar los datos de cierta maquina, y la función **buscarMaquina** quedará así:
 
-6:50
+```sh
+function buscarMaquina(){
+  nombre=$1
+  echo -e "\n${yellowColour}[+] ${greenColour}Listando propiedades de la maquina ${purpleColour}$nombre${endColour}\n"
+  
+  echo -e "${yellowColour}"
+  cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+  echo -e "${endColour}"
+}
+```
+
+Primero recibimos el nombre de la maquina que recordamos se paso en el parametro -m, y lo recibimos y lo almacenamos en una variable llamada **nombre** que en este caso ese valor es el nombre de la maquina.
+
+Luego mostramos un mensaje que indica que se mostraran las propiedades de la maquina, y seguido de eso hacemos el filtrado de información de dicha maquina vemos que llamamos a la variable $nombre con los filtros que creamos anteriormente y en la ejecución se verá algo así:
+
+![img](/assets/images/Linux/bash/machine.png)
+
+Vemos que se muestra todo lo que nos interesa de dicha maquina.
+
+<br>
+
+---
+
+## Definiendo un nuevo parametro al script para buscar una maquina por una IP
+
+Ahora agregaremos algo nuevo, sabemos que primero debemos agregar ese nuevo parametro a el helpPanel para que el usuario sepa, también agregarlo a el while getopts, y por su puesto crear la función y agregarla a el manejo de funciones.
+
+Primero agregaremos su uso en el **helpPanel**:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que hemos agregado el nuevo parametro -i en el panel de ayuda.
+
+<br>
+
+Ahora en el while getopts para que nos detecte este parametro como existente:
+
+```sh
+while getopts "m:i:uh" arg; do
+  case $arg in
+    m) nombreMaquina=$OPTARG; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress=$OPTARG; let parameter_counter+=3;;
+    h) ;;
+  esac
+done
+```
+
+Vemos que hemos agregado el valor de la IP que se pasará como argumento a ese parametro, el valor lo guardaremos dentro de la variable **ipAddress**, y con parameter_counter aumentaremos en 3 para identificarlo en el manejo de funciones.
+
+<br>
+
+Agregando el manejo de función en caso de que se use el parametro -i en el script:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+else
+  helpPanel
+fi
+```
+
+Vemos que si en caso de que el valor del **parameter_counter** sea igual a 3 entonces se ejecutará la función **buscarIp** pasandole como argumento el valor de la variable **ipAddress**.
+
+En resumen hicimos esto:
+
+![img](/assets/images/Linux/bash/newparameter.png)
+
+<br>
+
+---
+
+### Definir la nueva funcion **buscarIp**
+
+Ahora vamos a definir la función **buscarIp** para que en base a una IP dada nos reporte que maquina tiene esa dirección IP.
