@@ -5511,3 +5511,74 @@ En resumen hicimos esto:
 ### Definir la nueva funcion **buscarIp**
 
 Ahora vamos a definir la función **buscarIp** para que en base a una IP dada nos reporte que maquina tiene esa dirección IP.
+
+Primero crearemos un one-liner para que através de una IP dada nos muestre el nombre de la maquina.
+
+Sabemos que todas las maquinas se encuentran dentro del **bundle.js** por lo tanto su IP igual se encuentra en cada maquina.
+
+Así que si filtramos con grep por "ip:" veremos todas:
+
+`cat bundle.js | grep "ip:"`
+
+![img](/assets/images/Linux/bash/ips.png)
+
+Así que para hacer el one-liner usaremos una IP cualquiera de ejemplo y la filtraremos:
+
+`cat bundle.js | grep "ip: \"10.10.10.85\""`
+
+> Recuerda escapar las dobles comillas
+
+Y vemos:
+
+![img](/assets/images/Linux/bash/ip_f.png)
+
+Ahora nos interesa ver 3 elementos hacía arriba ya que arriba se encuentra el nombre de la maquina, así que usaremos el parametro -B de grep:
+
+`cat bundle.js | grep "ip: \"10.10.10.85\"" -B 3`
+
+![img](/assets/images/Linux/bash/name.png)
+
+Vemos que se encuentra ahí el nombre en "name", así que filtraremos por eso que nos interesa:
+
+`cat bundle.js | grep "ip: \"10.10.10.85\"" -B 3 | grep "name:"`
+
+![img](/assets/images/Linux/bash/celestial.png)
+
+Ahora nos interesa quedarnos solo con el valor del nombre no con las comillas, así que usaremos awk para quedarnos con el ultimo elemento:
+
+`cat bundle.js | grep "ip: \"10.10.10.85\"" -B 3 | grep "name:" | awk 'NF{print$NF}'`
+
+![img](/assets/images/Linux/bash/grep.png)
+
+Ahora por ultimo vamos a remover las comillas con tr -d:
+
+`cat bundle.js | grep "ip: \"10.10.10.85\"" -B 3 | grep "name:" | awk 'NF{print$NF}' | tr -d '"|,'`
+
+![img](/assets/images/Linux/bash/endoneliner.png)
+
+Y vemos que ya tenemos el valor solo de lo que nos interesa, ahora simplemente meteremos esto al script y através del parametro -i que agregamos usaremos el argumento pasado a ese parametro para usarlo en una variable y así funcione nuestro script, así que lo agregaremos a la función y nos quedará así:
+
+```sh
+function buscarIp(){
+  ip_address="$1"
+
+  nombreMaquina=$(cat bundle.js | grep "ip: \"$ip_address\"" -B 3 | grep "name:" | awk 'NF{print$NF}' | tr -d '"|,')
+
+  echo -e "\n${turquoisecolour}[+] ${purpleColour}El nombre de la maquina en la IP ${greenColour}$ip_address${purpleColour} es
+ ${greenColour}$nombreMaquina"
+
+}
+```
+
+Como ya vimos primero obtenemos el argumento que se le paso cuando se llamo a la función **buscarIp** en la variable **ip_address**.
+
+Luego el one-liner que recien creamos lo guardamos en una variable llamada **nombreMaquina**, y usamos el valor de la variable **ip_address** para que el one-liner sea relativo en cuanto a todas las IP.
+
+Y por último mostramos el nombre de la maquina de dicha IP.
+
+Y ya habremos terminado de definir esta función.
+
+<br>
+
+---
+
