@@ -5582,3 +5582,244 @@ Y ya habremos terminado de definir esta función.
 
 ---
 
+## Creando una funcion para obtener el Link de Youtube de una maquina
+
+Ahora si queremos obtener el Link para saber como se resuelve una maquina necesitamos crear una función nueva:
+
+Primero agregarla al **helpPanel**:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}y) ${yellowColour}Obtener el link de la resolución de una maquina${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que hemos agregado a el menú de ayuda un parametro -y que indica el uso de ese parametro.
+
+Después lo agregaremos a el while getopts:
+
+```sh
+while getopts "m:i:y:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    h) ;;
+  esac
+done
+```
+Primero agregamos el parametro **y** a el getopts, después definimos en caso de que se use.
+
+Vemos que guardaremos el argumento que se le pasará a ese parametro en caso de que se llame, y se guardará dentro de la variable **NombreMaquina** ya que se pasará el nombre de la maquina que ocupamos para obtener su link, y el **parameter_counter** aumentará en 4 para identificar que parametro se esta usando en el control de funciones.
+
+> Vemos que hemos guardado el valor de cada parametro que se obtiene en sus variables con comillas dobles, esto para que la variable se tome de valor string y evitar errores. es una pequeña corrección pero muy importante.
+
+<br>
+
+Y ahora agregaremos la condición en el manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+else
+  helpPanel
+fi
+```
+
+En este caso se llamará a la función **getLink** y se le pasará como argumento el nombre de la maquina que se le paso al parametro -y.
+
+Esta función **getLink** la crearemos enseguida.
+
+<br>
+
+Antes de definir esta funcion vamos a crear un one-liner para obtener el link de una maquina.
+
+Primero como vimos ya, vamosa  mostrar el rango desde "name" hasta "resuelta" de una maquina:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/"`
+
+![img](/assets/images/Linux/bash/linkentero.png)
+
+Ahora que ya tenemos el rango de esa maquina especifica, en este caso solo nos interesa el link así que usando grep obtendremos ese valor:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep "youtube:"`
+
+![img](/assets/images/Linux/bash/linkcasi.png)
+
+Ahora simplemente nos interesa quedarnos con el último argumento:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep "youtube:" | awk 'NF{print $NF}'`
+
+![img](/assets/images/Linux/bash/linkultimo.png)
+
+Ahora solamente usando tr -d vamos a eliminar las comillas dobles y coma:
+
+`cat bundle.js | awk "/name: \"MultiMaster\"/,/resuelta:/" | grep "youtube:" | awk 'NF{print $NF}' | tr -d '"|,'`
+
+![img](/assets/images/Linux/bash/linklisto.png)
+
+Y vemos que en el output ya tenemos el puro link.
+
+Ahora meteremos este one-liner a la función **getLink**:
+
+```sh
+function getLink(){
+
+  maquina="$1"
+  obtenerLink="$(cat bundle.js | awk "/name: \"$maquina\"/,/resuelta:/" | grep "youtube:" | awk 'NF{print $NF}' | tr -d '"|,')"
+
+  echo -e "${purpleColour}[*] ${turquoiseColour}El link de la resolución de la maquina ${greenColour}$maquina ${turquoiseColour}es: ${greenColour}$obtenerLink${endColour}"
+
+}
+```
+
+Primero obtenemos el valor pasado a la función y lo guardamos como string dentro de la variable **maquina**.
+
+Luego en la variable **obtenerLink** guardamos el output de la salida del one-liner, en este caso la maquina que se le busca el Link es la que contenga la variable **maquina** osea la maquina que el usuario indico en el parametro -y.
+
+Luego con un echo nos muestra el link de la maquina.
+
+Y se verá algo así:
+
+![img](/assets/images/Linux/bash/testscript.png)
+
+<br>
+
+## Agregando a las funciones un mensaje en caso de que el elemento ingresado por el usuario no exista
+
+Ahora debemos arreglar algo, ya que cuando el usuario ingresa algo invalido a cualquiera de los parametros que devuelven un output vemos que se ve así:
+
+![img](/assets/images/Linux/bash/error.png)
+
+Podemos ver que se muestra el output pero no muestra nada, y esto es algo que debemos arreglar.
+
+Así que en cada función vamos a agregar una condición para saber si existe o no.
+
+Para ello iremos a la primera función a arreglar esto, nuestra función **buscarMaquina** se ve así:
+
+```sh
+function buscarMaquina(){
+  nombre=$1
+  echo -e "\n${yellowColour}[+] ${greenColour}Listando propiedades de la maquina ${purpleColour}$nombre${endColour}\n"
+  
+  echo -e "${yellowColour}"
+  cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+  echo -e "${endColour}"
+}
+```
+
+Pero le agregaremos la condicion:
+
+```sh
+function buscarMaquina(){
+  nombre="$1"
+
+  validacion="$(cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+)"
+
+  if [ "$validacion" ]; then
+
+    echo -e "\n${yellowColour}[+] ${greenColour}Listando propiedades de la maquina ${purpleColour}$nombre${endColour}\n"
+    echo -e "${yellowColour}"
+    cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+    echo -e "${endColour}"
+  
+  else
+    echo -e "${redColour}[!] El nombre de la maquina No existe${endColour}"
+  fi
+
+  }
+```
+
+Primero metimos el mismo one-liner en una variable que es el que se mostraba en esta funcion antes de agregar esta condicion, pero esta vez también lo almacenamos en una variable y antes de mostrarse primero se valida si ese valor tiene contenido, si tiene contenido quiere decir que los filtros se aplicaron osea grep, awk, etc. indica que se aplicaron correctamente al encontrar un valor con ese nombre al cual hacerle modificaciones con estos filtros.
+
+Y en caso de que no exista el nombre de esa maquina en el bundle.js que es de donde obtenemos todos los datos entonces la variable quedará vacía ya que no encontro nada a que hacerle esos filtros.
+
+Y recuerda que la condición para saber si una variable tiene contenido es simplemente ponerla así tal cual la variable dentro del if `if [ "$validacion" ]; then` y le estaremos indicando eso sin agregar nada mas.
+
+Y en caso de que si exista vemos que se muestra ahora si el output original, y en caso de que no exista se mostrará un mensaje de que no existe esa maquina.
+
+Y en la practica se verá algo así:
+
+![img](/assets/images/Linux/bash/funka.png)
+
+Ahora si le metemos un valor inexistente nos mostrará ese mensaje en rojo.
+
+<br>
+
+Lo mismo haremos con el resto de funciones que muestran un output, como la función de buscar por IP:
+
+```sh
+function buscarIp(){
+  ip_address="$1"
+
+  nombreMaquina=$(cat bundle.js | grep "ip: \"$ip_address\"" -B 3 | grep "name:" | awk 'NF{print$NF}' | tr -d '"|,')
+
+  if [ "$nombreMaquina" ]; then
+    echo -e "\n${turquoisecolour}[+] ${purpleColour}El nombre de la maquina en la IP ${greenColour}$ip_address${purpleColour}
+es ${greenColour}$nombreMaquina"
+
+  else
+    echo -e "${redColour} [!] La dirección IP proporcionada no existe${endColour}"
+  fi
+}
+```
+
+Usamos el mismo concepto, usando la variable que guarda el puro nombre de la maquina verificamos si en verdad guardo algo ya que de ser asi quiere decir que logro encontrar un valor con el nombre de esa maquina al cual aplicarle los filtros, y de lo contrario si está vacia la variable quiere decir que no encontro nada a que hacerle esos filtros con ese nombre pasado por el parametro.
+
+Así que usando esa variable aplicamos la condición if, y en caso de que si tenga contenido, se mostrará ahora si lo que se mostraba anteriormente que era el nombre de la maquina en base a su IP.
+
+Y así se vería en la practica:
+
+![img](/assets/images/Linux/bash/funka2.png)
+
+<br>
+
+Y por último también haremos esto con la función de **getLink**:
+
+```sh
+function getLink(){
+
+  maquina="$1"
+  obtenerLink="$(cat bundle.js | awk "/name: \"$maquina\"/,/resuelta:/" | grep "youtube:" | awk 'NF{print $NF}' | tr -d '"|,')"
+  
+  if [ "$obtenerLink" ]; then
+    echo -e "${purpleColour}[*] ${turquoiseColour}El link de la resolución de la maquina ${greenColour}$maquina ${turquoiseColour}es: ${greenColour}$obtenerLink${endColour}"
+  
+  else
+    echo -e "${redColour}[!] El nombre de la maquina proporcionada no existe${endColour}"
+  fi
+
+}
+```
+
+Nuevamente el mismo concepto, una vez tengamos el valor en la variable **obtenerLink** comprobaremos con el if si en verdad obtuvo un valor o no encontro nada y solo almaceno una cadena vacia.
+
+En caso de que si encontro a que aplicarle el one-liner en este caso el nombre de la maquina a la cual se le quiere sacar el link de youtube, entonces continuará con normalidad.
+
+Y en caso de que no exista lo que ingreso el usuario entonces mostrará el mensaje de error.
+
+Y el cuál en la practica se ve así:
+
+![img](/assets/images/Linux/bash/funka3.png)
+
+<br>
+
+Y ya habremos definido este concepto en cada función que muestra un output en base al input del usuario, y seguiremos usando este concepto para verificar si el contenido existe o no.
+
+<br>
+
+## 
