@@ -1,7 +1,7 @@
 ---
 layout: single
-title: Introducción a Linux (Completo).
-excerpt: "Introducción completa para comenzar a usar sistemas GNU/Linux."
+title: Introducción a Linux Y Bash scripting (Completo).
+excerpt: "Introducción completa para comenzar a usar sistemas GNU/Linux y también a usar bash scripting para programar tus herramientas."
 date: 2023-08-08
 classes: wide
 
