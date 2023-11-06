@@ -5622,6 +5622,8 @@ Vemos que guardaremos el argumento que se le pasará a ese parametro en caso de 
 
 <br>
 
+---
+
 Y ahora agregaremos la condición en el manejo de funciones:
 
 ```sh
@@ -5644,6 +5646,8 @@ En este caso se llamará a la función **getLink** y se le pasará como argument
 Esta función **getLink** la crearemos enseguida.
 
 <br>
+
+---
 
 Antes de definir esta funcion vamos a crear un one-liner para obtener el link de una maquina.
 
@@ -5697,6 +5701,8 @@ Y se verá algo así:
 ![img](/assets/images/Linux/bash/testscript.png)
 
 <br>
+
+---
 
 ## Agregando a las funciones un mensaje en caso de que el elemento ingresado por el usuario no exista
 
@@ -5760,6 +5766,8 @@ Ahora si le metemos un valor inexistente nos mostrará ese mensaje en rojo.
 
 <br>
 
+---
+
 Lo mismo haremos con el resto de funciones que muestran un output, como la función de buscar por IP:
 
 ```sh
@@ -5787,6 +5795,8 @@ Y así se vería en la practica:
 ![img](/assets/images/Linux/bash/funka2.png)
 
 <br>
+
+---
 
 Y por último también haremos esto con la función de **getLink**:
 
@@ -5818,8 +5828,154 @@ Y el cuál en la practica se ve así:
 
 <br>
 
+---
+
 Y ya habremos definido este concepto en cada función que muestra un output en base al input del usuario, y seguiremos usando este concepto para verificar si el contenido existe o no.
 
 <br>
+
+---
+
+## Creando una funcion para obtener todas las maquinas de una cierta dificultad
+
+Ahora queremos agregar un parametro al script que al usarlo e indicarle la dificultad nos muestre las maquinas con esa dificultad.
+
+Primero ya sabemos lo que se hace, agregar el parametro nuevo al **helpPanel**:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}y) ${yellowColour}Obtener el link de la resolución de una maquina${endColour}"
+  echo -e "\t${purpleColour}d) ${yellowColour}Listar las maquinas en base a su dificultad${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que agregamos el parametro -d que este indicará la dificultad.
+
+Ahora sigue agregarlo al while getopts:
+
+```sh
+while getopts "m:i:y:d:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    d) Dificultad=$OPTARG; let parameter_counter+=5;;
+    h) ;;
+  esac
+done
+```
+
+Vemos que en caso de que se use este parametro, el argumento pasado a este parametro será guardado dentro de la variable **Dificultad**, y aumentamos el **parameter_counter** en 5, recordemos que esto es para identificarlo en el manejo de funciones.
+
+Ahora toca agregarlo al manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+elif [ $parameter_counter -eq 5 ]; then
+  ListarDificultad $Dificultad
+else
+  helpPanel
+fi
+```
+
+En este caso si el **parameter_counter** es igual a 5, entonces llamaremos a la función llamada **listarDificultad** y se le pasa como argumento el valor que se obtuvo del parametro -d.
+
+<br>
+
+---
+
+Ahora vamos a definir la función **ListarDificultad** pero primero necesitamos un one-liner para filtrar las maquinas de cierta dificultad:
+
+Por ejemplo si queremos listar las de dificultad insane haremos esto:
+
+`cat bundle.js | grep "dificultad: \"Insane\""`
+
+![img](/assets/images/Linux/bash/insanes.png)
+
+Y vemos que nos muestra la dificultad de cada maquina que encontro, pero nos interesa ver también el nombre de esa maquina que es insane, por lo que usando el parametro -B de grep listaremos 5 valores anteriores a lo que estamos filtrando así que nos mostrará lo siguiente:
+
+`cat bundle.js | grep "dificultad: \"Insane\"" -B 5`
+
+![img](/assets/images/Linux/bash/diff.png)
+
+Ahora vemos el nombre, pero ahora nos interesa quedarnos con el puro nombre de las maquinas, así que usando grep filtraremos por "name:":
+
+![img](/assets/images/Linux/bash/grepdif.png)
+
+Y ahora queremos quedarnos con el ultimo valor de cada elemento, por lo que usaremo awk:
+
+`cat bundle.js | grep "dificultad: \"Insane\"" -B 5 | grep "name:" | awk 'NF{print $NF}'`
+
+![img](/assets/images/Linux/bash/difgrep.png)
+
+Ya las tenemos, ahora nos interesa quitarles las comillas dobles y simples, ya sabemos que usaremos tr -d:
+
+`cat bundle.js | grep "dificultad: \"Insane\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,'`
+
+![img](/assets/images/Linux/bash/listInsane.png)
+
+Ahora vemos que tenemos todas las de dificultad insane, y agregaremos el comando **column** para acomodarlas en una columna:
+
+`cat bundle.js | grep "dificultad: \"Insane\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column`
+
+Viendose así:
+
+![img](/assets/images/Linux/bash/column.png)
+
+<br>
+
+---
+
+Ahora que ya tenemos el one-liner vamos a definir la función **ListarDificultad**:
+
+```sh
+function ListarDificultad(){
+
+  dificultad="$1"
+
+  dificultadLista="$(cat bundle.js | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,
+' | column)" 
+
+  if [ "$dificultadLista" ]; then
+    echo -e "${purpleColour}[*] ${yellowColour}Las maquinas con dificultad ${greenColour}$dificultad ${yellowColour}son:${endC
+olour}"
+
+    echo -e "${turquoiseColour}"
+    cat bundle.js | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] La dificultad proporcionada no existe${endColour}"
+  fi
+
+}
+```
+
+Primero obtenemos el parametro que se le paso a esa función en la ejecución del script, y luego guardamos en la variable **dificultadLista** el output del one-liner que recien creamos, esto para enseguida en el if comprobar si existe esa dificultad que paso el usuario por el parametro -d.
+
+En caso de que si entonces muestra un mensaje de las maquinas que se van a mostrar para posteriormente mostrar el output del one-liner en color turquoise.
+
+Y en caso de que no exista la dificultad entonces nos dará ese mensaje del else.
+
+Y así se ve en ejecución:
+
+![img](/assets/images/Linux/bash/testend.png)
+
+<br>
+
+---
 
 ## 
