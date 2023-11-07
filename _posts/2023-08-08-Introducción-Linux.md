@@ -5978,4 +5978,109 @@ Y así se ve en ejecución:
 
 ---
 
-## 
+## Creando una funcion para filtrar maquinas por sistema operativo
+
+Ahora vamos a crear una función para que nos muestre las maquinas por sistema operativo, ya sean Linux o Windows.
+
+Primero agregamos al **helpPanel** el parametro para que el usuario sepa cuál es:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}y) ${yellowColour}Obtener el link de la resolución de una maquina${endColour}"
+  echo -e "\t${purpleColour}d) ${yellowColour}Listar las maquinas en base a su dificultad${endColour}"
+  echo -e "\t${purpleColour}o) ${yellowColour}Mostrar las maquinas por sistema operativo especifico${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que agregamos el parametro -o que en este caso es el que usaremos para filtrar las maquinas por sistema operativo.
+
+Ahora agregaremos a el while getopts el parametro:
+
+```sh
+while getopts "m:i:y:d:o:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    d) Dificultad=$OPTARG; let parameter_counter+=5;;
+    o) SO=$OPTARG; let parameter_counter+=6;;
+    h) ;;
+  esac
+done
+```
+
+Agregamos el parametro en el while getopts con dos puntos a la derecha ya que recordamos que recibirá argumentos.
+
+Y ese argumento pasado se almacenará en la variable **SO**, y recordemos aumentar el parameter counter en valor 6 para identificarlo en el manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+elif [ $parameter_counter -eq 5 ]; then
+  ListarDificultad $Dificultad
+elif [ $parameter_counter -eq 6 ]; then
+  ListarSO $SO
+else
+  helpPanel
+fi
+```
+
+Ahora hemos agregado la función en el manejo de funciones, en este caso llamaremos a la función **ListarSO** pasandole el argumento que obtuvimos del parametro -o.
+
+Esta función la vamosa  crear y definir ahora, primero crearemos el one-liner para esta función.
+
+Nos interesa filtrar por sistema operativo, así que para crear el one-liner hacemos lo siguiente:
+
+`cat bundle.js | grep "so: \"Linux\""`
+
+![img](/assets/images/Linux/bash/allLinux.png)
+
+Vemos que filtramos todas las lineas de cada maquina Linux, pero ahora queremos saber el nombre de esa maquina filtrada, por lo que listaremos 5 elementos hacía arriba:
+
+`cat bundle.js | grep "so: \"Linux\"" -B 5`
+
+![img](/assets/images/Linux/bash/filterLinux.png)
+
+Ahora vemos el valor "name:" seguido del nombre que nos interesa, por lo que ahora filtraremos por "name:":
+
+`cat bundle.js | grep "so: \"Linux\"" -B 5 | grep "name:"`
+
+![img](/assets/images/Linux/bash/names.png)
+
+Ahora vemos que ya hemos filtrado las que nos interesan, ahora queda quedarnos con el último argumento:
+
+`cat bundle.js | grep "so: \"Linux\"" -B 5 | grep "name:" | awk 'NF{print $NF}'`
+
+![img](/assets/images/Linux/bash/argend.png)
+
+Y ahora simplemente eliminamos las comillas dobles y comillas con tr -d:
+
+![img](/assets/images/Linux/bash/tr.png)
+
+Y con el comando **column** lo ponemos en formato de columna:
+
+`cat bundle.js | grep "so: \"Linux\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column`
+
+![img](/assets/images/Linux/bash/endliner.png)
+
+Y ya tenemos el one-liner.
+
+<br>
+
+---
+
+Ahora vamos a crear la función **ListarSO**:
+
