@@ -6084,3 +6084,188 @@ Y ya tenemos el one-liner.
 
 Ahora vamos a crear la función **ListarSO**:
 
+```sh
+function ListarSO(){
+
+  so="$1"
+
+  comprobar="$(cat bundle.js | grep "so: \"$so\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "\n${yellowColour}[*] ${blueColour}Listando las maquinas que son ${greenColour}$so:${endColour}"
+    
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "so: \"$so\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] Error, el sistema operativo indicado no existe${endColour}"
+  fi
+}
+```
+
+Primero creamos la variable y su contenido es el output del one-liner que recien creamos, y la guardamos dentro de esta variable que llamamos **comprobar** esto para comprobar que el valor pasado por el parametro -o sea existente.
+
+En caso de que si tenga contenido, entonces muestra un mensaje con ahora si la ejecución del output del one-liner.
+
+En caso de que no entonces mostramos el mensaje de error.
+
+<br>
+
+---
+
+## Configurando la logica en caso de que el usuario quiera buscar por sistema operativo y a la vez por dificultad
+
+Ahora si queremos filtrar las maquinas de x dificultad pero que sean un sistema operativo especifico debemos hacer lo siguiente.
+
+Haremos uso de los **chivato** que son variables extra que nos ayudarán a saber si se llamo a 2 parametros.
+
+Veamos:
+
+```sh
+#Manejo de parametros
+declare -i parameter_counter=0
+
+declare -i chivato_so=0
+declare -i chivato_dificultad=0
+
+while getopts "m:i:y:d:o:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    d) Dificultad=$OPTARG; chivato_dificultad=1; let parameter_counter+=5;;
+    o) SO=$OPTARG; chivato_so=1; let parameter_counter+=6;;
+    h) ;;
+  esac
+done
+```
+
+Primero vemos que declaramos 2 variables, una llamada **chivato_so** y otra llamada **chivato_dificultad** ambas de valor entero e iniciadas en 0.
+
+Estas nos van a servir para saber si se usaron mas parametros.
+
+Vemos que en el parametro -d de dificultad agregamos la instrucción de que la variable **chivato_dificultad** valga 1.
+
+Si el usuario llamo a este parametro aumentará en 1 la variable **chivato_dificultad**.
+
+Pero si el usuario también usa el parametro -o de sistema operativo igual vemos que decimos la instrucción en el parametro -o de que **chivato_so** valga 1.
+
+Así que ya sabemos que si las 2 variables chivato valen 1 ambas, quiere decir que se usaron ambas en una misma llamada al script.
+
+Por lo que ahora nos será más facíl manejar esto en el manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+elif [ $parameter_counter -eq 5 ]; then
+  ListarDificultad $Dificultad
+elif [ $parameter_counter -eq 6 ]; then
+  ListarSO $SO
+elif [ $chivato_dificultad -eq 1 ] && [ $chivato_so -eq 1 ]; then
+  DifSO $SO $Dificultad
+else
+  helpPanel
+fi
+```
+
+vemos que agregamos un elif y en caso de que la variable **chivato_dificultad** sea igual a 1 y también que si la variable **chivato_so** es igual a 1, entonces esto indica que entro a ambas variables y les aumento en valor 1.
+
+Por lo que quiere decir que el usuario paso argumentos a esos 2 parametros, así que llamamos a una función nueva que crearemos llamada **DifSO** y le pasamos los argumentos de cada valor que guardo el parametro.
+
+Y ahora crearemos la funcion **DifSO** pero primero crearemos un one-liner que nos filtre por este par de cosas:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5`
+
+![img](/assets/images/Linux/bash/ambos.png)
+
+Como en este caso ocupamos el nombre de la maquina por la cual estamos filtrando su sistema y su nombre esta arriba del valor desde el cual estamos filtrando en este caso estamos filtrando desde el valor "so: Linux" pero el nombre de la maquina se encuentra varias lineas hacía arriba y la dificultad esta varias lineas hacía abajo.
+
+Y como nos interesa tomar ambos valores pero recordemos que el parametro de grep -A solo nos muestra lineas de abajo y el parametro -B solo las de arriba, usaremos en este caso el parametro -C que nos filtra a ambos lados una cantidad de lineas.
+
+En este caso indicamos que nos muestre 5 lineas hacía arriba y a la vez 5 hacía abajo.
+
+De este modo ya podemos ver lo que nos interesa.
+
+Ahora filtraremos por la dificultad:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5 | grep "dificultad: \"Fácil\""`
+
+Como anteriormente ya habriamos filtrado por las maquinas Linux ahora a estas filtradas filtraremos las que sean de dificultad Facil:
+
+![img](/assets/images/Linux/bash/facc.png)
+
+Ahora nos muestran las que son Linux y Fácil, así que ahora nos interesa ver el nombre de estas maquinas, por lo que mostraremos 5 lineas hacía arriba ya que arriba de cada maquina filtrada se encuentra el nombre de dicha maquina, para ello usamos el parametro -B de grep:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5 | grep "dificultad: \"Fácil\"" -B 5`
+
+![img](/assets/images/Linux/bash/grep5.png)
+
+Y ahora nos interesa quedarnos solo con el nombre:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5 | grep "dificultad: \"Fácil\"" -B 5 | grep "name:"`
+
+![img](/assets/images/Linux/bash/nameos.png)
+
+Y vemos que ahora nos muestra los nombres de las maquinas Linux que son facil, ahora nos quedamos con el último valor y removemos comillas dobles y normales:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5 | grep "dificultad: \"Fácil\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,'`
+
+![img](/assets/images/Linux/bash/listc.png)
+
+No olvidemos mostrarlas en forma de columna:
+
+`cat bundle.js | grep "so: \"Linux\"" -C 5 | grep "dificultad: \"Fácil\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column`
+
+![img](/assets/images/Linux/bash/columna.png)
+
+Ya tenemos el one-liner.
+
+Ahora definiremos la función **DifSO**:
+
+```sh
+function DifSO(){
+  so="$1"
+  dificultad="$2"
+  
+  comprobar="$(cat bundle.js | grep "so: \"$so\"" -C 5 | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "\n${turquoiseColour}[+] ${greenColour}Mostrando las maquinas ${purpleColour}$so ${greenColour}con dificultad ${purpleColour}$dificultad"
+    
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "so: \"$so\"" -C 5 | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] Error el sistema operativo o dificultad no existe${endColour}"
+  fi
+}
+```
+
+Siguiendo la misma lógica que las funciones anteriores, recibimos en este caso 2 argumentos, el de el sistema operativo y el de la dificultad, debemos respetar el orden que hicimos al llamar la función así que primero recibimos el primer parametro que en este caso fue el del sistema operativo y segundo el de la dificultad y los guardamos en variables.
+
+Ahora con el one-liner anterior y obviamente reemplazando los valores que filtramos por las variables guardamos este optut dentro de la variable **comprobar**.
+
+Luego metemos en la condición la variable **comprobar** para ver si tiene contenido, en caso de que si se muestra un mensaje que se va a mostrar y posteriormente se muestra.
+
+Y en caso contrario nos da un mensaje de error.
+
+Y así se ve funcionando:
+
+![img](/assets/images/Linux/bash/sodif.png)
+
+Y habremos terminado con esta funcion.
+
+<br>
+
+---
+
+## Agregando una funcion para filtrar maquinas por skills
+
