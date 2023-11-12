@@ -6377,7 +6377,7 @@ function Skill(){
   comprobar="$(cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
 
   if [ "$comprobar" ]; then
-    echo -e "${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
+    echo -e "\n${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
   
     echo -e "${yellowColour}"
     cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
@@ -6396,6 +6396,10 @@ Luego creamos la variable **comprobar** y guardará el output del one-liner que 
 En caso de que si entonces se muestra lo anterior ahora si en pantalla indicando que se mostrarán las maquinas con cierta skill y después las muestra.
 
 Y en caso de que no simplemente arroja un mensaje de error.
+
+Y así se ve en la ejecución:
+
+![img](/assets/images/Linux/bash/end.png)
 
 <br>
 
@@ -6574,7 +6578,7 @@ function Skill(){
   comprobar="$(cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
 
   if [ "$comprobar" ]; then
-    echo -e "${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
+    echo -e "\n${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
   
     echo -e "${yellowColour}"
     cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
