@@ -6269,3 +6269,367 @@ Y habremos terminado con esta funcion.
 
 ## Agregando una funcion para filtrar maquinas por skills
 
+Por último vamos a crear un nuevo parametro en el script que nos permita filtrar por skills, es decir por temas que se tocan en la maquina, como inyecciones SQL, SSRF, etc.
+
+Supongamos que la skill es "SSRF":
+
+`cat bundle.js | grep "SSRF" -B 6`
+
+![img](/assets/images/Linux/bash/data.png)
+
+Filtramos las maquinas que contengan "SSRF" en skills y con el parametro -B de grep mostramos 6 lineas hacía arriba ya que nos interesa ver el nombre de dicha maquina.
+
+Ahora que ya filtramos las maquinas que tiene skill "SSRF" nos interesa filtrar el puro nombre de dichas maquinas:
+
+`cat bundle.js | grep "SSRF" -B 6 | grep "name:"`
+
+![img](/assets/images/Linux/bash/namess.png)
+
+Ahora nos quedaremos con el puro nombre de las maquinas y removeremos las cosas que no nos interesan como las comillas dobles y normales con tr:
+
+`cat bundle.js | grep "SSRF" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,'`
+
+![img](/assets/images/Linux/bash/purename.png)
+
+Y ahora lo listaremos en una columna:
+
+`cat bundle.js | grep "SSRF" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column`
+
+![img](/assets/images/Linux/bash/column0.png)
+
+Y ya tenemos el one-liner para filtrar por skills.
+
+Ahora crearemos una funcion nueva y todo para implementarlo al script, primero agregamos la opción al **helpPanel**:
+
+```sh
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}y) ${yellowColour}Obtener el link de la resolución de una maquina${endColour}"
+  echo -e "\t${purpleColour}d) ${yellowColour}Listar las maquinas en base a su dificultad${endColour}"
+  echo -e "\t${purpleColour}o) ${yellowColour}Mostrar las maquinas por sistema operativo especifico${endColour}"
+  echo -e "\t${purpleColour}s) ${yellowColour}Filtrar maquinas por skills${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+```
+
+Vemos que hemos agregado el parametro -s , así es como se llamará para filtrar maquinas por skills.
+
+Ahora agregamos este parametro al while getopts:
+
+```sh
+while getopts "m:i:y:d:o:s:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    d) Dificultad=$OPTARG; chivato_dificultad=1; let parameter_counter+=5;;
+    o) SO=$OPTARG; chivato_so=1; let parameter_counter+=6;;
+    s) skill=$OPTARG; let parameter_counter+=7;;
+    h) ;;
+  esac
+done
+```
+
+Vemos que arriba agregamos el parametro s y dos puntos a su derecha ya que recibira argumentos.
+
+Y lo que se reciba al llamar a este parametro se almacenará dentro de la variable **skill** y aumentamos el **parameter_counter** en 7 para darnos cuenta de que se utilizo este parametro en la ejecución del script.
+
+Y por último lo agregaremos a el manejo de funciones:
+
+```sh
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+elif [ $parameter_counter -eq 5 ]; then
+  ListarDificultad $Dificultad
+elif [ $parameter_counter -eq 6 ]; then
+  ListarSO $SO
+elif [ $chivato_dificultad -eq 1 ] && [ $chivato_so -eq 1 ]; then
+  DifSO $SO $Dificultad
+elif [ $parameter_counter -eq 7 ]; then
+  Skill $skill
+else
+  helpPanel
+fi
+```
+
+Vemos que agregamos la condicion en caso de que la variable **parameter_counter** sea igual a 7 entonces indica que el usuario uso el parametro -s. Así que ahora llamaremos a la función **Skill** y le pasamos el valor que paso el usuario y se almaceno en la variable **skill**.
+
+<br>
+
+Y ahora vamos a crear la función **Skill** ya que aún no la creamos:
+
+```sh
+function Skill(){
+
+  skill="$1"
+
+  comprobar="$(cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
+  
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+
+  else
+    echo -e "${redColour}[!] La skill proporcionada No existe${endColour}"
+  fi
+}
+```
+
+Primero guardamos el valor que se le paso a la función, este valor lo recibimos y guardamos dentro de la variable **skill**.
+
+Luego creamos la variable **comprobar** y guardará el output del one-liner que creamos anteriormente, y recordemos que primero lo almacenamos en una variable para comprobar si existe lo que el usuario paso al parametro como argumento.
+
+En caso de que si entonces se muestra lo anterior ahora si en pantalla indicando que se mostrarán las maquinas con cierta skill y después las muestra.
+
+Y en caso de que no simplemente arroja un mensaje de error.
+
+<br>
+
+---
+
+## Proyecto terminado
+
+Y ya hemos terminado con este primer proyecto en bash, el código final del script es:
+
+```sh
+#!/bin/bash
+
+#Colores
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+#Variables Globales
+htbweb="https://htbmachines.github.io/bundle.js"
+
+function ctrl_c(){
+  echo -e "\n${redColour}[!] Saliendo del script...${endColour}\n"
+  exit 1
+}
+
+#Ctrl+c
+trap ctrl_c INT
+
+function helpPanel(){
+  echo -e "\n${greenColour}[!] ${yellowColour}Uso del script:"
+  echo -e "\t${purpleColour}u) ${yellowColour}Actualizar archivos necesarios${endColour}"
+  echo -e "\t${purpleColour}m) ${yellowColour}Buscar una maquina por su nombre${endColour}"
+  echo -e "\t${purpleColour}i) ${yellowColour}Buscar una maquina por su dirección IP${endColour}"
+  echo -e "\t${purpleColour}y) ${yellowColour}Obtener el link de la resolución de una maquina${endColour}"
+  echo -e "\t${purpleColour}d) ${yellowColour}Listar las maquinas en base a su dificultad${endColour}"
+  echo -e "\t${purpleColour}o) ${yellowColour}Mostrar las maquinas por sistema operativo especifico${endColour}"
+  echo -e "\t${purpleColour}s) ${yellowColour}Filtrar maquinas por skills${endColour}"
+  echo -e "\t${purpleColour}h) ${yellowColour}Mostrar este panel de ayuda${endColour}"
+}
+
+function buscarMaquina(){
+  nombre="$1"
+
+  validacion="$(cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+)"
+
+  if [ "$validacion" ]; then
+
+    echo -e "\n${yellowColour}[+] ${greenColour}Listando propiedades de la maquina ${purpleColour}$nombre${endColour}\n"
+    echo -e "${yellowColour}"
+    cat bundle.js | awk "/name: \"$nombre\"/,/resuelta:/" | grep -vE "id|sku|resuelta" | tr -d '"|,' | sed 's/^ *//'
+    echo -e "${endColour}"
+  
+  else
+    echo -e "${redColour}[!] El nombre de la maquina No existe${endColour}"
+  fi
+
+  }
+
+function actualizarArchivos(){
+  tput civis
+
+  if [ ! -f bundle.js ]; then
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Actualizando archivos...${endColour}"
+    curl -s -X GET $htbweb > bundle.js
+    js-beautify bundle.js | sponge bundle.js
+    echo -e "\n${greenColour}[!] ${turquoiseColour}Los archivos se han descargado correctamente!"
+  else
+    curl -s -X GET $htbweb > bundle_new.js
+    js-beautify bundle_new.js | sponge bundle_new.js
+    md5_newhash=$(md5sum bundle_new.js | awk '{print $1}')
+    md5hash=$(md5sum bundle.js | awk '{print $1}')
+
+    if [ "$md5_newhash" == "$md5hash" ]; then
+      echo -e "${turquoiseColour}[!] Los archivos estan actualizados${endColour}"
+      rm bundle_new.js
+    else
+      echo -e "${yellowColour}[!] Iniciando con las actualizaciones...${endColour}"
+      rm bundle.js && mv bundle_new.js bundle.js
+      echo -e "${yellowColour}[+] Los archivos se han actualizado correctamente${endColour}"
+    fi
+  tput cnorm
+  fi
+}
+
+function buscarIp(){
+  ip_address="$1"
+
+  nombreMaquina=$(cat bundle.js | grep "ip: \"$ip_address\"" -B 3 | grep "name:" | awk 'NF{print$NF}' | tr -d '"|,')
+
+  if [ "$nombreMaquina" ]; then
+    echo -e "\n${turquoisecolour}[+] ${purpleColour}El nombre de la maquina en la IP ${greenColour}$ip_address${purpleColour} es ${greenColour}$nombreMaquina"
+
+  else
+    echo -e "${redColour} [!] La dirección IP proporcionada no existe${endColour}"
+  fi
+
+
+}
+
+function getLink(){
+
+  maquina="$1"
+  obtenerLink="$(cat bundle.js | awk "/name: \"$maquina\"/,/resuelta:/" | grep "youtube:" | awk 'NF{print $NF}' | tr -d '"|,')"
+  
+  if [ "$obtenerLink" ]; then
+    echo -e "${purpleColour}[*] ${turquoiseColour}El link de la resolución de la maquina ${greenColour}$maquina ${turquoiseColour}es: ${greenColour}$obtenerLink${endColour}"
+  
+  else
+    echo -e "${redColour}[!] El nombre de la maquina proporcionada no existe${endColour}"
+  fi
+
+}
+
+function ListarDificultad(){
+
+  dificultad="$1"
+
+  dificultadLista="$(cat bundle.js | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)" 
+
+  if [ "$dificultadLista" ]; then
+    echo -e "${purpleColour}[*] ${yellowColour}Las maquinas con dificultad ${greenColour}$dificultad ${yellowColour}son:${endColour}"
+
+    echo -e "${turquoiseColour}"
+    cat bundle.js | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] La dificultad proporcionada no existe${endColour}"
+  fi
+
+}
+
+function ListarSO(){
+
+  so="$1"
+
+  comprobar="$(cat bundle.js | grep "so: \"$so\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "\n${yellowColour}[*] ${blueColour}Listando las maquinas que son ${greenColour}$so:${endColour}"
+    
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "so: \"$so\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] Error, el sistema operativo indicado no existe${endColour}"
+  fi
+}
+
+function DifSO(){
+  so="$1"
+  dificultad="$2"
+  
+  comprobar="$(cat bundle.js | grep "so: \"$so\"" -C 5 | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "\n${turquoiseColour}[+] ${greenColour}Mostrando las maquinas ${purpleColour}$so ${greenColour}con dificultad ${purpleColour}$dificultad"
+    
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "so: \"$so\"" -C 5 | grep "dificultad: \"$dificultad\"" -B 5 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+  else
+    echo -e "${redColour}[!] Error el sistema operativo o dificultad no existe${endColour}"
+  fi
+}
+
+function Skill(){
+
+  skill="$1"
+
+  comprobar="$(cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column)"
+
+  if [ "$comprobar" ]; then
+    echo -e "${blueColour}[+]${purpleColour}Mostrando las maquinas con la skill ${greenColour}$skill${endColour}"
+  
+    echo -e "${yellowColour}"
+    cat bundle.js | grep "$skill" -B 6 | grep "name:" | awk 'NF{print $NF}' | tr -d '"|,' | column
+    echo -e "${endColour}"
+
+  else
+    echo -e "${redColour}[!] La skill proporcionada No existe${endColour}"
+  fi
+
+}
+
+#Manejo de parametros
+declare -i parameter_counter=0
+
+declare -i chivato_so=0
+declare -i chivato_dificultad=0
+
+while getopts "m:i:y:d:o:s:uh" arg; do
+  case $arg in
+    m) nombreMaquina="$OPTARG"; let parameter_counter+=1;;
+    u) let parameter_counter+=2;;
+    i) ipAddress="$OPTARG"; let parameter_counter+=3;;
+    y) NombreMaquina="$OPTARG"; let parameter_counter+=4;;
+    d) Dificultad=$OPTARG; chivato_dificultad=1; let parameter_counter+=5;;
+    o) SO=$OPTARG; chivato_so=1; let parameter_counter+=6;;
+    s) skill=$OPTARG; let parameter_counter+=7;;
+    h) ;;
+  esac
+done
+
+#Manejo de funciones
+if [ $parameter_counter -eq 1 ]; then
+  buscarMaquina $nombreMaquina
+elif [ $parameter_counter -eq 2 ]; then
+  actualizarArchivos
+elif [ $parameter_counter -eq 3 ]; then
+  buscarIp $ipAddress
+elif [ $parameter_counter -eq 4 ]; then
+  getLink $NombreMaquina
+elif [ $parameter_counter -eq 5 ]; then
+  ListarDificultad $Dificultad
+elif [ $parameter_counter -eq 6 ]; then
+  ListarSO $SO
+elif [ $chivato_dificultad -eq 1 ] && [ $chivato_so -eq 1 ]; then
+  DifSO $SO $Dificultad
+elif [ $parameter_counter -eq 7 ]; then
+  Skill $skill
+else
+  helpPanel
+fi
+```
+
+Y esto sería el resultado final.
+
+<br>
+
+---
+
