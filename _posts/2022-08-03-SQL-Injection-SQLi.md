@@ -1228,6 +1228,6 @@ Ahora como sabemos trataremos de enumerar el valor de **password** del usuario a
 
 <br>
 
-Como ya terminamos con esto, siguen más niveles que veremos en una plataforma distinta, en este link esta la segunda parte sobre SQL inyection: [SQLi - Portswigger](https://dantedansh.github.io/SQL-Inyection-SQLi-PortSwigger/)
+Como ya terminamos con esto, siguen más niveles que veremos en una plataforma distinta, en este link esta la segunda parte sobre SQL inyection: [SQLi - Portswigger](https://dantedansh.github.io/SQL-Injection-SQLi-PortSwigger/)
 
 <br>
