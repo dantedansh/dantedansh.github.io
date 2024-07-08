@@ -1,6 +1,8 @@
 main:
   - title: "Inicio"
     url: /
+  - title: "Máquinas"
+    url: /maquinas/
   - title: "Publicaciones"
     url: /year-archive/
   - title: "Categorías"

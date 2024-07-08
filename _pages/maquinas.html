@@ -1,0 +1,17 @@
+---
+layout: default
+title: Máquinas
+permalink: /maquinas/
+---
+
+<h1>Máquinas</h1>
+
+<ul>
+  {% for post in site.posts %}
+    {% if post.path contains '_maquinas' %}
+      <li>
+        <a href="{{ post.url }}">{{ post.title }}</a>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
