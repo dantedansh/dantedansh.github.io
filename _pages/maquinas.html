@@ -4,14 +4,27 @@ title: Máquinas
 permalink: /maquinas/
 ---
 
-<h1>Máquinas</h1>
+<main class="container">
+  <h1 class="page-title">Posts de Máquinas</h1>
 
-<ul>
-  {% for post in site.posts %}
-    {% if post.path contains '_maquinas' %}
-      <li>
-        <a href="{{ post.url }}">{{ post.title }}</a>
-      </li>
-    {% endif %}
-  {% endfor %}
-</ul>
+  <div class="posts-list">
+    {% for post in site.maquinas %}
+      <article class="post">
+        <header class="post-header">
+          <h2 class="post-title"><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+          <p class="post-meta">
+            Publicado el {{ post.date | date: "%d de %B de %Y" }}
+          </p>
+        </header>
+
+        <div class="post-content">
+          {{ post.content }}
+        </div>
+
+        <footer class="post-footer">
+          <!-- Puedes agregar aquí cualquier información adicional, como etiquetas, categorías, etc. -->
+        </footer>
+      </article>
+    {% endfor %}
+  </div>
+</main>

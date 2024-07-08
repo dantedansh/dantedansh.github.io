@@ -1,17 +1,7 @@
 ---
-layout: single
-title: Maquina de prueba
-excerpt: "Explicacion de la maquina iertieroeiropeiro"
-date: 2022-08-03
-classes: wide
-header:
-  teaser: /assets/images/SQLi/SQLi.jpg
-  teaser_home_page: true
-  icon: /assets/images/hackthebox.webp
-categories:
-  - vulnerabilidad web
-tags:  
-  - mysql
-  - SQLi
-  - TryHackMe
+layout: post
+title: Nombre del Post de Máquinas
+date: 2024-07-08
 ---
+
+Contenido del post de máquinas.
