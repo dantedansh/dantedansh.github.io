@@ -1,5 +1,5 @@
  ---
- layout: single
+ layout: home
  title: Nombre del Post de Máquinas
  date: 2024-07-08
  ---

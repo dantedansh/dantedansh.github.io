@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: archive_maquinas
 title: Máquinas
 permalink: /maquinas/
 ---
@@ -9,22 +9,9 @@ permalink: /maquinas/
 
   <div class="posts-list">
     {% for post in site.maquinas %}
-      <article class="post">
-        <header class="post-header">
-          <h2 class="post-title"><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
-          <p class="post-meta">
-            Publicado el {{ post.date | date: "%d de %B de %Y" }}
-          </p>
-        </header>
-
-        <div class="post-content">
-          {{ post.content }}
-        </div>
-
-        <footer class="post-footer">
-          <!-- Puedes agregar aquí cualquier información adicional, como etiquetas, categorías, etc. -->
-        </footer>
-      </article>
+      {% include archive-single.html %}
     {% endfor %}
   </div>
+
+  {% include paginator.html %}
 </main>
