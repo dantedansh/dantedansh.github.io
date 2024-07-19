@@ -102,8 +102,8 @@ analytics:
 # Site Author
 author:
   name             : "Dansh"
-  avatar           : "/assets/images/black.jpg"
-  bio              : "CTF player<br>HackTheBox DHG"
+  avatar           : "/assets/images/heather.jpg"
+  bio              : "CTF player<br>"
   location         : "México"
 #  email           : ""
   uri              :
