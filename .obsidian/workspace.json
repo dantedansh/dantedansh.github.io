@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "5ab2fcd62201c88e",
+        "id": "434bb148f7bc0810",
         "type": "tabs",
         "children": [
           {
-            "id": "d083c718223cd36e",
+            "id": "e4b18cb97085c0b9",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -69,7 +69,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "6bb9d72808435a76",
@@ -146,23 +147,24 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "d083c718223cd36e",
+  "active": "e4b18cb97085c0b9",
   "lastOpenFiles": [
-    "_posts/Permx1.md",
-    "_posts/Permx.md",
-    "_posts/Sea.md",
-    "assets/images/Maquinas/Permx/root.png",
-    "assets/images/Maquinas/Permx/add.png",
-    "assets/images/Maquinas/Permx/helpfile.png",
-    "assets/images/Maquinas/Permx/code.png",
-    "assets/images/Maquinas/Permx/sudo.png",
-    "assets/images/Maquinas/Permx/flag.png",
-    "assets/images/Maquinas/Permx/escalar.png",
-    "assets/images/Maquinas/Permx/mtz.png",
-    "assets/images/Maquinas/Permx/credentials.png",
-    "assets/images/Maquinas/Permx/find.png",
-    "_posts/GreenHorn.md",
+    "assets/images/Maquinas/Sea/rootFlag.png",
+    "assets/images/Maquinas/Sea/root.png",
+    "assets/images/Maquinas/Sea/burp.png",
+    "assets/images/Maquinas/Sea/noread.png",
+    "assets/images/Maquinas/Sea/web2.png",
+    "assets/images/Maquinas/Sea/login.png",
+    "assets/images/Maquinas/Sea/forwarding.png",
+    "assets/images/Maquinas/Sea/8080.png",
+    "assets/images/Maquinas/Sea/amay.png",
+    "assets/images/Maquinas/Sea/users.png",
+    "assets/images/Maquinas/Sea/cracked.png",
     "_posts/BoardLight.md",
+    "_posts/Permx1.md",
+    "_posts/Sea.md",
+    "_posts/GreenHorn.md",
+    "_posts/Permx.md",
     "_posts/2024-07-18-Lame.md",
     "_posts/2024-03-02-Hacking-Con-Python.md",
     "_posts/2023-08-08-Introducción-Linux.md",
