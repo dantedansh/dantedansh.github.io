@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "434bb148f7bc0810",
+        "id": "6be6b5a23f0c4899",
         "type": "tabs",
         "children": [
           {
-            "id": "e4b18cb97085c0b9",
+            "id": "37c909b2318a1579",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Sea.md",
+                "file": "_posts/Editorial.md",
                 "mode": "source",
                 "source": false
               }
@@ -86,7 +86,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "_posts/Sea.md",
+                "file": "_posts/Editorial.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +103,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "_posts/Sea.md",
+                "file": "_posts/Editorial.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,7 +126,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "_posts/Sea.md"
+                "file": "_posts/Editorial.md"
               }
             }
           }
@@ -147,25 +147,27 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "e4b18cb97085c0b9",
+  "active": "37c909b2318a1579",
   "lastOpenFiles": [
-    "assets/images/Maquinas/Sea/rootFlag.png",
-    "assets/images/Maquinas/Sea/root.png",
-    "assets/images/Maquinas/Sea/burp.png",
-    "assets/images/Maquinas/Sea/noread.png",
-    "assets/images/Maquinas/Sea/web2.png",
-    "assets/images/Maquinas/Sea/login.png",
-    "assets/images/Maquinas/Sea/forwarding.png",
-    "assets/images/Maquinas/Sea/8080.png",
-    "assets/images/Maquinas/Sea/amay.png",
-    "assets/images/Maquinas/Sea/users.png",
-    "assets/images/Maquinas/Sea/cracked.png",
+    "assets/images/Maquinas/Editorial/root.png",
+    "assets/images/Maquinas/Editorial/gitpython.png",
+    "assets/images/Maquinas/Editorial/code.png",
+    "assets/images/Maquinas/Editorial/script.png",
+    "assets/images/Maquinas/Editorial/suprod.png",
+    "assets/images/Maquinas/Editorial/prod.png",
+    "assets/images/Maquinas/Editorial/logs.png",
+    "assets/images/Maquinas/Editorial/git.png",
+    "assets/images/Maquinas/Editorial/dev.png",
+    "assets/images/Maquinas/Editorial/credentials.png",
+    "assets/images/Maquinas/Editorial/jq.png",
     "_posts/BoardLight.md",
+    "_posts/Editorial.md",
+    "_posts/GreenHorn.md",
+    "assets/images/Maquinas/Editorial",
     "_posts/Permx1.md",
     "_posts/Sea.md",
-    "_posts/GreenHorn.md",
-    "_posts/Permx.md",
     "_posts/2024-07-18-Lame.md",
+    "_posts/Permx.md",
     "_posts/2024-03-02-Hacking-Con-Python.md",
     "_posts/2023-08-08-Introducción-Linux.md",
     "assets/images/Maquinas/Lame",
