@@ -1,7 +1,7 @@
 main:
   - title: "Inicio"
     url: /
-  - title: "<img src='/home/d4nsh/WebServer/dantedansh.github.io/assets/images/hackthebox.webp' alt='Icono de Writeups' style='width: 20px; vertical-align: middle;'> Writeups"
+  - title: "<img src='/assets/images/hackthebox.webp' alt='' style='width: 20px; vertical-align: middle;'> Writeups"
     url: /writeups/
   - title: "Publicaciones"
     url: /year-archive/
