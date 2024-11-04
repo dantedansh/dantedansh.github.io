@@ -4,19 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "6be6b5a23f0c4899",
+        "id": "ea3d1d00d38166b0",
         "type": "tabs",
         "children": [
           {
-            "id": "37c909b2318a1579",
+            "id": "5405606058389107",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Editorial.md",
+                "file": "_posts/2023-08-08-Introducción-Linux.md",
                 "mode": "source",
                 "source": false
-              }
+              },
+              "icon": "lucide-file",
+              "title": "2023-08-08-Introducción-Linux"
             }
           }
         ]
@@ -39,7 +41,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical"
-              }
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
             }
           },
           {
@@ -54,7 +58,9 @@
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical"
-              }
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
             }
           },
           {
@@ -62,15 +68,16 @@
             "type": "leaf",
             "state": {
               "type": "bookmarks",
-              "state": {}
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
             }
           }
         ]
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "6bb9d72808435a76",
@@ -86,7 +93,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "_posts/Editorial.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -94,7 +100,9 @@
                 "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
-              }
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes"
             }
           },
           {
@@ -103,10 +111,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "_posts/Editorial.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
-              }
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes"
             }
           },
           {
@@ -117,7 +126,9 @@
               "state": {
                 "sortOrder": "frequency",
                 "useHierarchy": true
-              }
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
             }
           },
           {
@@ -125,9 +136,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "_posts/Editorial.md"
-              }
+              "state": {},
+              "icon": "lucide-list",
+              "title": "Esquema"
             }
           }
         ]
@@ -147,30 +158,34 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "37c909b2318a1579",
+  "active": "5405606058389107",
   "lastOpenFiles": [
-    "assets/images/Maquinas/Editorial/root.png",
-    "assets/images/Maquinas/Editorial/gitpython.png",
-    "assets/images/Maquinas/Editorial/code.png",
-    "assets/images/Maquinas/Editorial/script.png",
-    "assets/images/Maquinas/Editorial/suprod.png",
-    "assets/images/Maquinas/Editorial/prod.png",
-    "assets/images/Maquinas/Editorial/logs.png",
-    "assets/images/Maquinas/Editorial/git.png",
-    "assets/images/Maquinas/Editorial/dev.png",
-    "assets/images/Maquinas/Editorial/credentials.png",
-    "assets/images/Maquinas/Editorial/jq.png",
-    "_posts/BoardLight.md",
+    "_posts/2023-09-28-Introducción-Hacking(Pentesting).md",
+    "_posts/2022-08-03-SQL-Injection-SQLi.md",
     "_posts/Editorial.md",
-    "_posts/GreenHorn.md",
-    "assets/images/Maquinas/Editorial",
-    "_posts/Permx1.md",
-    "_posts/Sea.md",
-    "_posts/2024-07-18-Lame.md",
+    "_posts/Cicada.md",
+    "_posts/BoardLight.md",
     "_posts/Permx.md",
+    "_posts/Sightless.md",
+    "assets/images/Maquinas/Sightless/root.png",
+    "assets/images/Maquinas/Sightless/perm.png",
+    "assets/images/Maquinas/Sightless/denied.png",
+    "assets/images/Maquinas/Sightless/on.png",
+    "assets/images/Maquinas/Sightless/off.png",
+    "assets/images/Maquinas/Sightless/fpm.png",
+    "assets/images/Maquinas/Sightless/command.png",
+    "assets/images/Maquinas/Sightless/php.png",
+    "assets/images/Maquinas/Sightless/admin.png",
+    "assets/images/Maquinas/Sightless/credentials.png",
+    "_posts/Sea.md",
+    "assets/images/Maquinas/Sightless",
+    "_posts/GreenHorn.md",
+    "_posts/2024-07-18-Lame.md",
+    "assets/images/Maquinas/Cicada",
+    "_posts/Blurry.md",
+    "assets/images/Maquinas/Editorial",
     "_posts/2024-03-02-Hacking-Con-Python.md",
     "_posts/2023-08-08-Introducción-Linux.md",
-    "assets/images/Maquinas/Lame",
-    "_posts/2023-09-28-Introducción-Hacking(Pentesting).md"
+    "assets/images/Maquinas/Lame"
   ]
 }
