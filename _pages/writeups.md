@@ -4,7 +4,6 @@ title: "Writeups"
 permalink: /writeups/
 ---
 
-<!DOCTYPE html>
 <html>
   <head>
     <meta http-equiv="refresh" content="0; url=https://dantedansh.github.io/WriteupsD4nsh/">
