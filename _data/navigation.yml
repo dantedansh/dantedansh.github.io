@@ -1,8 +1,6 @@
 main:
   - title: "Inicio"
     url: /
-  - title: "<img src='/assets/images/hackthebox.webp' alt='' style='width: 20px; vertical-align: middle;'> Writeups"
-    url: /writeups/
   - title: "Publicaciones"
     url: /year-archive/
   - title: "Categorías"
