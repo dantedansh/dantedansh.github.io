@@ -103,7 +103,7 @@ social:
 author:
   name             : "Dansh"
   avatar           : "/assets/images/heather.jpg"
-  bio              : "CTF player<br>Writeups: <a href='https://dantedansh.github.io/writeups/' style='color: #00bfff; font-weight: bold;'>WriteupsHTB</a>"
+  bio              : "CTF player<br>Writeups Hack The Box: <br><a href='https://dantedansh.github.io/writeups/' style='color: #00bfff; font-weight: bold;'>Writeups</a>"
   location         : "México"
 #  email           : ""
   uri              :
